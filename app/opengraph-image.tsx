@@ -23,7 +23,7 @@ export default function OpenGraphImage() {
           JOOVA
         </div>
         <div style={{ fontSize: 72, fontWeight: 700, marginTop: 24, lineHeight: 1.05 }}>
-          {priceLabel}. No subscription. Ever.
+          {`${priceLabel}. No subscription. Ever.`}
         </div>
       </div>
     ),
