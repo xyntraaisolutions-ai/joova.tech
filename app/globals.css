@@ -1,26 +1,163 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --joova-ink: #15171c;
+  --joova-paper: #f6f3ee;
+  --joova-coral: #f26b4e;
+  --joova-coral-ink: #b8402a;
+  --joova-stone: #e5dfd6;
+  --joova-muted: #5f5a53;
+  --band-midnight: #1c1f26;
+  --band-cloud: #d9dadb;
+  --band-lilac: #b7a6e0;
+  --band-coral: #f26b4e;
+  --band-sage: #8fae95;
+  --joova-white: #fffdf9;
+  --band-black: #1e2026;
+  --band-blue: #2f6bc8;
+  --band-green: #2f8a5a;
+  --band-orange: #ff8424;
+  --band-red: #d8302e;
+  --pod-graphite: #2a2d34;
+  --buckle-silver: #c9ccd1;
+  --box-black: #17191e;
+  --box-blue: #6c98dd;
+  --box-green: #8cc2a2;
+  --box-orange: #f8a765;
+  --box-red: #ef7c75;
+  --ease-joova: cubic-bezier(0.22, 1, 0.36, 1);
+  --text-display: clamp(3.5rem, 8vw, 6rem);
+  --text-h1: clamp(2.5rem, 5vw, 4rem);
+  --text-h2: clamp(2rem, 4vw, 3rem);
+  --text-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --text-body: clamp(1.0625rem, 1.2vw, 1.125rem);
+  --text-small: 0.875rem;
+  --fixed-ink: #15171c;
+  --fixed-paper: #f6f3ee;
+  --fixed-white: #fffdf9;
+  --fixed-stone: #e5dfd6;
+  --fixed-muted: #5f5a53;
+  color-scheme: light;
+}
+
+html[data-theme="night"] {
+  --joova-paper: #101217;
+  --joova-ink: #f6f3ee;
+  --joova-stone: #2e333c;
+  --joova-muted: #b6b0a7;
+  --joova-white: #1a1e26;
+  --joova-coral-ink: #ffb4a2;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--joova-ink);
+  --color-paper: var(--joova-paper);
+  --color-coral: var(--joova-coral);
+  --color-coral-ink: var(--joova-coral-ink);
+  --color-stone: var(--joova-stone);
+  --color-muted: var(--joova-muted);
+  --color-white: var(--joova-white);
+  --color-band-black: var(--band-black);
+  --color-band-blue: var(--band-blue);
+  --color-band-green: var(--band-green);
+  --color-band-orange: var(--band-orange);
+  --color-band-red: var(--band-red);
+  --color-pod-graphite: var(--pod-graphite);
+  --color-buckle: var(--buckle-silver);
+  --color-box-black: var(--box-black);
+  --color-box-blue: var(--box-blue);
+  --color-box-green: var(--box-green);
+  --color-box-orange: var(--box-orange);
+  --color-box-red: var(--box-red);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-syne);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--joova-paper);
+  color: var(--joova-ink);
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--joova-coral);
+  color: var(--fixed-ink);
+}
+
+.cinematic {
+  --joova-ink: var(--fixed-ink);
+  --joova-paper: var(--fixed-paper);
+  --joova-white: var(--fixed-white);
+  --joova-stone: var(--fixed-stone);
+  --joova-muted: var(--fixed-muted);
+  --joova-coral-ink: #f26b4e;
+  background: var(--fixed-ink);
+  color: var(--fixed-paper);
+}
+
+.stage {
+  --joova-ink: var(--fixed-ink);
+  --joova-paper: var(--fixed-paper);
+  --joova-white: var(--fixed-white);
+  --joova-stone: var(--fixed-stone);
+  --joova-muted: var(--fixed-muted);
+  --joova-coral-ink: #b8402a;
+  background: var(--fixed-white);
+  color: var(--fixed-ink);
+}
+
+.logo-night {
+  display: none;
+}
+
+html[data-theme="night"] .logo-day {
+  display: none;
+}
+
+html[data-theme="night"] .logo-night {
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--joova-coral-ink);
+  outline-offset: 3px;
+}
+
+.font-display {
+  font-family: var(--font-syne), var(--font-dm-sans), system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+
+.band-mark {
+  position: absolute;
+  z-index: 1;
+  left: 73%;
+  top: 58%;
+  width: 28%;
+  height: auto;
+  transform: translate(-50%, -50%) rotate(82deg);
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
 }

@@ -1,0 +1,33 @@
+{
+  "name": "Joova",
+  "colors": {
+    "joova-ink": "#15171C",
+    "joova-paper": "#F6F3EE",
+    "joova-coral": "#F26B4E",
+    "joova-coral-ink": "#B8402A",
+    "joova-stone": "#E5DFD6",
+    "joova-muted": "#5F5A53",
+    "joova-white": "#FFFDF9",
+    "band-black": "#1E2026",
+    "band-blue": "#2F6BC8",
+    "band-green": "#2F8A5A",
+    "band-orange": "#FF8424",
+    "band-red": "#D8302E",
+    "pod-graphite": "#2A2D34",
+    "buckle-silver": "#C9CCD1",
+    "box-black": "#17191E",
+    "box-blue": "#6C98DD",
+    "box-green": "#8CC2A2",
+    "box-orange": "#F8A765",
+    "box-red": "#EF7C75",
+    "ring-silver": "#C9CCD1",
+    "ring-matte-black": "#2A2B2F",
+    "ring-gold": "#D4B26A",
+    "ring-rose-gold": "#D4A08C",
+    "ring-brushed-silver": "#B8BCC2"
+  },
+  "fonts": {
+    "display": "Syne 800",
+    "body": "DM Sans 400/500/600/700"
+  }
+}

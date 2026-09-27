@@ -1,0 +1,38 @@
+/* Joova brand colors - paste into your site's global CSS */
+:root {
+  /* Brand */
+  --joova-ink: #15171C;        /* text, dark sections (about 25%) */
+  --joova-paper: #F6F3EE;      /* backgrounds, box (about 60%) */
+  --joova-coral: #F26B4E;      /* buttons, accents, the dot (about 10%) */
+  --joova-coral-ink: #B8402A;  /* small coral text on light backgrounds */
+  --joova-stone: #E5DFD6;      /* lines, cards */
+  --joova-muted: #5F5A53;      /* secondary text */
+  --joova-white: #FFFDF9;
+
+  /* Joova Band strap colors (woven loop) */
+  --band-black: #1E2026;
+  --band-blue: #2F6BC8;
+  --band-green: #2F8A5A;
+  --band-orange: #FF8424;
+  --band-red: #D8302E;
+  --pod-graphite: #2A2D34;     /* tracker */
+  --buckle-silver: #C9CCD1;
+
+  /* Box colors (match the band inside) */
+  --box-black: #17191E;
+  --box-blue: #6C98DD;
+  --box-green: #8CC2A2;
+  --box-orange: #F8A765;
+  --box-red: #EF7C75;
+
+  /* Joova Ring finishes (later) */
+  --ring-silver: #C9CCD1;
+  --ring-matte-black: #2A2B2F;
+  --ring-gold: #D4B26A;
+  --ring-rose-gold: #D4A08C;
+  --ring-brushed-silver: #B8BCC2;
+
+  /* Type */
+  --font-display: 'Syne', sans-serif;   /* 800 for headlines and wordmark */
+  --font-body: 'DM Sans', sans-serif;   /* 400 body, 600 labels, 700 buttons */
+}

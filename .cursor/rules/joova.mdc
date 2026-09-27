@@ -1,0 +1,14 @@
+---
+description: Joova website coding rules
+globs: ["**/*.{ts,tsx,css,md}"]
+alwaysApply: true
+---
+- Stack: Next.js App Router, TypeScript strict, Tailwind v4 tokens from globals.css, Radix primitives, Motion, GSAP ScrollTrigger (client components only). Shopify, Sanity, and Mux come in a later phase.
+- Server Components by default; add "use client" only for interactivity. Keep client bundles small; dynamic-import GSAP, 3D and third-party widgets.
+- Use design tokens (var(--joova-*)) and the type scale; never hard-code new colors.
+- Every image uses next/image with width/height or fill + sizes. Every video has a poster and respects prefers-reduced-motion.
+- Accessibility first: semantic elements, labels, focus states, aria where needed; swatches have text labels.
+- Copy rules: wellness language only, no medical claims; never fabricate reviews, ratings, stock counts or urgency; prices and promises come from content/site.ts until Shopify/CMS is connected.
+- Checkout always via Shopify cart.checkoutUrl when commerce is live. Never handle card data.
+- Validate all API input with Zod; secrets only on the server.
+- Mark unknown product facts as [CONFIRM: ...] instead of guessing.
