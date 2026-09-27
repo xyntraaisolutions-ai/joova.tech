@@ -14,16 +14,20 @@ export const metadata: Metadata = {
 export default function AppPage() {
   return (
     <>
-      <Container className="py-16">
+      <Container className="py-10 md:py-16">
         <h1
           className="font-display max-w-3xl font-extrabold"
           style={{ fontSize: "var(--text-h1)" }}
         >
-          The app is included. Your data stays yours.
+          APP Download
         </h1>
-        <p className="mt-6 max-w-2xl text-muted">
+        <p className="mt-6 max-w-2xl text-lg text-muted">
+          The app is included. Your data stays yours.
+        </p>
+        <p className="mt-4 max-w-2xl text-muted">
           Your data is stored in the US and never sold. You can delete your
-          account in the app. Supported phones: [CONFIRM].
+          account in the app. Supported phones: [CONFIRM]. Store links go live
+          after App Store and Google Play approval.
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Badge>App Store (after approval)</Badge>

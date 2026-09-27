@@ -2,9 +2,12 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { BandPhoto } from "@/components/media/band-photo";
+import { ProductTurntable } from "@/components/media/product-turntable";
 import {
   bandVariants,
   boxBack,
+  boxImageSize,
   boxFacts,
   inTheBox,
   unboxingImage,
@@ -50,27 +53,36 @@ export function BoxDesign() {
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <figure className="stage overflow-hidden rounded-[24px]">
-            <Image
-              src={selected.box}
-              alt={`${selected.name} Joova Band box, front`}
-              width={748}
-              height={868}
-              className="h-auto w-full"
-              sizes="(min-width: 1024px) 600px, 100vw"
-            />
+            <div className="px-6 pt-6">
+              <ProductTurntable>
+                <BandPhoto
+                  src={selected.box}
+                  mark="box"
+                  alt={`${selected.name} Joova Band box, front`}
+                  width={boxImageSize.width}
+                  height={boxImageSize.height}
+                  className="h-auto w-full"
+                  sizes="(min-width: 1024px) 600px, 100vw"
+                />
+              </ProductTurntable>
+            </div>
             <figcaption className="px-6 pb-6 text-sm text-muted">
               Front · {selected.name} · box {selected.boxHex}
             </figcaption>
           </figure>
           <figure className="stage overflow-hidden rounded-[24px]">
-            <Image
-              src={boxBack}
-              alt="Joova Band box back, the same on every color"
-              width={748}
-              height={868}
-              className="h-auto w-full"
-              sizes="(min-width: 1024px) 600px, 100vw"
-            />
+            <div className="px-6 pt-6">
+              <ProductTurntable>
+                <Image
+                  src={boxBack}
+                  alt="Joova Band box back, the same on every color"
+                  width={748}
+                  height={868}
+                  className="h-auto w-full"
+                  sizes="(min-width: 1024px) 600px, 100vw"
+                />
+              </ProductTurntable>
+            </div>
             <figcaption className="px-6 pb-6 text-sm text-muted">
               Back · same on every color · English and French
             </figcaption>
@@ -90,7 +102,7 @@ export function BoxDesign() {
           <div>
             <h3 className="font-display text-3xl font-bold">What you open</h3>
             <p className="mt-3 text-muted">
-              Lift the lid: the tracker and three straps in a molded paper tray.
+              Lift the lid: the tracker and two straps in a molded paper tray.
               Cable and cards sit in the drawer underneath.
             </p>
             <ul className="mt-6 space-y-3">
@@ -103,7 +115,7 @@ export function BoxDesign() {
           </div>
           <Image
             src={unboxingImage}
-            alt="Joova unboxing: lid message, paper tray with three straps, and the cards inside"
+            alt="Joova unboxing: lid message, paper tray with two straps, and the cards inside"
             width={2560}
             height={2160}
             className="h-auto w-full rounded-[24px]"

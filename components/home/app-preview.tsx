@@ -44,7 +44,7 @@ export function AppPreview() {
             {appScreens.map((item, i) => (
               <button
                 key={item.id}
-                className="rounded-full border border-stone px-3 py-1 text-sm aria-pressed:border-ink"
+                className="inline-flex min-h-11 items-center rounded-full border border-stone px-4 text-sm aria-pressed:border-ink"
                 aria-pressed={i === index}
                 onClick={() => setIndex(i)}
               >

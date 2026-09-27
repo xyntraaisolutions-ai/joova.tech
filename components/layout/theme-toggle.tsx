@@ -27,7 +27,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-pressed={night}
       aria-label={night ? "Switch to day mode" : "Switch to night mode"}
-      className="flex size-10 items-center justify-center rounded-full border border-stone hover:bg-stone"
+      className="flex size-11 items-center justify-center rounded-full border border-stone hover:bg-stone"
     >
       {night ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </button>

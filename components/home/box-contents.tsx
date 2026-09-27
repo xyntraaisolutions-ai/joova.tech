@@ -1,4 +1,4 @@
-import { inTheBox } from "@/content/site";
+import { inTheBox, policies } from "@/content/site";
 import { VideoPlayer } from "@/components/media/video-player";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -12,10 +12,10 @@ export function BoxContents() {
             className="font-display font-extrabold"
             style={{ fontSize: "var(--text-h2)" }}
           >
-            3 straps in every box
+            2 straps in every box
           </h2>
           <p className="mt-4 max-w-md text-muted">
-            Swap a strap in seconds. Lifetime warranty on every strap we ship.
+            Swap a strap in seconds. {policies.strapSummary}
           </p>
           <ul className="mt-8 space-y-3">
             {inTheBox.map((item) => (

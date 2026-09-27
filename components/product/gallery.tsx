@@ -1,8 +1,11 @@
 "use client";
 
 import { BandPhoto } from "@/components/media/band-photo";
+import { ProductTurntable } from "@/components/media/product-turntable";
+import { bandImageSize } from "@/content/site";
 import { cn } from "@/lib/utils";
 import type { BandVariant } from "@/content/site";
+import { useState } from "react";
 
 export function Gallery({
   variants,
@@ -16,15 +19,17 @@ export function Gallery({
   return (
     <div>
       <div className="stage flex justify-center rounded-[24px] p-6">
-        <BandPhoto
-          src={selected.image}
-          alt={`Joova Band in ${selected.name}`}
-          width={520}
-          height={750}
-          priority
-          className="h-auto max-h-[640px] w-auto"
-          sizes="(min-width: 1024px) 560px, 100vw"
-        />
+        <ProductTurntable>
+          <BandPhoto
+            src={selected.image}
+            alt={`Joova Band in ${selected.name}`}
+            width={bandImageSize.width}
+            height={bandImageSize.height}
+            priority
+            className="h-auto max-h-[min(52vh,640px)] w-auto"
+            sizes="(min-width: 1024px) 560px, 100vw"
+          />
+        </ProductTurntable>
       </div>
       <div className="mt-4 flex gap-3 overflow-auto">
         {variants.map((variant) => (
@@ -42,8 +47,8 @@ export function Gallery({
             <BandPhoto
               src={variant.image}
               alt=""
-              width={520}
-              height={750}
+              width={bandImageSize.width}
+              height={bandImageSize.height}
               loading="eager"
               className="pointer-events-none h-auto w-full"
             />
@@ -64,7 +69,7 @@ export function Quantity({
   return (
     <div className="flex items-center gap-3">
       <button
-        className="size-10 rounded-full border border-stone"
+        className="size-11 rounded-full border border-stone"
         onClick={() => onChange(Math.max(1, value - 1))}
         aria-label="Decrease quantity"
       >
@@ -72,7 +77,7 @@ export function Quantity({
       </button>
       <span>{value}</span>
       <button
-        className="size-10 rounded-full border border-stone"
+        className="size-11 rounded-full border border-stone"
         onClick={() => onChange(value + 1)}
         aria-label="Increase quantity"
       >

@@ -1,7 +1,6 @@
-import { AnnouncementBar } from "@/components/layout/announcement-bar";
+import { AppFrame } from "@/components/layout/app-frame";
 import { CartDrawer } from "@/components/layout/cart-drawer";
-import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
+import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
 import type { ReactNode } from "react";
 
 export function SiteShell({ children }: { children: ReactNode }) {
@@ -13,12 +12,8 @@ export function SiteShell({ children }: { children: ReactNode }) {
       >
         Skip to content
       </a>
-      <AnnouncementBar />
-      <Header />
-      <main id="main" className="flex-1">
-        {children}
-      </main>
-      <Footer />
+      <AppFrame>{children}</AppFrame>
+      <MobileTabBar />
       <CartDrawer />
     </>
   );

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function AccessibilityPage() {
   return (
-    <Container className="max-w-3xl py-16">
+    <Container className="max-w-3xl py-10 md:py-16">
       <h1
         className="font-display font-extrabold"
         style={{ fontSize: "var(--text-h1)" }}

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <Container className="max-w-3xl py-16">
+    <Container className="max-w-3xl py-10 md:py-16">
       <p className="text-sm text-muted">Draft. Lawyer review required before launch.</p>
       <h1
         className="font-display mt-3 font-extrabold"

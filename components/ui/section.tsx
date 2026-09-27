@@ -6,6 +6,6 @@ export function Section({
   ...props
 }: HTMLAttributes<HTMLElement>) {
   return (
-    <section className={cn("py-16 sm:py-24", className)} {...props} />
+    <section className={cn("py-12 sm:py-24", className)} {...props} />
   );
 }

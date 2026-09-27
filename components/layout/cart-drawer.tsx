@@ -14,10 +14,10 @@ export function CartDrawer() {
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-[var(--fixed-ink)]/45" />
-        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-paper p-6 shadow-2xl">
+        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-paper px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl">
           <div className="mb-6 flex items-center justify-between">
             <Dialog.Title className="font-display text-2xl">Cart</Dialog.Title>
-            <Dialog.Close className="rounded-full p-2 hover:bg-stone" aria-label="Close cart">
+            <Dialog.Close className="flex size-11 items-center justify-center rounded-full hover:bg-stone" aria-label="Close cart">
               <X className="size-5" />
             </Dialog.Close>
           </div>
@@ -36,7 +36,7 @@ export function CartDrawer() {
                       <p className="mt-1">{formatUsd(item.price)}</p>
                     </div>
                     <button
-                      className="text-sm text-coral-ink underline"
+                      className="inline-flex min-h-11 items-center text-sm text-coral-ink underline"
                       onClick={() => removeItem(item.id)}
                     >
                       Remove
@@ -44,7 +44,7 @@ export function CartDrawer() {
                   </div>
                   <div className="mt-3 flex items-center gap-3">
                     <button
-                      className="size-8 rounded-full border border-stone"
+                      className="size-11 rounded-full border border-stone"
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       aria-label={`Decrease ${item.name}`}
                     >
@@ -52,7 +52,7 @@ export function CartDrawer() {
                     </button>
                     <span>{item.quantity}</span>
                     <button
-                      className="size-8 rounded-full border border-stone"
+                      className="size-11 rounded-full border border-stone"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       aria-label={`Increase ${item.name}`}
                     >

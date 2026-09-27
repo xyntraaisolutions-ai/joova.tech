@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "@/components/brand/logo";
-import { company, nav, socialLinks } from "@/content/site";
+import { PaymentMarks } from "@/components/layout/payment-marks";
+import { SocialIcons } from "@/components/layout/social-icons";
+import { company, nav, priceLabel, supportMenu } from "@/content/site";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
@@ -20,7 +22,7 @@ export function Footer() {
             <Logo />
           </Link>
           <p className="mt-3 max-w-md text-muted">
-            Joova Band. $49.99. No subscription. Ever.
+            Joova Band. {priceLabel}. No subscription. Ever.
           </p>
           <form
             className="mt-6 flex max-w-md flex-col gap-3 sm:flex-row"
@@ -56,7 +58,7 @@ export function Footer() {
         </div>
         <div>
           <p className="font-medium">Shop</p>
-          <ul className="mt-3 space-y-2 text-muted">
+          <ul className="mt-3 space-y-1 text-muted [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
             {nav.map((item) => (
               <li key={item.href}>
                 <Link href={item.href}>{item.label}</Link>
@@ -72,13 +74,15 @@ export function Footer() {
         </div>
         <div>
           <p className="font-medium">Company</p>
-          <ul className="mt-3 space-y-2 text-muted">
+          <ul className="mt-3 space-y-1 text-muted [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
             <li>
               <Link href="/about">About</Link>
             </li>
-            <li>
-              <Link href="/contact">Contact</Link>
-            </li>
+            {supportMenu.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href}>{item.label}</Link>
+              </li>
+            ))}
             <li>
               <Link href="/warranty">Warranty</Link>
             </li>
@@ -100,24 +104,22 @@ export function Footer() {
           </ul>
         </div>
       </Container>
-      <Container className="mt-12 flex flex-col gap-4 border-t border-stone pt-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+      <Container className="mt-12 border-t border-stone pt-8 text-sm text-muted">
         <p>
           {company.legalName}
           <br />
-          {company.address}
+          Business address: {company.address}
         </p>
-        <div className="flex flex-wrap gap-4">
-          {socialLinks.map((link) => (
-            <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
-              {link.label}
-            </a>
-          ))}
-        </div>
+        <p className="mt-3">Also on Amazon and TikTok Shop (links coming).</p>
       </Container>
-      <Container className="mt-6 flex flex-wrap items-center justify-between gap-4 text-sm text-muted">
-        <p>Also on Amazon and TikTok Shop (links coming).</p>
-        <p>Shop Pay · Apple Pay · PayPal · Cards via Shopify checkout later</p>
-      </Container>
+      <div className="cinematic mt-10">
+        <Container className="flex flex-col items-center gap-8 py-10">
+          <SocialIcons />
+          <div className="h-px w-full bg-paper/20" aria-hidden="true" />
+          <PaymentMarks />
+          <p className="text-sm text-paper/80">{company.copyright}</p>
+        </Container>
+      </div>
     </footer>
   );
 }

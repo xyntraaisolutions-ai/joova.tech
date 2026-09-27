@@ -5,22 +5,22 @@ import { HelpSearch } from "@/components/help/help-search";
 import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
-  title: "Help",
+  title: "FAQs",
   description: "Setup, battery life, charging, handling, water, strap swap, and syncing for Joova Band.",
 };
 
 export default function HelpIndexPage() {
   return (
-    <Container className="py-16">
+    <Container className="py-10 md:py-16">
       <h1
         className="font-display font-extrabold"
         style={{ fontSize: "var(--text-h1)" }}
       >
-        Help
+        FAQs
       </h1>
       <p className="mt-4 max-w-2xl text-muted">
         Short guides for setup, battery life, charging, handling, water, and
-        strap swaps. Live chat comes later.
+        strap swaps.
       </p>
       <HelpSearch />
       <ul className="mt-10 grid gap-4 md:grid-cols-2">

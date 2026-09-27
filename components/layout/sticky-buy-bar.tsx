@@ -12,7 +12,7 @@ export function StickyBuyBar({
   label: string;
 }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-stone bg-paper/95 p-3 backdrop-blur md:hidden">
+    <div className="fixed inset-x-0 z-30 border-t border-stone bg-paper/95 p-3 backdrop-blur md:hidden" style={{ bottom: "calc(var(--app-tab) + env(safe-area-inset-bottom))" }}>
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium">{label}</p>

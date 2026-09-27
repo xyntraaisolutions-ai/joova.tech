@@ -25,7 +25,7 @@ export default async function HelpArticlePage({ params }: Props) {
   if (!article) notFound();
 
   return (
-    <Container className="max-w-3xl py-16">
+    <Container className="max-w-3xl py-10 md:py-16">
       <Link href="/help" className="text-sm text-coral-ink underline">
         All help articles
       </Link>

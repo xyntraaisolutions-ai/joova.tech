@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function ReviewsPage() {
   return (
-    <Container className="py-16">
+    <Container className="py-10 md:py-16">
       <h1
         className="font-display font-extrabold"
         style={{ fontSize: "var(--text-h1)" }}

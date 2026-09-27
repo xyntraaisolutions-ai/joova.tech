@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { priceLabel } from "@/content/site";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -22,7 +23,7 @@ export default function OpenGraphImage() {
           JOOVA
         </div>
         <div style={{ fontSize: 72, fontWeight: 700, marginTop: 24, lineHeight: 1.05 }}>
-          $49.99. No subscription. Ever.
+          {priceLabel}. No subscription. Ever.
         </div>
       </div>
     ),

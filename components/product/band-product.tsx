@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { bandVariants, PRICE, SHIP_DATE, type BandVariant } from "@/content/site";
+import Link from "next/link";
+import { bandVariants, policies, PREORDER_SHORT, PRICE, SHIP_DATE, type BandVariant } from "@/content/site";
 import { useCart } from "@/components/layout/cart-provider";
 import { StickyBuyBar } from "@/components/layout/sticky-buy-bar";
 import { Gallery, Quantity } from "@/components/product/gallery";
+import { strapCartItem, StrapColorChoices } from "@/components/product/strap-colors";
 import { InTheBox } from "@/components/product/in-the-box";
 import { SpecsTable } from "@/components/product/specs-table";
 import { UseAndCare } from "@/components/product/use-and-care";
@@ -16,26 +18,20 @@ import { faqs } from "@/content/site";
 import { formatUsd } from "@/lib/utils";
 
 export function BandProduct() {
-  const [selected, setSelected] = useState<BandVariant>(bandVariants[0]);
+  const [worn, setWorn] = useState<BandVariant>(bandVariants[0]);
+  const [extra, setExtra] = useState<BandVariant>(bandVariants[1]);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
 
-  const add = () =>
-    addItem({
-      id: selected.id,
-      name: "Joova Band",
-      price: selected.price,
-      color: selected.name,
-      quantity,
-    });
+  const add = () => addItem(strapCartItem(worn, extra, quantity));
 
   return (
     <>
-      <Container className="grid gap-10 py-12 pb-28 lg:grid-cols-2 md:pb-12">
+      <Container className="grid gap-8 py-8 lg:grid-cols-2 md:gap-10 md:py-12">
         <Gallery
           variants={bandVariants}
-          selected={selected}
-          onSelect={setSelected}
+          selected={worn}
+          onSelect={setWorn}
         />
         <div>
           <h1
@@ -47,30 +43,16 @@ export function BandProduct() {
           <p className="mt-3 text-2xl">{formatUsd(PRICE)}</p>
           <Badge className="mt-4">No subscription. Ever.</Badge>
           <p className="mt-6 text-muted">
-            Screenless fitness tracker. 3 straps in every box. Ships {SHIP_DATE}.
+            Screenless fitness tracker. 2 straps in every box. Launches {SHIP_DATE}.
           </p>
-          <fieldset className="mt-8">
-            <legend className="font-medium">Color</legend>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {bandVariants.map((variant) => (
-                <button
-                  key={variant.id}
-                  type="button"
-                  aria-pressed={variant.id === selected.id}
-                  aria-label={variant.name}
-                  onClick={() => setSelected(variant)}
-                  className="flex items-center gap-2 rounded-full border border-stone px-3 py-2 text-sm aria-pressed:border-ink"
-                >
-                  <span
-                    className="size-5 rounded-full border border-stone"
-                    style={{ background: variant.strapHex }}
-                    aria-hidden
-                  />
-                  {variant.name}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <div className="mt-8">
+            <StrapColorChoices
+              worn={worn}
+              extra={extra}
+              onWorn={setWorn}
+              onExtra={setExtra}
+            />
+          </div>
           <p className="mt-4 text-sm text-muted">
             Strap fits wrist range [CONFIRM].
           </p>
@@ -85,11 +67,26 @@ export function BandProduct() {
             Shop Pay (when Shopify is connected)
           </Button>
           <p className="mt-4 text-sm text-muted">
-            Pre-order · Ships {SHIP_DATE} · Free US shipping
+            Pre-order before {PREORDER_SHORT} · Launches {SHIP_DATE} · Free US shipping
+          </p>
+          <p className="mt-2 text-sm text-muted">{policies.shipping}</p>
+          <p className="mt-3 text-sm text-muted">
+            <Link className="underline" href="/returns">
+              {policies.returnsTitle}
+            </Link>
+            {" · "}
+            <Link className="underline" href="/warranty">
+              {policies.strapTitle}
+            </Link>
+            {" · "}
+            <Link className="underline" href="/warranty">
+              {policies.dockTitle}
+            </Link>{" "}
+            starts when you submit the warranty form.
           </p>
         </div>
       </Container>
-      <Container className="space-y-16 pb-28 md:pb-16">
+      <Container className="space-y-12 py-4 md:space-y-16 md:py-8">
         <section>
           <h2 className="font-display mb-4 text-3xl font-extrabold">
             What&apos;s in the box
@@ -121,7 +118,7 @@ export function BandProduct() {
           <Accordion items={faqs} />
         </section>
       </Container>
-      <StickyBuyBar label={selected.name} onBuy={add} />
+      <StickyBuyBar label={`${worn.name} + ${extra.name}`} onBuy={add} />
     </>
   );
 }

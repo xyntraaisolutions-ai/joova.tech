@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function NoSubscriptionPage() {
   return (
     <>
-      <Container className="pt-16">
+      <Container className="pt-10 md:pt-16">
         <h1
           className="font-display max-w-3xl font-extrabold"
           style={{ fontSize: "var(--text-h1)" }}

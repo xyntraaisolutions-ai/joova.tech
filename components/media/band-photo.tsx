@@ -5,21 +5,44 @@ type BandPhotoProps = Omit<ImageProps, "src" | "alt"> & {
   src: string;
   alt: string;
   frameClassName?: string;
+  /** Where the engraved wordmark sits on this photo. */
+  mark?: "strap" | "box";
 };
+
+function bandId(src: string) {
+  const match = src.match(/(?:band|box)-(black|blue|green|orange|red)/);
+  return match?.[1] ?? "black";
+}
 
 export function BandPhoto({
   className,
   frameClassName,
   alt,
+  src,
+  mark = "strap",
   ...props
 }: BandPhotoProps) {
   return (
     <span className={cn("relative inline-block max-w-full align-middle", frameClassName)}>
-      <Image {...props} alt={alt} className={cn("block", className)} />
-      <span className="band-mark" aria-hidden="true">
+      <Image
+        {...props}
+        key={src}
+        src={src}
+        alt={alt}
+        unoptimized
+        className={cn("block", className)}
+      />
+      <span
+        className={cn(
+          "band-mark",
+          mark === "box" && "band-mark-box",
+        )}
+        data-band={bandId(src)}
+        aria-hidden="true"
+      >
         <span className="band-mark-cut band-mark-shadow" />
-        <span className="band-mark-cut band-mark-lip" />
-        <span className="band-mark-cut band-mark-groove" />
+        <span className="band-mark-cut band-mark-letters" />
+        <span className="band-mark-cut band-mark-dot" />
       </span>
     </span>
   );

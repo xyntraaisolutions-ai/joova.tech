@@ -1,6 +1,7 @@
 "use client";
 
 import { BandPhoto } from "@/components/media/band-photo";
+import { ProductTurntable } from "@/components/media/product-turntable";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -53,15 +54,17 @@ export function ImageSlideshow({
       }}
     >
       <div className="flex justify-center">
-        <BandPhoto
-          src={slide.src}
-          alt={slide.alt}
-          width={slide.width}
-          height={slide.height}
-          priority={priority && index === 0}
-          className={imageClassName ?? "h-auto w-full"}
-          sizes="(min-width: 1024px) 560px, 100vw"
-        />
+        <ProductTurntable>
+          <BandPhoto
+            src={slide.src}
+            alt={slide.alt}
+            width={slide.width}
+            height={slide.height}
+            priority={priority && index === 0}
+            className={imageClassName ?? "h-auto w-full"}
+            sizes="(min-width: 1024px) 560px, 100vw"
+          />
+        </ProductTurntable>
       </div>
       {slides.length > 1 ? (
         <div className="mt-4 flex items-center justify-between gap-3">

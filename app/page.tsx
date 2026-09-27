@@ -9,7 +9,7 @@ import { PromiseStrip } from "@/components/home/promise-strip";
 import { SocialProof } from "@/components/home/social-proof";
 import { SubscriptionCalculator } from "@/components/home/subscription-calculator";
 import { TrustGrid } from "@/components/home/trust-grid";
-import { PRICE, SITE_URL, company, faqs } from "@/content/site";
+import { PRICE, priceLabel, SITE_URL, company, faqs } from "@/content/site";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -19,6 +19,12 @@ const jsonLd = {
       name: "Joova",
       url: SITE_URL,
       legalName: company.legalName,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Grapevine",
+        addressRegion: "TX",
+        addressCountry: "US",
+      },
     },
     {
       "@type": "WebSite",
@@ -37,7 +43,7 @@ const jsonLd = {
       "@type": "Product",
       name: "Joova Band",
       description:
-        "Screenless fitness tracker. $49.99. No subscription. Ever.",
+        `Screenless fitness tracker. ${priceLabel}. No subscription. Ever.`,
       brand: { "@type": "Brand", name: "Joova" },
       offers: {
         "@type": "Offer",
