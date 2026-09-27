@@ -153,11 +153,45 @@ html[data-theme="night"] .logo-night {
 .band-mark {
   position: absolute;
   z-index: 1;
-  left: 73%;
-  top: 58%;
-  width: 28%;
-  height: auto;
-  transform: translate(-50%, -50%) rotate(82deg);
+  left: 82.5%;
+  top: 43%;
+  width: 26%;
+  aspect-ratio: 1126 / 257;
+  margin-left: -13%;
+  margin-top: calc(26% * -257 / 1126 / 2);
   pointer-events: none;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
+}
+
+.band-mark-cut {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: url("/brand/joova-wordmark-white.svg");
+  mask-image: url("/brand/joova-wordmark-white.svg");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  rotate: 98deg;
+}
+
+.band-mark-shadow {
+  background: #050403;
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+  translate: 0 1px;
+}
+
+.band-mark-lip {
+  background: #fff;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+  translate: 0 -1px;
+}
+
+.band-mark-groove {
+  background: #161311;
+  opacity: 0.78;
+  mix-blend-mode: multiply;
 }

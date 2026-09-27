@@ -16,14 +16,11 @@ export function BandPhoto({
   return (
     <span className={cn("relative inline-block max-w-full align-middle", frameClassName)}>
       <Image {...props} alt={alt} className={cn("block", className)} />
-      <Image
-        src="/brand/joova-wordmark-white.svg"
-        alt=""
-        width={1126}
-        height={257}
-        unoptimized
-        className="band-mark"
-      />
+      <span className="band-mark" aria-hidden="true">
+        <span className="band-mark-cut band-mark-shadow" />
+        <span className="band-mark-cut band-mark-lip" />
+        <span className="band-mark-cut band-mark-groove" />
+      </span>
     </span>
   );
 }
