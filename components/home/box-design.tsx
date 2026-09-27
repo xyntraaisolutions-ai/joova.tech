@@ -80,6 +80,7 @@ export function BoxDesign() {
                   height={868}
                   className="h-auto w-full"
                   sizes="(min-width: 1024px) 600px, 100vw"
+                  unoptimized
                 />
               </ProductTurntable>
             </div>

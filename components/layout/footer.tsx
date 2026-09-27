@@ -75,6 +75,15 @@ export function Footer() {
             <li>
               <Link href="/about">About</Link>
             </li>
+            <li>
+              <Link href="/planning">Planning</Link>
+            </li>
+            <li>
+              <Link href="/cost">Cost</Link>
+            </li>
+            <li>
+              <Link href="/app-support">App Support</Link>
+            </li>
             {supportMenu.map((item) => (
               <li key={item.href}>
                 <Link href={item.href}>{item.label}</Link>

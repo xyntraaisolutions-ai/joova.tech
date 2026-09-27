@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils";
 const moreLinks = [
   ...nav,
   { href: "/about", label: "About" },
+  { href: "/planning", label: "Planning" },
+  { href: "/cost", label: "Cost" },
+  { href: "/app-support", label: "App Support" },
   ...supportMenu,
   { href: "/warranty", label: "Warranty" },
   { href: "/returns", label: "Returns" },

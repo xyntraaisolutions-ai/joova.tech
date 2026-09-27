@@ -85,6 +85,10 @@ export function Header() {
   const { count, setOpen } = useCart();
   const pathname = usePathname();
   const aboutActive = pathname === "/about" || pathname.startsWith("/about/");
+  const planningActive = pathname === "/planning" || pathname.startsWith("/planning/");
+  const costActive = pathname === "/cost" || pathname.startsWith("/cost/");
+  const appSupportActive =
+    pathname === "/app-support" || pathname.startsWith("/app-support/");
 
   return (
     <header
@@ -96,7 +100,7 @@ export function Header() {
         <Link href="/" className="shrink-0" aria-label="Joova home">
           <Logo />
         </Link>
-        <nav className="hidden items-center gap-5 md:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-4 xl:gap-5 md:flex" aria-label="Primary">
           {nav.map((item) => (
             <Link
               key={item.href}
@@ -114,6 +118,33 @@ export function Header() {
             )}
           >
             About
+          </Link>
+          <Link
+            href="/planning"
+            className={cn(
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+              planningActive ? "text-ink underline underline-offset-4" : "text-ink/80",
+            )}
+          >
+            Planning
+          </Link>
+          <Link
+            href="/cost"
+            className={cn(
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+              costActive ? "text-ink underline underline-offset-4" : "text-ink/80",
+            )}
+          >
+            Cost
+          </Link>
+          <Link
+            href="/app-support"
+            className={cn(
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+              appSupportActive ? "text-ink underline underline-offset-4" : "text-ink/80",
+            )}
+          >
+            App Support
           </Link>
           <SupportMenu />
         </nav>
