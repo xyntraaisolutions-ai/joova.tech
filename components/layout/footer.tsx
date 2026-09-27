@@ -65,9 +65,6 @@ export function Footer() {
               </li>
             ))}
             <li>
-              <Link href="/straps">Straps</Link>
-            </li>
-            <li>
               <Link href="/reviews">Reviews</Link>
             </li>
           </ul>

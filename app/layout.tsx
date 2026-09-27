@@ -1,22 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Syne } from "next/font/google";
+import { Fraunces, Outfit } from "next/font/google";
 import { CartProvider } from "@/components/layout/cart-provider";
 import { SiteShell } from "@/components/layout/site-shell";
 import { priceLabel, SITE_URL } from "@/content/site";
 import "./globals.css";
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
 });
 
-const syne = Syne({
-  variable: "--font-syne",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
   display: "swap",
-  weight: ["600", "700", "800"],
 });
 
 export const viewport: Viewport = {
@@ -57,7 +55,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${dmSans.variable} ${syne.variable} h-full antialiased`}
+      className={`${outfit.variable} ${fraunces.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBoot }} />

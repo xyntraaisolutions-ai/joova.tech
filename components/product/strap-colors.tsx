@@ -1,6 +1,6 @@
 "use client";
 
-import { bandVariants, type BandVariant } from "@/content/site";
+import { bandVariants, STRAP_PRICE, type BandVariant } from "@/content/site";
 
 function Swatches({
   legend,
@@ -57,6 +57,16 @@ export function StrapColorChoices({
       </p>
     </div>
   );
+}
+
+export function strapOnlyCartItem(variant: BandVariant, quantity = 1) {
+  return {
+    id: `strap-${variant.id}`,
+    name: "Woven strap",
+    price: STRAP_PRICE,
+    color: variant.name,
+    quantity,
+  };
 }
 
 export function strapCartItem(worn: BandVariant, extra: BandVariant, quantity = 1) {

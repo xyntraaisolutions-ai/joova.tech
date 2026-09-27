@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { bandVariants, policies, PREORDER_SHORT, PRICE, SHIP_DATE, type BandVariant } from "@/content/site";
+import { bandVariants, policies, PREORDER_SHORT, PRICE, SHIP_DATE, strapPriceLabel, type BandVariant } from "@/content/site";
 import { useCart } from "@/components/layout/cart-provider";
 import { StickyBuyBar } from "@/components/layout/sticky-buy-bar";
 import { Gallery, Quantity } from "@/components/product/gallery";
@@ -54,7 +54,10 @@ export function BandProduct() {
             />
           </div>
           <p className="mt-4 text-sm text-muted">
-            Strap fits wrist range [CONFIRM].
+            Strap fits wrist range [CONFIRM].{" "}
+            <Link className="underline" href="/straps">
+              Buy a strap on its own for {strapPriceLabel} each.
+            </Link>
           </p>
           <div className="mt-6">
             <p className="mb-2 text-sm text-muted">Quantity</p>

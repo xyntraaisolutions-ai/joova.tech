@@ -13,7 +13,6 @@ const moreLinks = [
   ...nav,
   { href: "/about", label: "About" },
   ...supportMenu,
-  { href: "/straps", label: "Straps" },
   { href: "/warranty", label: "Warranty" },
   { href: "/returns", label: "Returns" },
 ];

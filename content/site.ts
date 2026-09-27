@@ -2,6 +2,8 @@ import { formatUsd } from "@/lib/utils";
 
 export const PRICE = 49.99;
 export const priceLabel = formatUsd(PRICE);
+export const STRAP_PRICE = 7.99;
+export const strapPriceLabel = formatUsd(STRAP_PRICE);
 export const COUPLE_PACK_PRICE = 89.99;
 export const LAUNCH_SHORT = "Nov 18";
 export const PREORDER_SHORT = "Nov 15";
@@ -41,6 +43,7 @@ export const announcement = policies.announcement;
 
 export const nav = [
   { href: "/band", label: "Band" },
+  { href: "/straps", label: "Straps" },
   { href: "/#box", label: "The box" },
   { href: "/no-subscription", label: "No Subscription" },
 ] as const;
@@ -154,6 +157,7 @@ export const straps = bandVariants.map((variant) => ({
   hex: variant.strapHex,
   image: variant.image,
   collection: "Launch",
+  price: STRAP_PRICE,
 }));
 
 export const boxBack = "/boxes/box-back.png";

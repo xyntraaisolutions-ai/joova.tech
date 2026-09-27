@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { BandPhoto } from "@/components/media/band-photo";
 import { ProductTurntable } from "@/components/media/product-turntable";
 import { useState } from "react";
-import { bandImageSize, bandVariants, type BandVariant } from "@/content/site";
+import { bandImageSize, bandVariants, strapPriceLabel, type BandVariant } from "@/content/site";
 import { strapCartItem, StrapColorChoices } from "@/components/product/strap-colors";
 import { useCart } from "@/components/layout/cart-provider";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,11 @@ export function ColorPicker() {
           <Button className="mt-8" onClick={() => addItem(strapCartItem(worn, extra))}>
             Add to cart
           </Button>
+          <p className="mt-4 text-sm text-muted">
+            <Link className="underline" href="/straps">
+              Or buy a strap on its own for {strapPriceLabel} each.
+            </Link>
+          </p>
         </div>
       </Container>
     </Section>

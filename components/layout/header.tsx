@@ -46,7 +46,7 @@ function SupportMenu({ inline = false }: { inline?: boolean }) {
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "inline-flex items-center gap-1 text-sm font-medium hover:text-ink",
+          "inline-flex min-h-11 items-center gap-1 text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
           open || active ? "text-ink underline underline-offset-4" : "text-ink/80",
           inline && !(open || active) && "text-muted no-underline",
         )}
@@ -96,12 +96,12 @@ export function Header() {
         <Link href="/" className="shrink-0" aria-label="Joova home">
           <Logo />
         </Link>
-        <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-5 md:flex" aria-label="Primary">
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-medium text-ink/80 hover:text-ink"
+              className="text-[15px] font-medium tracking-[-0.01em] text-ink/80 hover:text-ink"
             >
               {item.label}
             </Link>
@@ -109,7 +109,7 @@ export function Header() {
           <Link
             href="/about"
             className={cn(
-              "text-sm font-medium hover:text-ink",
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
               aboutActive ? "text-ink underline underline-offset-4" : "text-ink/80",
             )}
           >

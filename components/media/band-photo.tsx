@@ -32,18 +32,13 @@ export function BandPhoto({
         unoptimized
         className={cn("block", className)}
       />
-      <span
-        className={cn(
-          "band-mark",
-          mark === "box" && "band-mark-box",
-        )}
-        data-band={bandId(src)}
-        aria-hidden="true"
-      >
-        <span className="band-mark-cut band-mark-shadow" />
-        <span className="band-mark-cut band-mark-letters" />
-        <span className="band-mark-cut band-mark-dot" />
-      </span>
+      {mark === "box" ? (
+        <span className="band-mark band-mark-box" data-band={bandId(src)} aria-hidden="true">
+          <span className="band-mark-cut band-mark-shadow" />
+          <span className="band-mark-cut band-mark-letters" />
+          <span className="band-mark-cut band-mark-dot" />
+        </span>
+      ) : null}
     </span>
   );
 }
