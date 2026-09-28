@@ -7,14 +7,22 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ShoppingBag } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useCart } from "@/components/layout/cart-provider";
-import { nav, supportMenu } from "@/content/site";
+import { electronicsMenu, productsMenu, supportMenu } from "@/content/site";
 import { cn } from "@/lib/utils";
 
-function SupportMenu({ inline = false }: { inline?: boolean }) {
+function NavMenu({
+  label,
+  items,
+  inline = false,
+}: {
+  label: string;
+  items: readonly { href: string; label: string }[];
+  inline?: boolean;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const active = supportMenu.some(
+  const active = items.some(
     (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
   );
 
@@ -51,13 +59,13 @@ function SupportMenu({ inline = false }: { inline?: boolean }) {
           inline && !(open || active) && "text-muted no-underline",
         )}
       >
-        Support
+        {label}
         <ChevronDown className={cn("size-4 transition", open && "rotate-180")} aria-hidden />
       </button>
       {open ? (
         <div
           role="menu"
-          aria-label="Support"
+          aria-label={label}
           className={cn(
             "z-50 min-w-48 border border-stone bg-white py-2 shadow-lg",
             inline
@@ -65,7 +73,7 @@ function SupportMenu({ inline = false }: { inline?: boolean }) {
               : "absolute left-0 top-full mt-3 rounded-2xl",
           )}
         >
-          {supportMenu.map((item) => (
+          {items.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -85,10 +93,6 @@ export function Header() {
   const { count, setOpen } = useCart();
   const pathname = usePathname();
   const aboutActive = pathname === "/about" || pathname.startsWith("/about/");
-  const planningActive = pathname === "/planning" || pathname.startsWith("/planning/");
-  const costActive = pathname === "/cost" || pathname.startsWith("/cost/");
-  const appSupportActive =
-    pathname === "/app-support" || pathname.startsWith("/app-support/");
 
   return (
     <header
@@ -97,19 +101,34 @@ export function Header() {
       )}
     >
       <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-5 py-3 sm:px-8">
-        <Link href="/" className="shrink-0" aria-label="Joova home">
-          <Logo />
+        <Link href="/" className="shrink-0" aria-label="Joova home. Smarter Tech | Bigger Tomorrow">
+          <span className="flex w-fit flex-col gap-0.5">
+            <Logo />
+            <span className="@container block w-0 min-w-full">
+              <span className="block text-justify text-[6.84cqw] font-medium leading-none tracking-normal text-muted [text-align-last:justify]">
+                Smarter Tech | Bigger Tomorrow
+              </span>
+            </span>
+          </span>
         </Link>
         <nav className="hidden items-center gap-4 xl:gap-5 md:flex" aria-label="Primary">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-[15px] font-medium tracking-[-0.01em] text-ink/80 hover:text-ink"
-            >
-              {item.label}
-            </Link>
-          ))}
+          <NavMenu label="Products" items={productsMenu} />
+          {productsMenu.map((item) => {
+            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+                  active ? "text-ink underline underline-offset-4" : "text-ink/80",
+                )}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+          <NavMenu label="Electronics" items={electronicsMenu} />
           <Link
             href="/about"
             className={cn(
@@ -119,34 +138,7 @@ export function Header() {
           >
             About
           </Link>
-          <Link
-            href="/planning"
-            className={cn(
-              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
-              planningActive ? "text-ink underline underline-offset-4" : "text-ink/80",
-            )}
-          >
-            Planning
-          </Link>
-          <Link
-            href="/cost"
-            className={cn(
-              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
-              costActive ? "text-ink underline underline-offset-4" : "text-ink/80",
-            )}
-          >
-            Cost
-          </Link>
-          <Link
-            href="/app-support"
-            className={cn(
-              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
-              appSupportActive ? "text-ink underline underline-offset-4" : "text-ink/80",
-            )}
-          >
-            App Support
-          </Link>
-          <SupportMenu />
+          <NavMenu label="Support" items={supportMenu} />
         </nav>
         <div className="flex items-center gap-1">
           <ThemeToggle />

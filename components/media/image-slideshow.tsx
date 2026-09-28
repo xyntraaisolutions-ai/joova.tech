@@ -3,7 +3,7 @@
 import { BandPhoto } from "@/components/media/band-photo";
 import { ProductTurntable } from "@/components/media/product-turntable";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export type Slide = {
@@ -19,28 +19,41 @@ export function ImageSlideshow({
   imageClassName,
   priority = false,
   intervalMs = 4200,
+  onIndexChange,
+  paused = false,
 }: {
   slides: readonly Slide[];
   className?: string;
   imageClassName?: string;
   priority?: boolean;
   intervalMs?: number;
+  onIndexChange?: (index: number) => void;
+  paused?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [auto, setAuto] = useState(false);
+  const indexRef = useRef(0);
+  const onIndexChangeRef = useRef(onIndexChange);
+  onIndexChangeRef.current = onIndexChange;
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setAuto(!reduce);
   }, []);
 
+  const go = (next: number) => {
+    indexRef.current = next;
+    setIndex(next);
+    onIndexChangeRef.current?.(next);
+  };
+
   useEffect(() => {
-    if (!auto || slides.length < 2) return;
+    if (!auto || paused || slides.length < 2) return;
     const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % slides.length);
+      go((indexRef.current + 1) % slides.length);
     }, intervalMs);
     return () => window.clearInterval(timer);
-  }, [auto, intervalMs, slides.length]);
+  }, [auto, intervalMs, paused, slides.length]);
 
   const slide = slides[index];
 
@@ -76,7 +89,7 @@ export function ImageSlideshow({
                 role="tab"
                 aria-selected={i === index}
                 aria-label={item.alt}
-                onClick={() => setIndex(i)}
+                onClick={() => go(i)}
                 className={cn(
                   "h-2.5 rounded-full transition",
                   i === index ? "w-8 bg-ink" : "w-2.5 bg-stone",
@@ -89,9 +102,7 @@ export function ImageSlideshow({
               type="button"
               className="flex size-10 items-center justify-center rounded-full border border-stone bg-white"
               aria-label="Previous image"
-              onClick={() =>
-                setIndex((current) => (current - 1 + slides.length) % slides.length)
-              }
+              onClick={() => go((index - 1 + slides.length) % slides.length)}
             >
               <ChevronLeft className="size-5" />
             </button>
@@ -99,7 +110,7 @@ export function ImageSlideshow({
               type="button"
               className="flex size-10 items-center justify-center rounded-full border border-stone bg-white"
               aria-label="Next image"
-              onClick={() => setIndex((current) => (current + 1) % slides.length)}
+              onClick={() => go((index + 1) % slides.length)}
             >
               <ChevronRight className="size-5" />
             </button>

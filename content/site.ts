@@ -1,7 +1,11 @@
 import { formatUsd } from "@/lib/utils";
 
-export const PRICE = 49.99;
+export const PRICE = 59.99;
 export const priceLabel = formatUsd(PRICE);
+export const RING_PRICE = 69.99;
+export const ringPriceLabel = formatUsd(RING_PRICE);
+export const SHARE_PRICE = 39.99;
+export const sharePriceLabel = formatUsd(SHARE_PRICE);
 export const STRAP_PRICE = 7.99;
 export const strapPriceLabel = formatUsd(STRAP_PRICE);
 export const COUPLE_PACK_PRICE = 89.99;
@@ -28,7 +32,7 @@ export const policies = {
   returnsTitle: "30-day free returns",
   strapTitle: "5-year strap warranty",
   dockTitle: "Dock warranty",
-  announcement: `Pre-order ${priceLabel} before ${PREORDER_SHORT} · Launches ${LAUNCH_SHORT} · Free US shipping · 30-day free returns`,
+  announcement: "Free US shipping · 30-day free returns",
   heroLine:
     "2 straps in every box · 30-day free returns · 5-year strap warranty · 2-year dock warranty",
   strapSummary: "Woven straps are covered for 5 years against manufacturing defects.",
@@ -41,11 +45,35 @@ export const policies = {
 
 export const announcement = policies.announcement;
 
-export const nav = [
-  { href: "/band", label: "Band" },
-  { href: "/straps", label: "Straps" },
-  { href: "/#box", label: "The box" },
-  { href: "/no-subscription", label: "No Subscription" },
+export const productsMenu = [
+  { href: "/band", label: "Fitness Band" },
+  { href: "/ring", label: "Smart Ring" },
+] as const;
+
+export const electronicsMenu = [
+  { href: "/share", label: "Joova Share" },
+] as const;
+
+export const shareImageSize = { width: 1024, height: 520 } as const;
+
+export const shareBuds = [
+  { name: "Sport Clips", detail: "Clip-on buds for a secure fit." },
+  { name: "Pro In-Ear", detail: "Stem-style in-ear buds." },
+  { name: "Comfort Pods", detail: "Rounded pods for everyday listening." },
+  { name: "Mini Sleep Buds", detail: "The smallest pair in the case." },
+] as const;
+
+export const shareFacts = [
+  { label: "Price", value: sharePriceLabel },
+  { label: "In the case", value: "4 pairs, 8 buds total, in one power case." },
+  { label: "Display", value: "Digital LED battery display on the case." },
+  {
+    label: "Listening",
+    value:
+      "All 8 buds can link to one phone, tablet, or laptop at the same time. Pairs can also run on separate devices.",
+  },
+  { label: "Battery", value: "[CONFIRM: case and bud battery life]" },
+  { label: "Bluetooth", value: "[CONFIRM: Bluetooth version and range]" },
 ] as const;
 
 export const supportMenu = [
@@ -148,6 +176,63 @@ export const bandVariants = [
 ] as const;
 
 export type BandVariant = (typeof bandVariants)[number];
+
+export const ringImageSize = { width: 1024, height: 1024 } as const;
+
+export const ringVariants = [
+  {
+    id: "midnight",
+    name: "Midnight",
+    finish: "Gloss black",
+    hex: "#1A1C20",
+    image: "/rings/ring-midnight.png",
+    summary: "Gloss black band. Open inner window, green indicator, round sensor.",
+  },
+  {
+    id: "silver",
+    name: "Silver",
+    finish: "Polished silver",
+    hex: "#C5C8CE",
+    image: "/rings/ring-silver.png",
+    summary: "Polished silver band. Same inner window, green indicator, and round sensor.",
+  },
+  {
+    id: "gold",
+    name: "Gold",
+    finish: "Polished gold",
+    hex: "#C6A15B",
+    image: "/rings/ring-gold.png",
+    summary: "Polished gold band. Same inner window, green indicator, and round sensor.",
+  },
+  {
+    id: "rose",
+    name: "Rose",
+    finish: "Polished rose gold",
+    hex: "#C4897B",
+    image: "/rings/ring-rose.png",
+    summary: "Polished rose gold band. Same inner window, green indicator, and round sensor.",
+  },
+  {
+    id: "graphite",
+    name: "Graphite",
+    finish: "Matte graphite",
+    hex: "#3A3D44",
+    image: "/rings/ring-graphite.png",
+    summary: "Matte graphite band. Same inner window, green indicator, and round sensor.",
+  },
+] as const;
+
+export type RingVariant = (typeof ringVariants)[number];
+
+export const ringFacts = [
+  { label: "Price", value: ringPriceLabel },
+  { label: "Sizes", value: "[CONFIRM: ring sizes]" },
+  { label: "Battery", value: "[CONFIRM: battery life and charger]" },
+  { label: "Water", value: "[CONFIRM: water resistance]" },
+  { label: "Material", value: "[CONFIRM: metal and inner window material]" },
+  { label: "Tracks", value: "Sleep, activity, and heart-rate trends. Wellness only." },
+  { label: "Subscription", value: "No subscription. Ever." },
+] as const;
 
 export const straps = bandVariants.map((variant) => ({
   id: `strap-${variant.id}`,

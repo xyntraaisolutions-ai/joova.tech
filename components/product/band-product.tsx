@@ -10,11 +10,9 @@ import { strapCartItem, StrapColorChoices } from "@/components/product/strap-col
 import { InTheBox } from "@/components/product/in-the-box";
 import { SpecsTable } from "@/components/product/specs-table";
 import { UseAndCare } from "@/components/product/use-and-care";
-import { Accordion } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { faqs } from "@/content/site";
 import { formatUsd } from "@/lib/utils";
 
 export function BandProduct() {
@@ -27,7 +25,7 @@ export function BandProduct() {
 
   return (
     <>
-      <Container className="grid gap-8 py-8 lg:grid-cols-2 md:gap-10 md:py-12">
+      <Container id="buy" className="scroll-mt-24 grid gap-8 py-8 lg:grid-cols-2 md:gap-10 md:py-12">
         <Gallery
           variants={bandVariants}
           selected={worn}
@@ -38,12 +36,12 @@ export function BandProduct() {
             className="font-display font-extrabold"
             style={{ fontSize: "var(--text-h1)" }}
           >
-            Joova Band
+            Faceless Fitness Tracker Band
           </h1>
           <p className="mt-3 text-2xl">{formatUsd(PRICE)}</p>
           <Badge className="mt-4">No subscription. Ever.</Badge>
           <p className="mt-6 text-muted">
-            Screenless fitness tracker. 2 straps in every box. Launches {SHIP_DATE}.
+            Joova Band. Screenless fitness tracker. 2 straps in every box. Launches {SHIP_DATE}.
           </p>
           <div className="mt-8">
             <StrapColorChoices
@@ -55,7 +53,7 @@ export function BandProduct() {
           </div>
           <p className="mt-4 text-sm text-muted">
             Strap fits wrist range [CONFIRM].{" "}
-            <Link className="underline" href="/straps">
+            <Link className="underline" href="#straps">
               Buy a strap on its own for {strapPriceLabel} each.
             </Link>
           </p>
@@ -115,10 +113,6 @@ export function BandProduct() {
             monthly for the app. We do not use competitor trademarks in images.
             Figures for monthly examples are labeled as examples.
           </p>
-        </section>
-        <section>
-          <h2 className="font-display mb-4 text-3xl font-extrabold">FAQ</h2>
-          <Accordion items={faqs} />
         </section>
       </Container>
       <StickyBuyBar label={`${worn.name} + ${extra.name}`} onBuy={add} />

@@ -5,19 +5,21 @@ export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex", className)}>
       <Image
-        src="/brand/joova-wordmark-ink.png"
+        src="/brand/joova-wordmark-orange.png"
         alt=""
-        width={2000}
-        height={456}
+        width={977}
+        height={285}
         priority
-        className="logo-day h-7 w-auto"
+        unoptimized
+        className="logo-day h-8 w-auto"
       />
       <Image
-        src="/brand/joova-wordmark-paper.png"
+        src="/brand/joova-wordmark-orange-night.png"
         alt=""
-        width={2000}
-        height={456}
-        className="logo-night h-7 w-auto"
+        width={977}
+        height={285}
+        unoptimized
+        className="logo-night h-8 w-auto"
       />
     </span>
   );

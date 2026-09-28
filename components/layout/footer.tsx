@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Logo } from "@/components/brand/logo";
 import { PaymentMarks } from "@/components/layout/payment-marks";
 import { SocialIcons } from "@/components/layout/social-icons";
-import { company, nav, priceLabel, supportMenu } from "@/content/site";
+import { company, electronicsMenu, priceLabel, productsMenu, supportMenu } from "@/content/site";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
@@ -59,7 +59,12 @@ export function Footer() {
         <div>
           <p className="font-medium">Shop</p>
           <ul className="mt-3 space-y-1 text-muted [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
-            {nav.map((item) => (
+            {productsMenu.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href}>{item.label}</Link>
+              </li>
+            ))}
+            {electronicsMenu.map((item) => (
               <li key={item.href}>
                 <Link href={item.href}>{item.label}</Link>
               </li>
@@ -74,15 +79,6 @@ export function Footer() {
           <ul className="mt-3 space-y-1 text-muted [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
             <li>
               <Link href="/about">About</Link>
-            </li>
-            <li>
-              <Link href="/planning">Planning</Link>
-            </li>
-            <li>
-              <Link href="/cost">Cost</Link>
-            </li>
-            <li>
-              <Link href="/app-support">App Support</Link>
             </li>
             {supportMenu.map((item) => (
               <li key={item.href}>

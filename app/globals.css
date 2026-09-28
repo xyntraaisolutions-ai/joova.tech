@@ -163,12 +163,6 @@ html[data-theme="night"] .logo-night {
   outline-offset: 3px;
 }
 
-.net-profit-hot {
-  outline: 3px solid var(--joova-coral);
-  outline-offset: 4px;
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--joova-coral) 35%, transparent);
-}
-
 .font-display {
   font-family: var(--font-fraunces), Georgia, serif;
   letter-spacing: -0.03em;

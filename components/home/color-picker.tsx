@@ -66,7 +66,7 @@ export function ColorPicker() {
             Add to cart
           </Button>
           <p className="mt-4 text-sm text-muted">
-            <Link className="underline" href="/straps">
+            <Link className="underline" href="#straps">
               Or buy a strap on its own for {strapPriceLabel} each.
             </Link>
           </p>

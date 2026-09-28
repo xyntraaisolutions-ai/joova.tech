@@ -6,15 +6,13 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Home, Menu, ShoppingBag, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/layout/cart-provider";
-import { nav, supportMenu } from "@/content/site";
+import { electronicsMenu, productsMenu, supportMenu } from "@/content/site";
 import { cn } from "@/lib/utils";
 
 const moreLinks = [
-  ...nav,
+  ...productsMenu,
+  ...electronicsMenu,
   { href: "/about", label: "About" },
-  { href: "/planning", label: "Planning" },
-  { href: "/cost", label: "Cost" },
-  { href: "/app-support", label: "App Support" },
   ...supportMenu,
   { href: "/warranty", label: "Warranty" },
   { href: "/returns", label: "Returns" },

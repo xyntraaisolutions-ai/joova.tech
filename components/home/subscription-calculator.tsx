@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { calculatorDefaultMonthly, PRICE } from "@/content/site";
 import { Container } from "@/components/ui/container";
@@ -8,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Section } from "@/components/ui/section";
 import { formatUsd } from "@/lib/utils";
 
-export function SubscriptionCalculator({ full = false }: { full?: boolean }) {
+export function SubscriptionCalculator() {
   const [years, setYears] = useState(3);
   const [monthly, setMonthly] = useState(calculatorDefaultMonthly);
 
@@ -16,7 +15,7 @@ export function SubscriptionCalculator({ full = false }: { full?: boolean }) {
 
   return (
     <Section id="calculator">
-      <Container className={full ? "max-w-3xl" : ""}>
+      <Container>
         <h2
           className="font-display font-extrabold"
           style={{ fontSize: "var(--text-h2)" }}
@@ -68,13 +67,6 @@ export function SubscriptionCalculator({ full = false }: { full?: boolean }) {
             </p>
           </div>
         </div>
-        {!full ? (
-          <p className="mt-6">
-            <Link href="/no-subscription" className="text-coral-ink underline">
-              See the full no-subscription promise
-            </Link>
-          </p>
-        ) : null}
       </Container>
     </Section>
   );

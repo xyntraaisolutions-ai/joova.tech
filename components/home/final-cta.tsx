@@ -18,7 +18,7 @@ export function FinalCTA() {
             Pre-order Joova Band
           </h2>
           <p className="mt-4 text-paper/80">{priceLabel}. No subscription. Ever.</p>
-          <Link href="/band" className={`${buttonClassName("dark")} mt-8`}>
+          <Link href="/band#buy" className={`${buttonClassName("dark")} mt-8`}>
             Pre-order now
           </Link>
         </div>
