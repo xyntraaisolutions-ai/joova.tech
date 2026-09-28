@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { calculatorDefaultMonthly, PRICE } from "@/content/site";
+import { calculatorDefaultMonthly, PRICE, RING_PRICE } from "@/content/site";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Section } from "@/components/ui/section";
@@ -20,12 +20,13 @@ export function SubscriptionCalculator() {
           className="font-display font-extrabold"
           style={{ fontSize: "var(--text-h2)" }}
         >
-          No subscription. Do the math.
+          No subscription needed. Ever.
         </h2>
         <p className="mt-3 max-w-2xl text-muted">
-          Joova is {formatUsd(PRICE)} once. The monthly figure is an example you
-          can edit. [CONFIRM: example monthly price]. It is labeled as an
-          example, not a competitor quote.
+          The Fitness Band is {formatUsd(PRICE)} once. The Smart Ring is{" "}
+          {formatUsd(RING_PRICE)} once. Neither needs a subscription. The monthly
+          figure starts at $10, a common price for a tracker app subscription.
+          Edit it. Joova does not charge it.
         </p>
         <div className="mt-10 grid gap-8 md:grid-cols-2">
           <label className="block">
@@ -55,9 +56,10 @@ export function SubscriptionCalculator() {
         </div>
         <div className="mt-10 grid gap-4 md:grid-cols-2">
           <div className="cinematic rounded-3xl p-6">
-            <p className="text-sm text-paper/70">Joova</p>
-            <p className="font-display mt-2 text-4xl">{formatUsd(PRICE)}</p>
-            <p className="mt-2 text-sm text-paper/70">Total, any number of years</p>
+            <p className="text-sm text-paper/70">One-time price</p>
+            <p className="font-display mt-2 text-3xl">Band {formatUsd(PRICE)}</p>
+            <p className="font-display mt-2 text-3xl">Ring {formatUsd(RING_PRICE)}</p>
+            <p className="mt-2 text-sm text-paper/70">No subscription needed. Ever.</p>
           </div>
           <div className="rounded-3xl border border-stone p-6">
             <p className="text-sm text-muted">A typical $X/month example</p>

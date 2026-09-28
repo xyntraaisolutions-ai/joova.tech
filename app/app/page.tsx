@@ -26,8 +26,9 @@ export default function AppPage() {
         </p>
         <p className="mt-4 max-w-2xl text-muted">
           Your data is stored in the US and never sold. You can delete your
-          account in the app. Supported phones: [CONFIRM]. Store links go live
-          after App Store and Google Play approval.
+          account in the app. Supported phones: iPhone with iOS 15 or later, and
+          Android 9 or later. Store links go live after App Store and Google
+          Play approval.
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Badge>App Store (after approval)</Badge>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { AppPreview } from "@/components/home/app-preview";
 import { BoxDesign } from "@/components/home/box-design";
 import { ColorPicker } from "@/components/home/color-picker";
@@ -13,11 +14,23 @@ import { BandProduct } from "@/components/product/band-product";
 import { StrapShop } from "@/components/product/strap-shop";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { faqs, policies, PRICE, priceLabel, SITE_URL, strapPriceLabel } from "@/content/site";
+import {
+  bandBannerSize,
+  bandFeatures,
+  bandImageSize,
+  bandLineupSize,
+  faqs,
+  noSubscription,
+  policies,
+  PRICE,
+  priceLabel,
+  SITE_URL,
+  strapPriceLabel,
+} from "@/content/site";
 
 export const metadata: Metadata = {
-  title: "Faceless Fitness Tracker Band",
-  description: `Pre-order Joova Band for ${priceLabel} before Nov 15. Launches Nov 18. Two straps in every box. Extra straps ${strapPriceLabel} each. No subscription. Ever.`,
+  title: "Joova Band",
+  description: `Track sleep, heart rate, and activity with a screenless band that lasts up to 20–30 days per charge. 5 colors, a free extra strap, ${noSubscription} ${priceLabel}.`,
 };
 
 const productLd = {
@@ -26,13 +39,14 @@ const productLd = {
     {
       "@type": "Product",
       name: "Joova Band",
-      description: "Screenless fitness tracker with two straps in every box. You choose both colors.",
+      description: `Screenless fitness tracker for sleep, heart rate, and activity. Up to 20–30 days per charge. Five colors, one extra strap in the box. ${noSubscription}`,
+      image: `${SITE_URL}/bands/joova-band-black-1600.png`,
       brand: { "@type": "Brand", name: "Joova" },
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
         price: PRICE,
-        availability: "https://schema.org/PreOrder",
+        availability: "https://schema.org/InStock",
         url: `${SITE_URL}/band`,
       },
     },
@@ -55,6 +69,61 @@ export default function BandPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
       />
       <BandProduct />
+      <Section>
+        <Container>
+          <h2 className="font-display font-extrabold" style={{ fontSize: "var(--text-h2)" }}>
+            What it tracks
+          </h2>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {bandFeatures.map((feature) => (
+              <li key={feature.title} className="rounded-3xl border border-stone bg-white p-6">
+                <h3 className="font-display text-2xl font-semibold">{feature.title}</h3>
+                <p className="mt-2 text-muted">{feature.detail}</p>
+              </li>
+            ))}
+          </ul>
+          <Image
+            src="/bands/joova-band-features-1600.png"
+            alt="Joova Band in five colors. No subscription, sleep tracking, heart rate, up to 20 to 30 days of battery, magnetic charging, and two straps in the box."
+            width={bandImageSize.width}
+            height={bandImageSize.height}
+            className="mt-10 h-auto w-full"
+            sizes="(min-width: 1024px) 1100px, 100vw"
+          />
+        </Container>
+      </Section>
+      <Section className="bg-stone/40">
+        <Container className="grid gap-10 lg:grid-cols-2">
+          <Image
+            src="/bands/joova-band-in-the-box-1600.png"
+            alt="What's in the box: Joova Band, one extra strap, and a magnetic charging cable."
+            width={bandImageSize.width}
+            height={bandImageSize.height}
+            className="h-auto w-full"
+            sizes="(min-width: 1024px) 560px, 100vw"
+          />
+          <Image
+            src="/bands/joova-band-all-colors.png"
+            alt="Joova Band lineup in black, blue, green, orange, and red."
+            width={bandLineupSize.width}
+            height={bandLineupSize.height}
+            className="h-auto w-full"
+            sizes="(min-width: 1024px) 560px, 100vw"
+          />
+        </Container>
+      </Section>
+      <Section>
+        <Container>
+          <Image
+            src="/bands/joova-band-hero-banner-1920x900.png"
+            alt="Joova Band. Track everything. Pay once. Screenless fitness tracker, no subscription, $59.99."
+            width={bandBannerSize.width}
+            height={bandBannerSize.height}
+            className="h-auto w-full rounded-3xl"
+            sizes="100vw"
+          />
+        </Container>
+      </Section>
       <PromiseStrip />
       <DayStory />
       <ColorPicker />
@@ -73,7 +142,7 @@ export default function BandPage() {
           <p className="mt-4 max-w-2xl text-muted">
             Every Joova Band box includes the strap you wear plus one extra. You
             can also buy woven straps on their own for {strapPriceLabel} each.
-            Pick a color and quantity. The tracker and charger stay with the band.{" "}
+            Pick a color and quantity. The tracker and magnetic cable stay with the band.{" "}
             {policies.strapSummary}
           </p>
           <StrapShop />

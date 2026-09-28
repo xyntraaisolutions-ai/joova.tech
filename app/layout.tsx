@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Outfit } from "next/font/google";
 import { CartProvider } from "@/components/layout/cart-provider";
+import { WishlistProvider } from "@/components/layout/wishlist-provider";
 import { SiteShell } from "@/components/layout/site-shell";
 import { SITE_URL, siteDescription } from "@/content/site";
 import "./globals.css";
@@ -61,7 +62,9 @@ export default function RootLayout({
       </head>
       <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
         <CartProvider>
-          <SiteShell>{children}</SiteShell>
+          <WishlistProvider>
+            <SiteShell>{children}</SiteShell>
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

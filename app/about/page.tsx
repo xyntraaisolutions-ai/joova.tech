@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { company, priceLabel, ringPriceLabel, sharePriceLabel, siteDescription } from "@/content/site";
+import { budsPriceLabel, company, glassesPriceLabel, noSubscription, priceLabel, ringPriceLabel, sharePriceLabel, siteDescription, watchPriceLabel } from "@/content/site";
 import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
@@ -19,8 +19,11 @@ export default function AboutPage() {
       </h1>
       <p className="mt-6 text-lg text-muted">
         {siteDescription} The Fitness Band is {priceLabel}, a screenless tracker
-        with no monthly fee, five colors, and two straps in every box. The
-        Smart Ring is {ringPriceLabel}. Joova Share is {sharePriceLabel}.
+        with five colors and two straps in every box. The Smart Ring is{" "}
+        {ringPriceLabel}. Joova Watch is {watchPriceLabel}. {noSubscription} Joova Glasses are {glassesPriceLabel}.
+        Joova Buds are {budsPriceLabel}. Joova Share Pod is {sharePriceLabel}.
+        Every product is available now and ships from US warehouses in 7 to 10
+        days.
       </p>
       <p className="mt-6 text-muted">
         Founder story and team photos will go here when they are ready. We will

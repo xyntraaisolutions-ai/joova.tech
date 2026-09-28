@@ -8,7 +8,14 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 export function AppFrame({ children }: { children: ReactNode }) {
-  const product = usePathname() === "/band";
+  const pathname = usePathname();
+  const product =
+    pathname === "/band" ||
+    pathname === "/ring" ||
+    pathname === "/watch" ||
+    pathname === "/glasses" ||
+    pathname === "/buds" ||
+    pathname === "/share";
 
   return (
     <div

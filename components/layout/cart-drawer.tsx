@@ -69,8 +69,8 @@ export function CartDrawer() {
               <span>{formatUsd(subtotal)}</span>
             </p>
             <p className="mb-4 text-sm text-muted">
-              Ships Nov 18, 2026. Checkout will hand off to Shopify. Card
-              details are never collected on this site.
+              Available items ship from US warehouses in 7 to 10 days. Checkout
+              will hand off to Shopify. Card details are never collected on this site.
             </p>
             <Button className="w-full" disabled>
               Checkout coming soon

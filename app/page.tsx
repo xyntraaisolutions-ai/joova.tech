@@ -1,5 +1,5 @@
 import { Hero } from "@/components/home/hero";
-import { ProductIndex } from "@/components/home/product-index";
+import { Storefront } from "@/components/home/storefront";
 import { SITE_URL, company, siteDescription } from "@/content/site";
 
 const jsonLd = {
@@ -34,7 +34,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Hero />
-      <ProductIndex />
+      <Storefront />
     </>
   );
 }
