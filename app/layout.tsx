@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
+import { AuthProvider } from "@/components/layout/auth-provider";
 import { CartProvider } from "@/components/layout/cart-provider";
 import { WishlistProvider } from "@/components/layout/wishlist-provider";
 import { SiteShell } from "@/components/layout/site-shell";
@@ -56,11 +57,13 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
       </head>
       <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
-        <CartProvider>
-          <WishlistProvider>
-            <SiteShell>{children}</SiteShell>
-          </WishlistProvider>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <SiteShell>{children}</SiteShell>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

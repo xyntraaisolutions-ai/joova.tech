@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AccountSignup } from "@/components/account/account-signup";
+import { Suspense } from "react";
+import { AuthPanel } from "@/components/account/auth-panel";
 import { Container } from "@/components/ui/container";
 import { policies } from "@/content/site";
 
@@ -30,7 +31,9 @@ export default function AccountPage() {
         </Link>
         .
       </p>
-      <AccountSignup />
+      <Suspense fallback={<p className="mt-8 text-muted">Loading your account.</p>}>
+        <AuthPanel />
+      </Suspense>
     </Container>
   );
 }

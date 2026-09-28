@@ -98,6 +98,21 @@ html {
   }
 }
 
+@keyframes joova-focus-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.28;
+  }
+}
+
+.joova-focus-blink {
+  animation: joova-focus-blink 4.8s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
