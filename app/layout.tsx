@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Outfit } from "next/font/google";
 import { CartProvider } from "@/components/layout/cart-provider";
 import { SiteShell } from "@/components/layout/site-shell";
-import { priceLabel, SITE_URL } from "@/content/site";
+import { SITE_URL, siteDescription } from "@/content/site";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -27,22 +27,21 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `Joova Band — ${priceLabel}. No subscription. Ever.`,
+    default: "Joova — Smarter Tech | Bigger Tomorrow",
     template: "%s · Joova",
   },
-  description:
-    `Joova Band is a screenless fitness tracker. ${priceLabel}. No subscription. Ever. 2 straps in every box.`,
+  description: siteDescription,
   openGraph: {
-    title: "Joova Band — No subscription. Ever.",
-    description: `Screenless fitness tracker. ${priceLabel}. Two straps in every box.`,
+    title: "Joova — Smarter Tech | Bigger Tomorrow",
+    description: siteDescription,
     url: SITE_URL,
     siteName: "Joova",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Joova Band",
-    description: `${priceLabel}. No subscription. Ever.`,
+    title: "Joova",
+    description: siteDescription,
   },
 };
 

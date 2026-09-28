@@ -1,6 +1,6 @@
 import { Hero } from "@/components/home/hero";
 import { ProductIndex } from "@/components/home/product-index";
-import { SITE_URL, company } from "@/content/site";
+import { SITE_URL, company, siteDescription } from "@/content/site";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -9,6 +9,7 @@ const jsonLd = {
       "@type": "Organization",
       name: "Joova",
       url: SITE_URL,
+      description: siteDescription,
       legalName: company.legalName,
       address: {
         "@type": "PostalAddress",

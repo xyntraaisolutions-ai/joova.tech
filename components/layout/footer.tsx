@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Logo } from "@/components/brand/logo";
 import { PaymentMarks } from "@/components/layout/payment-marks";
 import { SocialIcons } from "@/components/layout/social-icons";
-import { company, electronicsMenu, priceLabel, productsMenu, supportMenu } from "@/content/site";
+import { company, electronicsMenu, productsMenu, supportMenu } from "@/content/site";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ export function Footer() {
             <Logo />
           </Link>
           <p className="mt-3 max-w-md text-muted">
-            Joova Band. {priceLabel}. No subscription. Ever.
+            Smarter Tech | Bigger Tomorrow. Fitness Band, Smart Ring, and Joova Share.
           </p>
           <form
             className="mt-6 flex max-w-md flex-col gap-3 sm:flex-row"

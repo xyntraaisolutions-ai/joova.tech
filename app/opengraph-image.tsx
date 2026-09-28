@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og";
-import { priceLabel } from "@/content/site";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -22,8 +21,11 @@ export default function OpenGraphImage() {
         <div style={{ fontSize: 28, letterSpacing: 8, textTransform: "uppercase" }}>
           JOOVA
         </div>
-        <div style={{ fontSize: 72, fontWeight: 700, marginTop: 24, lineHeight: 1.05 }}>
-          {`${priceLabel}. No subscription. Ever.`}
+        <div style={{ fontSize: 64, fontWeight: 700, marginTop: 24, lineHeight: 1.05 }}>
+          Smarter Tech | Bigger Tomorrow
+        </div>
+        <div style={{ fontSize: 28, marginTop: 28, color: "#FD5710" }}>
+          Fitness Band · Smart Ring · Joova Share
         </div>
       </div>
     ),
