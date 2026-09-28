@@ -15,9 +15,12 @@ export const SHIP_DATE = "Nov 18, 2026";
 export const PREORDER_DEADLINE = "Nov 15, 2026";
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://joova.tech";
 
+export const siteDescription =
+  "Joova makes the Fitness Band, the Smart Ring, and Joova Share. Smarter Tech | Bigger Tomorrow.";
+
 export const company = {
   brand: "Joova",
-  product: "Joova Band",
+  product: "Joova",
   legalName: "Joova Tech LLC",
   copyright: "© 2026 Joova Tech LLC",
   address: "Grapevine, Texas",

@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { company, PRICE } from "@/content/site";
+import { company, priceLabel, ringPriceLabel, sharePriceLabel, siteDescription } from "@/content/site";
 import { Container } from "@/components/ui/container";
-import { formatUsd } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "About Joova",
-  description: "Joova makes a screenless fitness tracker with no subscription.",
+  description: siteDescription,
 };
 
 export default function AboutPage() {
@@ -19,11 +18,9 @@ export default function AboutPage() {
         About Joova
       </h1>
       <p className="mt-6 text-lg text-muted">
-        Joova Band is a screenless fitness tracker. {formatUsd(PRICE)}. No
-        monthly fee. Five colors: Black, Blue, Green, Orange, and Red. A black
-        tracker, a silver buckle, and two straps in the box. You choose both
-        colors when you order. Built for sleep,
-        activity, heart-rate trends, and recovery.
+        {siteDescription} The Fitness Band is {priceLabel}, a screenless tracker
+        with no monthly fee, five colors, and two straps in every box. The
+        Smart Ring is {ringPriceLabel}. Joova Share is {sharePriceLabel}.
       </p>
       <p className="mt-6 text-muted">
         Founder story and team photos will go here when they are ready. We will
