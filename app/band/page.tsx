@@ -130,7 +130,7 @@ export default function BandPage() {
       <BoxDesign />
       <Section id="straps" className="scroll-mt-24">
         <Container>
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-ink">
             Straps only
           </p>
           <h2

@@ -13,8 +13,8 @@ export function WarrantyForm() {
     return (
       <p className="mt-8" role="status">
         Thanks. Your email app should open with this warranty request addressed to{" "}
-        {support.email}. Dock warranty applies once we receive the form. We reply
-        within 6 to 24 hours.
+        {support.email}. The product needs to be registered on your Joova Customer
+        Account before coverage applies. We reply within 6 to 24 hours.
       </p>
     );
   }
@@ -32,11 +32,11 @@ export function WarrantyForm() {
         const serial = String(data.get("serial") ?? "");
         const message = String(data.get("message") ?? "");
         const body = [
-          "Warranty registration",
+          "Warranty claim",
           `Name: ${name}`,
           `Email: ${email}`,
           `Order number: ${order}`,
-          `Dock serial: ${serial || "not provided"}`,
+          `Product serial: ${serial || "not provided"}`,
           "",
           message,
         ].join("\n");
@@ -46,8 +46,9 @@ export function WarrantyForm() {
     >
       <h2 className="font-display text-2xl font-extrabold text-ink">Warranty form</h2>
       <p>
-        {policies.dockSummary} Strap claims can use this same form. Submit opens
-        your email app to {support.email}. We reply within 6 to 24 hours.
+        Use this form after the product is registered on your Joova Customer
+        Account. {policies.warrantyRegistration} Submit opens your email app to{" "}
+        {support.email}. We reply within 6 to 24 hours.
       </p>
       <label className="block">
         <span className="text-sm text-ink">Name</span>
@@ -62,7 +63,7 @@ export function WarrantyForm() {
         <Input className="mt-2" name="order" required autoComplete="off" />
       </label>
       <label className="block">
-        <span className="text-sm text-ink">Dock serial, if you have it</span>
+        <span className="text-sm text-ink">Product serial, if you have it</span>
         <Input className="mt-2" name="serial" autoComplete="off" />
       </label>
       <label className="block">

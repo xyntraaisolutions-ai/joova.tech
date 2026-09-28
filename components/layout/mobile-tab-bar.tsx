@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Home, Menu, ShoppingBag, Store, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/layout/auth-provider";
 import { useCart } from "@/components/layout/cart-provider";
-import { catalog } from "@/content/catalog";
+import { catalogCategories, categoryMenu } from "@/content/catalog";
 import { supportMenu } from "@/content/site";
 import { cn } from "@/lib/utils";
 
@@ -21,13 +22,21 @@ const groups = [
   },
   {
     title: "Products",
-    links: catalog.map((product) => ({ href: product.href, label: product.menuLabel })),
+    links: catalogCategories.flatMap((category) => [
+      { href: category.href, label: category.label },
+      ...categoryMenu(category.id).map((item) => ({
+        href: item.href,
+        label: item.label,
+        nested: true,
+      })),
+    ]),
   },
   {
     title: "Help",
     links: [
       { href: "/about", label: "About" },
       ...supportMenu,
+      { href: "/account", label: "Sign in" },
       { href: "/warranty", label: "Warranty" },
       { href: "/returns", label: "Returns" },
     ],
@@ -37,6 +46,17 @@ const groups = [
 export function MobileTabBar() {
   const pathname = usePathname();
   const { count, setOpen } = useCart();
+  const { user } = useAuth();
+  const menuGroups = groups.map((group) =>
+    group.title === "Help"
+      ? {
+          ...group,
+          links: group.links.map((link) =>
+            link.href === "/account" ? { ...link, label: user ? "Account" : "Sign in" } : link,
+          ),
+        }
+      : group,
+  );
   const [more, setMore] = useState(false);
 
   useEffect(() => {
@@ -57,7 +77,7 @@ export function MobileTabBar() {
               href="/"
               className={cn(
                 "flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium",
-                home ? "text-coral-ink" : "text-muted",
+                home ? "text-ink" : "text-muted",
               )}
               aria-current={home ? "page" : undefined}
             >
@@ -72,7 +92,7 @@ export function MobileTabBar() {
               href="/shop"
               className={cn(
                 "flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium",
-                shop ? "text-coral-ink" : "text-muted",
+                shop ? "text-ink" : "text-muted",
               )}
               aria-current={shop ? "page" : undefined}
             >
@@ -87,7 +107,7 @@ export function MobileTabBar() {
               type="button"
               className={cn(
                 "flex h-full w-full flex-col items-center justify-center gap-1 text-[11px] font-medium",
-                more ? "text-coral-ink" : "text-muted",
+                more ? "text-ink" : "text-muted",
               )}
               aria-expanded={more}
               onClick={() => setMore(true)}
@@ -110,7 +130,7 @@ export function MobileTabBar() {
               </span>
               Cart
               {count > 0 ? (
-                <span className="absolute right-[22%] top-1.5 flex size-4 items-center justify-center rounded-full bg-coral text-[10px] font-semibold text-[var(--fixed-ink)]">
+                <span className="absolute right-[22%] top-1.5 flex size-4 items-center justify-center rounded-full bg-coral text-[10px] font-bold text-[var(--fixed-ink)]">
                   {count}
                 </span>
               ) : null}
@@ -130,25 +150,31 @@ export function MobileTabBar() {
               </Dialog.Close>
             </div>
             <div className="space-y-5">
-              {groups.map((group) => (
+              {menuGroups.map((group) => (
                 <section key={group.title}>
-                  <h2 className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                  <h2 className="px-3 text-xs font-bold uppercase tracking-[0.16em] text-muted">
                     {group.title}
                   </h2>
                   <ul className="mt-1">
-                    {group.links.map((item) => (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex min-h-12 items-center rounded-2xl px-3 text-lg font-medium",
-                            pathname === item.href && "bg-stone",
-                          )}
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
+                    {group.links.map((item, index) => {
+                      const nested = "nested" in item && item.nested;
+                      return (
+                        <li key={`${item.label}-${item.href}-${index}`}>
+                          <Link
+                            href={item.href}
+                            className={cn(
+                              "flex items-center rounded-2xl px-3 font-medium",
+                              nested
+                                ? "min-h-11 pl-7 text-base text-muted"
+                                : "min-h-12 text-lg",
+                              pathname === item.href && "bg-stone text-ink",
+                            )}
+                          >
+                            {item.label}
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </section>
               ))}

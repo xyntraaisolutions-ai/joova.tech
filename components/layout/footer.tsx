@@ -23,7 +23,7 @@ export function Footer() {
             <Logo />
           </Link>
           <p className="mt-3 max-w-md text-muted">
-            Smarter Tech | Bigger Tomorrow. Fitness Band, Smart Ring, Joova Watch, Joova Glasses, Joova Buds, and Joova Share Pod.
+            Joova brings smart, simple and fairly priced technology into everyday life. Built by Joova Tech LLC in the USA. Smarter Tech | Bigger Tomorrow. No subscription. Ever.
           </p>
           <form
             className="mt-6 flex max-w-md flex-col gap-3 sm:flex-row"
@@ -95,6 +95,9 @@ export function Footer() {
             </li>
             <li>
               <Link href="/returns">Returns</Link>
+            </li>
+            <li>
+              <Link href="/account">Customer Account</Link>
             </li>
             <li>
               <Link href="/track">Track order</Link>

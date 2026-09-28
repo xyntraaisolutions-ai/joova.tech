@@ -1,20 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Outfit } from "next/font/google";
+import { DM_Sans } from "next/font/google";
+import { AuthProvider } from "@/components/layout/auth-provider";
 import { CartProvider } from "@/components/layout/cart-provider";
 import { WishlistProvider } from "@/components/layout/wishlist-provider";
 import { SiteShell } from "@/components/layout/site-shell";
 import { SITE_URL, siteDescription } from "@/content/site";
 import "./globals.css";
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
+  weight: ["400", "600", "700"],
   display: "swap",
 });
 
@@ -22,18 +18,18 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f6f3ee",
+  themeColor: "#ffffff",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Joova — Smarter Tech | Bigger Tomorrow",
+    default: "Joova — No subscription. Ever.",
     template: "%s · Joova",
   },
   description: siteDescription,
   openGraph: {
-    title: "Joova — Smarter Tech | Bigger Tomorrow",
+    title: "Joova — No subscription. Ever.",
     description: siteDescription,
     url: SITE_URL,
     siteName: "Joova",
@@ -55,17 +51,19 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${outfit.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${dmSans.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
       </head>
       <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
-        <CartProvider>
-          <WishlistProvider>
-            <SiteShell>{children}</SiteShell>
-          </WishlistProvider>
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <SiteShell>{children}</SiteShell>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

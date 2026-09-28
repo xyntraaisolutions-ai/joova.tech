@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/reviews",
     "/warranty",
     "/returns",
+    "/account",
     "/track",
     "/help",
     "/about",

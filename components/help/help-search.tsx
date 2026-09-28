@@ -37,7 +37,7 @@ export function HelpSearch() {
           ) : (
             results.map((article) => (
               <li key={article.slug}>
-                <Link href={`/help/${article.slug}`} className="text-coral-ink underline">
+                <Link href={`/help/${article.slug}`} className="text-ink underline">
                   {article.title}
                 </Link>
               </li>

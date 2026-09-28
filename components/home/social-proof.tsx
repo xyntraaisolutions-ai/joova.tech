@@ -18,7 +18,7 @@ export function SocialProof() {
         </p>
         <p className="mt-6 text-muted">
           Creator videos will live on this wall with written permission.{" "}
-          <Link href="/reviews" className="text-coral-ink underline">
+          <Link href="/reviews" className="text-ink underline">
             Reviews page
           </Link>
         </p>

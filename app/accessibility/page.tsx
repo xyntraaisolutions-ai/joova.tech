@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
+import { support } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Accessibility",
@@ -18,7 +19,11 @@ export default function AccessibilityPage() {
       <p className="mt-6 text-muted">
         We aim to meet WCAG 2.2 AA. Pages use semantic HTML, skip links,
         visible focus, and text labels on color swatches. If something blocks
-        you, email hello@joova.tech.
+        you, email{" "}
+        <a className="font-medium text-ink underline" href={`mailto:${support.email}`}>
+          {support.email}
+        </a>
+        .
       </p>
     </Container>
   );

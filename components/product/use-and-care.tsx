@@ -6,7 +6,7 @@ export function UseAndCare() {
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {batteryFacts.map((fact) => (
           <div key={fact.label} className="rounded-3xl border border-stone bg-white p-5">
-            <dt className="text-sm font-medium uppercase tracking-[0.14em] text-coral-ink">
+            <dt className="text-sm font-bold uppercase tracking-[0.14em] text-ink">
               {fact.label}
             </dt>
             <dd className="font-display mt-3 text-2xl font-extrabold leading-tight">

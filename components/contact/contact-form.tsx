@@ -30,9 +30,6 @@ export function ContactForm() {
                 {support.email}
               </a>
             ) : null}
-            {"detail" in channel ? (
-              <p className="mt-3 text-sm text-muted">{channel.detail}</p>
-            ) : null}
           </li>
         ))}
       </ul>

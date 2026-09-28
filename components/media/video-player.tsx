@@ -32,7 +32,7 @@ export function VideoPlayer({
         posterClassName,
       )}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,#2a2d34,transparent_55%),radial-gradient(circle_at_80%_80%,#f26b4e33,transparent_45%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,var(--fixed-ink),transparent_55%),radial-gradient(circle_at_80%_80%,color-mix(in_srgb,var(--joova-coral)_20%,transparent),transparent_45%)]" />
       <p className="absolute bottom-6 left-6 max-w-sm text-paper">
         {title}
         <span className="mt-1 block text-sm text-paper/70">

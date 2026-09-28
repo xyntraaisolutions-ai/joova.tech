@@ -312,7 +312,7 @@ export const catalog: readonly CatalogProduct[] = [
     signals: [
       { label: "Colors", text: "Five colors" },
       { label: "Price", text: strapPriceLabel },
-      { label: "Warranty", text: "Lifetime strap warranty" },
+      { label: "Warranty", text: "Lifetime, after registration" },
     ],
   },
 ];

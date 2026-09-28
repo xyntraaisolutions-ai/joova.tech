@@ -70,7 +70,7 @@ export default function BudsPage() {
           />
         </div>
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
             Electronics
           </p>
           <h1

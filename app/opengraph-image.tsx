@@ -13,8 +13,8 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          background: "#15171C",
-          color: "#F6F3EE",
+          background: "#0C121C",
+          color: "#FFFFFF",
           padding: 80,
         }}
       >
@@ -22,9 +22,9 @@ export default function OpenGraphImage() {
           JOOVA
         </div>
         <div style={{ fontSize: 64, fontWeight: 700, marginTop: 24, lineHeight: 1.05 }}>
-          Smarter Tech | Bigger Tomorrow
+          No subscription. Ever.
         </div>
-        <div style={{ fontSize: 28, marginTop: 28, color: "#FD5710" }}>
+        <div style={{ fontSize: 28, marginTop: 28, color: "#FF5A05" }}>
           Fitness Band · Smart Ring · Joova Watch · Glasses · Buds · Share Pod
         </div>
       </div>

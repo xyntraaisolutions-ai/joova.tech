@@ -75,13 +75,13 @@ export function Hero() {
         </div>
         <div className="min-w-0 md:order-1">
           {highlight.kicker ? (
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-coral">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-slate">
               {highlight.kicker}
             </p>
           ) : null}
           <h1
             className={cn(
-              "font-display max-w-xl font-semibold leading-[1.05]",
+              "font-display max-w-xl leading-[1.05]",
               highlight.kicker && "mt-3",
             )}
             style={{ fontSize: "var(--text-h1)" }}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,12 @@ export default function TrackPage() {
       </h1>
       <p className="mt-4 text-muted">
         Tracking will use AfterShip or Shopify order status after orders ship.
-        Lookups are not live yet.
+        Lookups are not live yet. A{" "}
+        <Link className="font-medium text-ink underline" href="/account">
+          Joova Customer Account
+        </Link>{" "}
+        is where purchase history, order tracking, returns, and replacements
+        will live.
       </p>
       <form className="mt-8 space-y-4" action="#">
         <label className="block">

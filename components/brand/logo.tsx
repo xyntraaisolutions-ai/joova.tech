@@ -11,7 +11,7 @@ export function Logo({ className }: { className?: string }) {
         height={285}
         priority
         unoptimized
-        className="logo-day h-8 w-auto"
+        className="logo-day h-9 w-auto"
       />
       <Image
         src="/brand/joova-wordmark-orange-night.png"
@@ -19,7 +19,7 @@ export function Logo({ className }: { className?: string }) {
         width={977}
         height={285}
         unoptimized
-        className="logo-night h-8 w-auto"
+        className="logo-night h-9 w-auto"
       />
     </span>
   );
