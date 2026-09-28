@@ -5,9 +5,15 @@ import { helpArticles } from "@/content/site";
 export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     "",
+    "/shop",
+    "/wishlist",
+    "/deals",
     "/band",
     "/ring",
     "/share",
+    "/glasses",
+    "/watch",
+    "/buds",
     "/app",
     "/reviews",
     "/warranty",

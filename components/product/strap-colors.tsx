@@ -39,21 +39,16 @@ function Swatches({
 
 export function StrapColorChoices({
   worn,
-  extra,
   onWorn,
-  onExtra,
 }: {
   worn: BandVariant;
-  extra: BandVariant;
   onWorn: (variant: BandVariant) => void;
-  onExtra: (variant: BandVariant) => void;
 }) {
   return (
-    <div className="space-y-6">
-      <Swatches legend="Strap you wear" selected={worn} onSelect={onWorn} />
-      <Swatches legend="Extra strap" selected={extra} onSelect={onExtra} />
+    <div className="space-y-4">
+      <Swatches legend="Color" selected={worn} onSelect={onWorn} />
       <p className="text-sm text-muted">
-        Choose two colors. The box matches the strap you wear.
+        The box includes this strap plus 1 extra. Black includes blue. Every other color includes black.
       </p>
     </div>
   );

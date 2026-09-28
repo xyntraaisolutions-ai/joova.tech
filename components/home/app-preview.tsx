@@ -33,8 +33,7 @@ export function AppPreview() {
           </h2>
           <p className="mt-4 text-muted">
             Sleep, activity, heart-rate trends, and recovery — without a
-            monthly plan. Works with Apple Health and Google Health Connect
-            [CONFIRM].
+            monthly plan. Works with Apple Health and Google Health Connect.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
             <Badge>App Store (link after approval)</Badge>

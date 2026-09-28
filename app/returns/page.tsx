@@ -21,9 +21,9 @@ export default function ReturnsPage() {
       <div className="mt-8 space-y-6 text-muted">
         <p>{policies.returnsSummary}</p>
         <p>
-          The 30 days start on the delivery date. The return is free, and we
+          The 60 days start on the delivery date. The return is free, and we
           cover return shipping in the United States. Refund timing follows
-          what is stated at checkout, after we receive the band.
+          what is stated at checkout, after we receive the product.
         </p>
         <h2 className="font-display text-2xl font-extrabold text-ink">
           How to start a return
@@ -44,11 +44,11 @@ export default function ReturnsPage() {
           <li>Pack the band and send it back. We refund after we receive it, or as stated at checkout.</li>
         </ol>
         <p>
-          A warranty repair is not a return. Strap and dock coverage is on the{" "}
+          A warranty repair is not a return. Strap and tracker coverage is on the{" "}
           <Link className="font-medium text-ink underline" href="/warranty">
             warranty page
           </Link>
-          . Dock warranty applies only after the warranty form is submitted.
+          . The tracker’s third year starts when you register it in the Joova app.
         </p>
       </div>
     </Container>

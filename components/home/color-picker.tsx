@@ -4,7 +4,7 @@ import Link from "next/link";
 import { BandPhoto } from "@/components/media/band-photo";
 import { ProductTurntable } from "@/components/media/product-turntable";
 import { useState } from "react";
-import { bandImageSize, bandVariants, strapPriceLabel, type BandVariant } from "@/content/site";
+import { bandImageSize, bandVariants, includedExtra, strapPriceLabel, type BandVariant } from "@/content/site";
 import { strapCartItem, StrapColorChoices } from "@/components/product/strap-colors";
 import { useCart } from "@/components/layout/cart-provider";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { formatUsd } from "@/lib/utils";
 
 export function ColorPicker() {
   const [worn, setWorn] = useState<BandVariant>(bandVariants[0]);
-  const [extra, setExtra] = useState<BandVariant>(bandVariants[1]);
+  const extra = includedExtra(worn);
   const { addItem } = useCart();
 
   return (
@@ -46,21 +46,16 @@ export function ColorPicker() {
           </h2>
           <p className="mt-3 text-muted">
             Black, Blue, Green, Orange, and Red. The box includes the strap you
-            wear and 1 extra. You choose both colors.
+            wear and 1 extra. Black includes blue. Every other color includes black.
           </p>
           <p className="mt-8 font-display text-3xl font-bold">
-            {worn.name} + {extra.name}
+            {worn.name} + {extra.name} extra
           </p>
           <p className="mt-1">
             {formatUsd(worn.price)} · {worn.status}
           </p>
           <div className="mt-6">
-            <StrapColorChoices
-              worn={worn}
-              extra={extra}
-              onWorn={setWorn}
-              onExtra={setExtra}
-            />
+            <StrapColorChoices worn={worn} onWorn={setWorn} />
           </div>
           <Button className="mt-8" onClick={() => addItem(strapCartItem(worn, extra))}>
             Add to cart

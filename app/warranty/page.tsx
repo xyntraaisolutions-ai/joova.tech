@@ -24,18 +24,17 @@ export default function WarrantyPage() {
           <h2 className="font-display text-2xl font-extrabold text-ink">Straps</h2>
           <p className="mt-3">{policies.strapSummary}</p>
           <p className="mt-3">
-            This covers the woven straps that ship in the box. It covers
-            manufacturing defects for 5 years from delivery.
+            This covers the woven straps that ship in the box, for life, against
+            manufacturing defects.
           </p>
         </section>
         <section>
-          <h2 className="font-display text-2xl font-extrabold text-ink">Dock</h2>
+          <h2 className="font-display text-2xl font-extrabold text-ink">Tracker</h2>
           <p className="mt-3">{policies.dockSummary}</p>
           <p className="mt-3">
-            The dock is the black tracker that sits in the strap. Filling in
-            the warranty form is how that coverage is applied. Until we receive
-            the form, the dock warranty is not in effect. The free third year
-            is part of that same registration.
+            The tracker is the module in the strap. Register it in the Joova app
+            to add the third year. You can also submit the warranty form. Until
+            it is registered, coverage is 2 years.
           </p>
         </section>
         <section>
@@ -52,13 +51,14 @@ export default function WarrantyPage() {
             <a className="font-medium text-ink underline" href={`mailto:${support.email}`}>
               {support.email}
             </a>
-            . Who pays shipping on a claim, and what is excluded, will be
-            finalized after legal review. [CONFIRM]
+            . On a covered claim inside the United States, Joova pays the
+            replacement shipping. Misuse, water beyond the stated rating, and
+            unauthorized repair are not covered. Lawyer review is still pending.
           </p>
           <p className="mt-3">
             Returns are separate. See the{" "}
             <Link className="font-medium text-ink underline" href="/returns">
-              30-day free returns
+              {policies.returnsTitle}
             </Link>{" "}
             policy.
           </p>

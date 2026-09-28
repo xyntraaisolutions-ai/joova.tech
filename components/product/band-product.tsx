@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { bandVariants, policies, PREORDER_SHORT, PRICE, SHIP_DATE, strapPriceLabel, type BandVariant } from "@/content/site";
+import { bandVariants, includedExtra, noSubscription, policies, PRICE, strapPriceLabel, type BandVariant } from "@/content/site";
 import { useCart } from "@/components/layout/cart-provider";
 import { StickyBuyBar } from "@/components/layout/sticky-buy-bar";
 import { Gallery, Quantity } from "@/components/product/gallery";
@@ -17,9 +17,9 @@ import { formatUsd } from "@/lib/utils";
 
 export function BandProduct() {
   const [worn, setWorn] = useState<BandVariant>(bandVariants[0]);
-  const [extra, setExtra] = useState<BandVariant>(bandVariants[1]);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
+  const extra = includedExtra(worn);
 
   const add = () => addItem(strapCartItem(worn, extra, quantity));
 
@@ -36,23 +36,21 @@ export function BandProduct() {
             className="font-display font-extrabold"
             style={{ fontSize: "var(--text-h1)" }}
           >
-            Faceless Fitness Tracker Band
+            Joova Band
           </h1>
+          <p className="mt-3 font-display text-3xl font-semibold">Track everything. Pay once.</p>
           <p className="mt-3 text-2xl">{formatUsd(PRICE)}</p>
-          <Badge className="mt-4">No subscription. Ever.</Badge>
+          <Badge className="mt-4">{noSubscription}</Badge>
           <p className="mt-6 text-muted">
-            Joova Band. Screenless fitness tracker. 2 straps in every box. Launches {SHIP_DATE}.
+            A light, screenless fitness tracker for sleep, heart rate, and daily
+            activity, shown in the free Joova app. No screen to distract you, and
+            no monthly bill. Ever.
           </p>
           <div className="mt-8">
-            <StrapColorChoices
-              worn={worn}
-              extra={extra}
-              onWorn={setWorn}
-              onExtra={setExtra}
-            />
+            <StrapColorChoices worn={worn} onWorn={setWorn} />
           </div>
           <p className="mt-4 text-sm text-muted">
-            Strap fits wrist range [CONFIRM].{" "}
+            Fits wrists about 14–22 cm (5.5–8.7 in).{" "}
             <Link className="underline" href="#straps">
               Buy a strap on its own for {strapPriceLabel} each.
             </Link>
@@ -68,7 +66,7 @@ export function BandProduct() {
             Shop Pay (when Shopify is connected)
           </Button>
           <p className="mt-4 text-sm text-muted">
-            Pre-order before {PREORDER_SHORT} · Launches {SHIP_DATE} · Free US shipping
+            Available now · Free US shipping
           </p>
           <p className="mt-2 text-sm text-muted">{policies.shipping}</p>
           <p className="mt-3 text-sm text-muted">
@@ -109,7 +107,8 @@ export function BandProduct() {
             Compare the price model
           </h2>
           <p className="max-w-2xl text-muted">
-            Joova is a one-time purchase. A typical subscription tracker charges
+            The Fitness Band and the Smart Ring are one-time purchases. No
+            subscription needed. Ever. A typical subscription tracker charges
             monthly for the app. We do not use competitor trademarks in images.
             Figures for monthly examples are labeled as examples.
           </p>

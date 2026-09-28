@@ -5,7 +5,8 @@ import { useState } from "react";
 import { Logo } from "@/components/brand/logo";
 import { PaymentMarks } from "@/components/layout/payment-marks";
 import { SocialIcons } from "@/components/layout/social-icons";
-import { company, electronicsMenu, productsMenu, supportMenu } from "@/content/site";
+import { catalog } from "@/content/catalog";
+import { company, supportMenu } from "@/content/site";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
@@ -15,14 +16,14 @@ export function Footer() {
   const [status, setStatus] = useState<"idle" | "success">("idle");
 
   return (
-    <footer className="border-t border-stone bg-paper py-16">
-      <Container className="grid gap-12 md:grid-cols-4">
-        <div className="md:col-span-2">
+    <footer className="border-t border-stone bg-paper py-10 md:py-16">
+      <Container className="grid gap-8 md:grid-cols-4 md:gap-12">
+        <div id="waitlist" className="scroll-mt-24 md:col-span-2">
           <Link href="/" aria-label="Joova home">
             <Logo />
           </Link>
           <p className="mt-3 max-w-md text-muted">
-            Smarter Tech | Bigger Tomorrow. Fitness Band, Smart Ring, and Joova Share.
+            Smarter Tech | Bigger Tomorrow. Fitness Band, Smart Ring, Joova Watch, Joova Glasses, Joova Buds, and Joova Share Pod.
           </p>
           <form
             className="mt-6 flex max-w-md flex-col gap-3 sm:flex-row"
@@ -59,14 +60,18 @@ export function Footer() {
         <div>
           <p className="font-medium">Shop</p>
           <ul className="mt-3 space-y-1 text-muted [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center">
-            {productsMenu.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href}>{item.label}</Link>
-              </li>
-            ))}
-            {electronicsMenu.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href}>{item.label}</Link>
+            <li>
+              <Link href="/shop">All products</Link>
+            </li>
+            <li>
+              <Link href="/deals">Deals</Link>
+            </li>
+            <li>
+              <Link href="/wishlist">Wishlist</Link>
+            </li>
+            {catalog.map((item) => (
+              <li key={item.id}>
+                <Link href={item.href}>{item.menuLabel}</Link>
               </li>
             ))}
             <li>

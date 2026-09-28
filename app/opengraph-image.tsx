@@ -25,7 +25,7 @@ export default function OpenGraphImage() {
           Smarter Tech | Bigger Tomorrow
         </div>
         <div style={{ fontSize: 28, marginTop: 28, color: "#FD5710" }}>
-          Fitness Band · Smart Ring · Joova Share
+          Fitness Band · Smart Ring · Joova Watch · Glasses · Buds · Share Pod
         </div>
       </div>
     ),

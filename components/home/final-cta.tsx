@@ -15,17 +15,17 @@ export function FinalCTA() {
             className="font-display font-extrabold"
             style={{ fontSize: "var(--text-h2)" }}
           >
-            Pre-order Joova Band
+            Shop the Fitness Band
           </h2>
-          <p className="mt-4 text-paper/80">{priceLabel}. No subscription. Ever.</p>
+          <p className="mt-4 text-paper/80">{priceLabel}. Available now. No subscription needed. Ever.</p>
           <Link href="/band#buy" className={`${buttonClassName("dark")} mt-8`}>
-            Pre-order now
+            Shop now
           </Link>
         </div>
         <div className="stage flex justify-center rounded-[24px] p-6">
           <ProductTurntable>
             <BandPhoto
-              src="/bands/band-black.png"
+              src="/bands/joova-band-black-1600.png"
               alt="Joova Band in Black"
               width={bandImageSize.width}
               height={bandImageSize.height}

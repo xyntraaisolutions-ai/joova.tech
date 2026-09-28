@@ -2,7 +2,7 @@ import { policies } from "@/content/site";
 import { Container } from "@/components/ui/container";
 
 const promises = [
-  { kicker: "The price", text: "No subscription. Ever." },
+  { kicker: "The price", text: "No subscription needed. Ever." },
   { kicker: "The box", text: "2 straps in every box" },
   { kicker: "The straps", text: policies.strapTitle },
 ];

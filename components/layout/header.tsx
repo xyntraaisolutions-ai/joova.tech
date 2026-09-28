@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ShoppingBag } from "lucide-react";
+import { ChevronDown, Heart, ShoppingBag } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useCart } from "@/components/layout/cart-provider";
-import { electronicsMenu, productsMenu, supportMenu } from "@/content/site";
+import { useWishlist } from "@/components/layout/wishlist-provider";
+import { categoryMenu } from "@/content/catalog";
+import { supportMenu } from "@/content/site";
 import { cn } from "@/lib/utils";
 
 function NavMenu({
@@ -91,6 +93,7 @@ function NavMenu({
 
 export function Header() {
   const { count, setOpen } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
   const aboutActive = pathname === "/about" || pathname.startsWith("/about/");
 
@@ -112,23 +115,28 @@ export function Header() {
           </span>
         </Link>
         <nav className="hidden items-center gap-4 xl:gap-5 md:flex" aria-label="Primary">
-          <NavMenu label="Products" items={productsMenu} />
-          {productsMenu.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
-                  active ? "text-ink underline underline-offset-4" : "text-ink/80",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-          <NavMenu label="Electronics" items={electronicsMenu} />
+          <Link
+            href="/shop"
+            className={cn(
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+              pathname === "/shop" ? "text-ink underline underline-offset-4" : "text-ink/80",
+            )}
+          >
+            Shop
+          </Link>
+          <Link
+            href="/deals"
+            className={cn(
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+              pathname === "/deals" ? "text-ink underline underline-offset-4" : "text-ink/80",
+            )}
+          >
+            Deals
+          </Link>
+          <NavMenu label="Wearables" items={categoryMenu("wearables")} />
+          <NavMenu label="Smart devices" items={categoryMenu("devices")} />
+          <NavMenu label="Electronics" items={categoryMenu("electronics")} />
+          <NavMenu label="Accessories" items={categoryMenu("accessories")} />
           <Link
             href="/about"
             className={cn(
@@ -142,6 +150,18 @@ export function Header() {
         </nav>
         <div className="flex items-center gap-1">
           <ThemeToggle />
+          <Link
+            href="/wishlist"
+            className="relative hidden size-11 items-center justify-center rounded-full hover:bg-stone md:inline-flex"
+            aria-label={`Wishlist, ${wishlistCount} ${wishlistCount === 1 ? "item" : "items"}`}
+          >
+            <Heart className="size-5" />
+            {wishlistCount > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-semibold text-[var(--fixed-ink)]">
+                {wishlistCount}
+              </span>
+            ) : null}
+          </Link>
           <button
             className="relative hidden size-11 items-center justify-center rounded-full hover:bg-stone md:inline-flex"
             onClick={() => setOpen(true)}

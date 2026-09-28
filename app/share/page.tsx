@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import {
-  policies,
   SHARE_PRICE,
   shareBuds,
   shareFacts,
@@ -9,20 +8,20 @@ import {
   sharePriceLabel,
   SITE_URL,
 } from "@/content/site";
-import { ShareBuy } from "@/components/product/share-buy";
+import { AddToCart } from "@/components/product/add-to-cart";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 
 export const metadata: Metadata = {
-  title: "Joova Share",
-  description: `Joova Share, ${sharePriceLabel}. Quad-audio sharing station with four pairs of wireless earbuds in one power case.`,
+  title: "Joova Share Pod",
+  description: `Joova Share Pod, ${sharePriceLabel}. Available now. Quad-audio sharing station with four pairs of wireless earbuds in one power case.`,
 };
 
 const productLd = {
   "@context": "https://schema.org",
   "@type": "Product",
-  name: "Joova Share",
+  name: "Joova Share Pod",
   description:
     "Quad-audio sharing station with four pairs of wireless earbuds in one power case. All eight buds can link to one device, or pairs can run on separate devices.",
   brand: { "@type": "Brand", name: "Joova" },
@@ -32,7 +31,7 @@ const productLd = {
     "@type": "Offer",
     priceCurrency: "USD",
     price: SHARE_PRICE,
-    availability: "https://schema.org/PreOrder",
+    availability: "https://schema.org/InStock",
     url: `${SITE_URL}/share`,
   },
 };
@@ -48,7 +47,7 @@ export default function SharePage() {
         <div className="stage rounded-[24px] p-4 sm:p-6">
           <Image
             src="/electronics/joova-share.jpg"
-            alt="Joova Share case with four pairs of earbuds, and two people listening together from one tablet"
+            alt="Joova Share Pod case with four pairs of earbuds, and two people listening together from one tablet"
             width={shareImageSize.width}
             height={shareImageSize.height}
             priority
@@ -64,11 +63,11 @@ export default function SharePage() {
             className="font-display mt-3 font-extrabold"
             style={{ fontSize: "var(--text-h1)" }}
           >
-            Joova Share
+            Joova Share Pod
           </h1>
           <p className="mt-3 text-2xl">{sharePriceLabel}</p>
           <p className="mt-2 text-lg">Quad-Audio Sharing Station</p>
-          <Badge className="mt-4">4 pairs. 1 case.</Badge>
+          <Badge className="mt-4">Available now</Badge>
           <p className="mt-6 text-muted">
             An all-in-one portable audio center. Four full pairs of wireless
             earbuds, eight buds in total, live in one high-capacity power case
@@ -87,8 +86,7 @@ export default function SharePage() {
               </div>
             ))}
           </dl>
-          <ShareBuy />
-          <p className="mt-2 text-sm text-muted">{policies.shipping}</p>
+          <AddToCart id="share" name="Joova Share Pod" price={SHARE_PRICE} />
         </div>
       </Container>
       <Section className="bg-stone/40">
