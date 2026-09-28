@@ -36,7 +36,7 @@ export function CartDrawer() {
                       <p className="mt-1">{formatUsd(item.price)}</p>
                     </div>
                     <button
-                      className="inline-flex min-h-11 items-center text-sm text-coral-ink underline"
+                      className="inline-flex min-h-11 items-center text-sm text-ink underline"
                       onClick={() => removeItem(item.id)}
                     >
                       Remove

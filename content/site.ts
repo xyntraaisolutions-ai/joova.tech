@@ -20,7 +20,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://joova.tech"
 export const noSubscription = "No subscription needed. Ever.";
 
 export const siteDescription =
-  "Joova makes the Fitness Band, the Smart Ring, Joova Watch, Joova Glasses, Joova Buds, and Joova Share Pod. Smarter Tech | Bigger Tomorrow.";
+  "Joova brings smart, simple and fairly priced technology into everyday life. Built by Joova Tech LLC in the USA, every Joova product is designed to be easy to use and worth it. Smarter Tech | Bigger Tomorrow. No subscription. Ever.";
 
 export const company = {
   brand: "Joova",
@@ -28,7 +28,7 @@ export const company = {
   legalName: "Joova Tech LLC",
   copyright: "© 2026 Joova Tech LLC",
   address: "Grapevine, Texas",
-  email: "hello@joova.tech",
+  email: "support@joova.tech",
   supportHours: "Every message is answered as soon as we can, within 6 to 24 hours.",
 };
 
@@ -38,18 +38,23 @@ export const bandLineupSize = { width: 2845, height: 980 } as const;
 export const boxImageSize = { width: 864, height: 1152 } as const;
 
 export const policies = {
-  returnsTitle: "60-day free returns",
+  returnsTitle: "30-day free returns",
   strapTitle: "Lifetime strap warranty",
   dockTitle: "Tracker warranty",
-  announcement: "Free US shipping · 60-day free returns",
+  announcement: "Free US shipping · 30-day free returns",
   heroLine:
-    "2 straps in every box · 60-day free returns · Lifetime strap warranty · 2-year tracker warranty",
-  strapSummary: "Woven straps are covered for life against manufacturing defects.",
+    "2 straps in every box · 30-day free returns · Lifetime strap warranty · 2-year tracker warranty",
+  strapSummary:
+    "Woven straps are covered for life against manufacturing defects, after the band is registered.",
   dockSummary:
-    "The tracker is covered for 2 years, plus a third year when you register it in the Joova app.",
+    "The tracker is covered for 2 years, plus a third year, after you register the band.",
   shipping: "Ships from US warehouses. Delivered in 7 to 10 days.",
   returnsSummary:
-    "You have 60 days from delivery to start a free return. We cover return shipping in the US.",
+    "You have 30 days from delivery to start a free return in the United States. We cover return shipping. This is the only free return window.",
+  warrantyRegistration:
+    "Warranty starts only after the product is registered. Sign up for a Joova Customer Account, then register each eligible product.",
+  accountSummary:
+    "Your Joova Customer Account keeps purchase history, order tracking, returns, and replacements in one place.",
 } as const;
 
 export const announcement = policies.announcement;
@@ -82,7 +87,7 @@ export const shareFacts = [
     label: "In the box",
     value: "Joova Share Pod, 4 pairs of earbuds, USB-C cable, ear tips, quick start guide.",
   },
-  { label: "Warranty", value: "1 year." },
+  { label: "Warranty", value: "1 year after you register the product in your Joova Customer Account." },
   { label: "App", value: "No app needed. Pair in your device's Bluetooth settings." },
 ] as const;
 
@@ -141,8 +146,8 @@ export const glassesFacts = [
   { label: "Prescription", value: "Lenses are replaceable. An optician can fit prescription lenses." },
   { label: "App", value: "Joova app. iPhone with iOS 13 or later, Android 7.0 or later." },
   { label: "In the box", value: "Joova Glasses, USB-C cable, glasses case, cleaning cloth, quick start guide." },
-  { label: "Warranty", value: "1 year." },
-  { label: "Returns", value: "60-day returns." },
+  { label: "Warranty", value: "1 year after you register the product in your Joova Customer Account." },
+  { label: "Returns", value: "30-day returns." },
   { label: "Subscription", value: `${noSubscription} AI features stay included for the life of the glasses.` },
 ] as const;
 
@@ -164,8 +169,8 @@ export const glassesFaqs = [
     a: "A light on the frame turns on while the camera is recording. Record only where it is allowed, and let people know.",
   },
   {
-    q: "Are they waterproof?",
-    a: "They are IP65 rated: dust, sweat, and splashes. They are not for swimming or showering.",
+    q: "Can I swim with them?",
+    a: "No. They are IP65: dust, sweat, and splashes. They are not for swimming or showering.",
   },
   {
     q: "How long does the battery last?",
@@ -220,8 +225,8 @@ export const budsFacts = [
   { label: "Water", value: "IPX4. Sweat and light rain. Not for swimming." },
   { label: "Weight", value: "About 4 g each. Case about 32 g." },
   { label: "In the box", value: "Joova Buds, charging case, USB-C cable, ear tips (S/M/L), quick start guide." },
-  { label: "Warranty", value: "1 year." },
-  { label: "Returns", value: "60-day returns." },
+  { label: "Warranty", value: "1 year after you register the product in your Joova Customer Account." },
+  { label: "Returns", value: "30-day returns." },
   { label: "App", value: "No app needed. Pair in your phone's Bluetooth settings." },
 ] as const;
 
@@ -285,8 +290,8 @@ export const watchFacts = [
   { label: "Water", value: "IP67. Splash and rain. Not for swimming or showering." },
   { label: "App", value: "Joova app. iPhone with iOS 13 or later, Android 8 or later." },
   { label: "In the box", value: "Joova Watch, magnetic charging cable, quick start guide." },
-  { label: "Warranty", value: "1 year." },
-  { label: "Returns", value: "60-day free returns." },
+  { label: "Warranty", value: "1 year after you register the product in your Joova Customer Account." },
+  { label: "Returns", value: "30-day free returns." },
   { label: "Subscription", value: noSubscription },
 ] as const;
 
@@ -331,8 +336,8 @@ export const budsFaqs = [
     a: "Yes. Each bud has a microphone, and you answer or end a call with the touch controls.",
   },
   {
-    q: "Are they waterproof?",
-    a: "They are IPX4: sweat and light rain. They are not for swimming or showering.",
+    q: "Can I swim with them?",
+    a: "No. They are IPX4: sweat and light rain. They are not for swimming or showering.",
   },
 ] as const;
 
@@ -356,18 +361,6 @@ export const support = {
       label: "Email",
       reply: "within 12 hours",
       href: `mailto:${company.email}`,
-    },
-    {
-      id: "whatsapp",
-      label: "WhatsApp",
-      reply: "within 6 hours",
-      detail: "Message hello@joova.tech and ask for WhatsApp. A public number is not assigned yet.",
-    },
-    {
-      id: "sms",
-      label: "Text (USA)",
-      reply: "within 24 hours",
-      detail: "Message hello@joova.tech and ask for text. A public US number is not assigned yet.",
     },
   ],
 } as const;
@@ -455,7 +448,7 @@ export const ringVariants = [
     name: "Silver",
     finish: "Silver",
     style: "Classic",
-    hex: "#C5C8CE",
+    hex: "#A9AFB6",
     image: "/rings/joova-ring-silver-classic-1600.png",
     summary: "Smooth silver stainless steel.",
   },
@@ -466,7 +459,7 @@ export const ringVariants = [
     name: "Silver",
     finish: "Silver",
     style: "Wave",
-    hex: "#C5C8CE",
+    hex: "#A9AFB6",
     image: "/rings/joova-ring-silver-wave-1600.png",
     summary: "Silver stainless steel with a textured diagonal pattern.",
   },
@@ -477,7 +470,7 @@ export const ringVariants = [
     name: "Black",
     finish: "Black",
     style: "Classic",
-    hex: "#1A1C20",
+    hex: "#26282C",
     image: "/rings/joova-ring-black-classic-1600.png",
     summary: "Smooth black stainless steel.",
   },
@@ -488,7 +481,7 @@ export const ringVariants = [
     name: "Black",
     finish: "Black",
     style: "Wave",
-    hex: "#1A1C20",
+    hex: "#26282C",
     image: "/rings/joova-ring-black-wave-1600.png",
     summary: "Black stainless steel with a textured diagonal pattern.",
   },
@@ -499,7 +492,7 @@ export const ringVariants = [
     name: "Rose Gold",
     finish: "Rose Gold",
     style: "Classic",
-    hex: "#C4897B",
+    hex: "#C98B6C",
     image: "/rings/joova-ring-rose-gold-classic-1600.png",
     summary: "Smooth rose gold stainless steel.",
   },
@@ -510,7 +503,7 @@ export const ringVariants = [
     name: "Rose Gold",
     finish: "Rose Gold",
     style: "Wave",
-    hex: "#C4897B",
+    hex: "#C98B6C",
     image: "/rings/joova-ring-rose-gold-wave-1600.png",
     summary: "Rose gold stainless steel with a textured diagonal pattern.",
   },
@@ -558,8 +551,8 @@ export const ringFacts = [
   { label: "App", value: "Joova app. iPhone with iOS 15 or later, Android 9 or later. Syncs with Apple Health and Google Health Connect." },
   { label: "Updates", value: "Over the air, at no cost." },
   { label: "In the box", value: "Joova Ring, charging dock, USB cable, quick start guide." },
-  { label: "Warranty", value: "2 years." },
-  { label: "Returns", value: "60-day free returns, including a free size exchange." },
+  { label: "Warranty", value: "2 years after you register the ring in your Joova Customer Account." },
+  { label: "Returns", value: "30-day free returns in the US, including a free size exchange. This is the only free return window." },
   { label: "Subscription", value: noSubscription },
 ] as const;
 
@@ -694,10 +687,10 @@ export const specs = [
   { label: "Water", value: "1ATM. Splash and rain. Not for swimming or showering." },
   { label: "Phone", value: "Joova app. iPhone with iOS 15 or later, and Android 9 or later." },
   { label: "Health apps", value: "Works with Apple Health and Google Health Connect." },
-  { label: "Strap warranty", value: "Lifetime against manufacturing defects." },
-  { label: "Tracker warranty", value: "2 years, plus a third year when you register the band in the Joova app." },
+  { label: "Strap warranty", value: "Lifetime against manufacturing defects, after the band is registered in your Joova Customer Account." },
+  { label: "Tracker warranty", value: "2 years, plus a third year, after you register the band in your Joova Customer Account." },
   { label: "Shipping", value: "Ships from US warehouses. Delivered in 7 to 10 days. Free in the United States." },
-  { label: "Returns", value: "60-day free returns. US return shipping is covered." },
+  { label: "Returns", value: "30-day free returns. US return shipping is covered." },
 ];
 
 export const faqs = [
@@ -731,11 +724,11 @@ export const faqs = [
   },
   {
     q: "What is the return policy?",
-    a: "60-day free returns from delivery. US return shipping is covered. See the Returns page for how to start a return.",
+    a: "30 days from delivery, and only in the United States. We cover return shipping. After 30 days, the free return window is closed. Start the return from your Joova Customer Account, or from the Returns page.",
   },
   {
     q: "What is covered by warranty?",
-    a: "Straps: lifetime against manufacturing defects. Tracker: 2 years, plus a third year when you register the band in the Joova app.",
+    a: "Warranty starts when you register the product. Sign up for a Joova Customer Account, then register the band. Straps: lifetime against manufacturing defects. Tracker: 2 years, plus a third year, after registration.",
   },
   {
     q: "Is it a medical device?",
@@ -782,9 +775,9 @@ export const appScreens = [
 ];
 
 export const trustItems = [
-  { title: "60-day free returns", href: "/returns", copy: "60 days from delivery. US return shipping is covered." },
-  { title: "Lifetime strap warranty", href: "/warranty", copy: "Manufacturing defects on the woven straps, for life." },
-  { title: "Tracker warranty", href: "/warranty", copy: "2 years on the tracker, plus a third year when you register it in the Joova app." },
+  { title: "30-day free returns", href: "/returns", copy: "30 days from delivery. US return shipping is covered." },
+  { title: "Lifetime strap warranty", href: "/warranty", copy: "Manufacturing defects on the woven straps, for life, after you register the band." },
+  { title: "Tracker warranty", href: "/warranty", copy: "2 years on the tracker, plus a third year, after you register it in your Joova Customer Account." },
   { title: "Replacement ships first", href: "/warranty", copy: "We send the replacement, then you send the old one." },
   { title: "US-based support", href: "/contact", copy: "Real people. Every message gets a reply within 6 to 24 hours." },
   { title: "Secure checkout", href: "/band", copy: "American Express, Visa, Mastercard, Apple Pay, Google Pay, Shop Pay, PayPal, Bancontact, and Wero." },

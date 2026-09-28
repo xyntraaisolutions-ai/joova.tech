@@ -78,7 +78,7 @@ export function RingProduct() {
           />
         </div>
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
             Wearables
           </p>
           <h1 className="font-display mt-3 font-extrabold" style={{ fontSize: "var(--text-h1)" }}>
@@ -201,7 +201,7 @@ export function RingProduct() {
 
       <Section id="styles" className="scroll-mt-24 bg-stone/40">
         <Container>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
             Styles
           </p>
           <h2 className="font-display mt-3 font-extrabold" style={{ fontSize: "var(--text-h2)" }}>

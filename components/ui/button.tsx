@@ -3,7 +3,7 @@ import { type ButtonHTMLAttributes } from "react";
 
 export const buttonVariants = {
   primary:
-    "bg-coral text-[var(--fixed-ink)] font-semibold hover:brightness-95 disabled:opacity-50 disabled:pointer-events-none",
+    "bg-coral text-[var(--fixed-ink)] font-bold hover:brightness-95 disabled:opacity-50 disabled:pointer-events-none",
   secondary:
     "bg-transparent text-ink border border-ink/15 hover:border-ink/40 hover:bg-ink/5",
   ghost: "bg-transparent text-ink hover:bg-ink/5",

@@ -108,7 +108,7 @@ export function Header() {
           <span className="flex w-fit flex-col gap-0.5">
             <Logo />
             <span className="@container block w-0 min-w-full">
-              <span className="block text-justify text-[6.84cqw] font-medium leading-none tracking-normal text-muted [text-align-last:justify]">
+              <span className="block whitespace-nowrap text-justify text-[6.5cqw] font-medium leading-none tracking-normal text-ink [text-align-last:justify]">
                 Smarter Tech | Bigger Tomorrow
               </span>
             </span>
@@ -157,7 +157,7 @@ export function Header() {
           >
             <Heart className="size-5" />
             {wishlistCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-semibold text-[var(--fixed-ink)]">
+              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-[var(--fixed-ink)]">
                 {wishlistCount}
               </span>
             ) : null}
@@ -169,7 +169,7 @@ export function Header() {
           >
             <ShoppingBag className="size-5" />
             {count > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-semibold text-[var(--fixed-ink)]">
+              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-[var(--fixed-ink)]">
                 {count}
               </span>
             ) : null}

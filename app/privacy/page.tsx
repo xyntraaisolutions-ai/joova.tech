@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { company } from "@/content/site";
+import { support } from "@/content/site";
 import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           request access or deletion under CCPA/CPRA.
         </p>
         <p>
-          Contact {company.email}. Full cookie policy and pixel rules will be
+          Contact {support.email}. Full cookie policy and pixel rules will be
           added with the consent banner.
         </p>
       </div>

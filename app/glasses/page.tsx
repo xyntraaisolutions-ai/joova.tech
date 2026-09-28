@@ -71,7 +71,7 @@ export default function GlassesPage() {
           />
         </div>
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
             AI camera glasses
           </p>
           <h1

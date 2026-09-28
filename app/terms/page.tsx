@@ -25,8 +25,11 @@ export default function TermsPage() {
         </p>
         <p>
           Every Joova product is available now and ships from US warehouses in 7
-          to 10 days. Wellness claims only. Joova is not
-          a medical device and does not diagnose, treat, or detect disease.
+          to 10 days. The only free return window is 30 days from delivery in
+          the United States. Warranty coverage starts when you register each
+          eligible product in a Joova Customer Account. Wellness claims only.
+          Joova is not a medical device and does not diagnose, treat, or detect
+          disease.
         </p>
       </div>
     </Container>

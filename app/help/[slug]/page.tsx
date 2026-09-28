@@ -26,7 +26,7 @@ export default async function HelpArticlePage({ params }: Props) {
 
   return (
     <Container className="max-w-3xl py-10 md:py-16">
-      <Link href="/help" className="text-sm text-coral-ink underline">
+      <Link href="/help" className="text-sm text-ink underline">
         All help articles
       </Link>
       <h1

@@ -28,6 +28,7 @@ const groups = [
     links: [
       { href: "/about", label: "About" },
       ...supportMenu,
+      { href: "/account", label: "Customer Account" },
       { href: "/warranty", label: "Warranty" },
       { href: "/returns", label: "Returns" },
     ],
@@ -57,7 +58,7 @@ export function MobileTabBar() {
               href="/"
               className={cn(
                 "flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium",
-                home ? "text-coral-ink" : "text-muted",
+                home ? "text-ink" : "text-muted",
               )}
               aria-current={home ? "page" : undefined}
             >
@@ -72,7 +73,7 @@ export function MobileTabBar() {
               href="/shop"
               className={cn(
                 "flex h-full flex-col items-center justify-center gap-1 text-[11px] font-medium",
-                shop ? "text-coral-ink" : "text-muted",
+                shop ? "text-ink" : "text-muted",
               )}
               aria-current={shop ? "page" : undefined}
             >
@@ -87,7 +88,7 @@ export function MobileTabBar() {
               type="button"
               className={cn(
                 "flex h-full w-full flex-col items-center justify-center gap-1 text-[11px] font-medium",
-                more ? "text-coral-ink" : "text-muted",
+                more ? "text-ink" : "text-muted",
               )}
               aria-expanded={more}
               onClick={() => setMore(true)}
@@ -110,7 +111,7 @@ export function MobileTabBar() {
               </span>
               Cart
               {count > 0 ? (
-                <span className="absolute right-[22%] top-1.5 flex size-4 items-center justify-center rounded-full bg-coral text-[10px] font-semibold text-[var(--fixed-ink)]">
+                <span className="absolute right-[22%] top-1.5 flex size-4 items-center justify-center rounded-full bg-coral text-[10px] font-bold text-[var(--fixed-ink)]">
                   {count}
                 </span>
               ) : null}
@@ -132,7 +133,7 @@ export function MobileTabBar() {
             <div className="space-y-5">
               {groups.map((group) => (
                 <section key={group.title}>
-                  <h2 className="px-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                  <h2 className="px-3 text-xs font-bold uppercase tracking-[0.16em] text-muted">
                     {group.title}
                   </h2>
                   <ul className="mt-1">

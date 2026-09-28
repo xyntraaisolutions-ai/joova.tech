@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --joova-ink: #15171c;
-  --joova-paper: #f6f3ee;
-  --joova-coral: #f26b4e;
-  --joova-coral-ink: #b8402a;
-  --joova-stone: #e5dfd6;
-  --joova-muted: #5f5a53;
+  --joova-ink: #0c121c;
+  --joova-paper: #ffffff;
+  --joova-coral: #ff5a05;
+  --joova-coral-ink: #ff5a05;
+  --joova-stone: #c8cdd6;
+  --joova-muted: #6b7280;
+  --joova-slate: #c8cdd6;
   --band-midnight: #1c1f26;
   --band-cloud: #d9dadb;
   --band-lilac: #b7a6e0;
-  --band-coral: #f26b4e;
+  --band-coral: #ff8424;
   --band-sage: #8fae95;
-  --joova-white: #fffdf9;
+  --joova-white: #f4f4f2;
   --band-black: #1e2026;
   --band-blue: #2f6bc8;
   --band-green: #2f8a5a;
@@ -32,22 +33,23 @@
   --text-h3: clamp(1.375rem, 2vw, 1.75rem);
   --text-body: clamp(1.0625rem, 1.2vw, 1.125rem);
   --text-small: 0.875rem;
-  --fixed-ink: #15171c;
-  --fixed-paper: #f6f3ee;
-  --fixed-white: #fffdf9;
-  --fixed-stone: #e5dfd6;
-  --fixed-muted: #5f5a53;
+  --fixed-ink: #0c121c;
+  --fixed-paper: #ffffff;
+  --fixed-white: #ffffff;
+  --fixed-stone: #c8cdd6;
+  --fixed-muted: #c8cdd6;
   --app-tab: 3.75rem;
   color-scheme: light;
 }
 
 html[data-theme="night"] {
-  --joova-paper: #101217;
-  --joova-ink: #f6f3ee;
-  --joova-stone: #2e333c;
-  --joova-muted: #b6b0a7;
-  --joova-white: #1a1e26;
-  --joova-coral-ink: #ffb4a2;
+  --joova-paper: #0c121c;
+  --joova-ink: #ffffff;
+  --joova-stone: #2a3344;
+  --joova-muted: #c8cdd6;
+  --joova-white: #161c28;
+  --joova-coral: #ff5a05;
+  --joova-coral-ink: #ff5a05;
   color-scheme: dark;
 }
 
@@ -58,6 +60,7 @@ html[data-theme="night"] {
   --color-coral-ink: var(--joova-coral-ink);
   --color-stone: var(--joova-stone);
   --color-muted: var(--joova-muted);
+  --color-slate: var(--joova-slate);
   --color-white: var(--joova-white);
   --color-band-black: var(--band-black);
   --color-band-blue: var(--band-blue);
@@ -71,8 +74,8 @@ html[data-theme="night"] {
   --color-box-green: var(--box-green);
   --color-box-orange: var(--box-orange);
   --color-box-red: var(--box-red);
-  --font-sans: var(--font-outfit);
-  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-dm-sans);
 }
 
 html {
@@ -113,9 +116,9 @@ html {
 body {
   background: var(--joova-paper);
   color: var(--joova-ink);
-  font-family: var(--font-outfit), system-ui, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   font-size: var(--text-body);
-  line-height: 1.6;
+  line-height: 1.5;
   overflow-x: clip;
   overscroll-behavior-x: none;
   -webkit-tap-highlight-color: transparent;
@@ -127,13 +130,23 @@ body {
   color: var(--fixed-ink);
 }
 
+.font-display {
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.font-display.font-semibold {
+  font-weight: 600;
+}
+
 .cinematic {
   --joova-ink: var(--fixed-ink);
   --joova-paper: var(--fixed-paper);
   --joova-white: var(--fixed-white);
   --joova-stone: var(--fixed-stone);
   --joova-muted: var(--fixed-muted);
-  --joova-coral-ink: #f26b4e;
+  --joova-coral-ink: #ff5a05;
   background: var(--fixed-ink);
   color: var(--fixed-paper);
 }
@@ -144,7 +157,7 @@ body {
   --joova-white: var(--fixed-white);
   --joova-stone: var(--fixed-stone);
   --joova-muted: var(--fixed-muted);
-  --joova-coral-ink: #b8402a;
+  --joova-coral-ink: #ff5a05;
   background: var(--fixed-white);
   color: var(--fixed-ink);
 }
@@ -166,11 +179,6 @@ html[data-theme="night"] .logo-night {
   outline-offset: 3px;
 }
 
-.font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
-  letter-spacing: -0.03em;
-  font-optical-sizing: auto;
-}
 
 .band-mark {
   --mark-ink: var(--fixed-paper);

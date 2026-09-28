@@ -44,7 +44,7 @@ export function WatchProduct() {
         />
       </div>
       <div>
-        <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+        <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
           Smart watch
         </p>
         <h1 className="font-display mt-3 font-extrabold" style={{ fontSize: "var(--text-h1)" }}>

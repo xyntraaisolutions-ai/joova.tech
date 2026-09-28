@@ -35,7 +35,7 @@ export function ColorPicker() {
           </div>
         </div>
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
             Five colors
           </p>
           <h2

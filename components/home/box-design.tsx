@@ -22,7 +22,7 @@ export function BoxDesign() {
   return (
     <Section id="box" className="scroll-mt-24 bg-stone/40">
       <Container>
-        <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+        <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
           The box
         </p>
         <h2

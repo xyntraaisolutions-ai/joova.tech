@@ -17,7 +17,7 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
         />
       </Link>
       <div className="flex flex-1 flex-col p-4 sm:p-6">
-        <p className="text-sm font-medium text-coral-ink">{product.status}</p>
+        <p className="text-sm text-muted">{product.status}</p>
         <h3 className="mt-2 font-display text-2xl font-extrabold">
           <Link href={product.href} className="hover:underline">
             {product.menuLabel}

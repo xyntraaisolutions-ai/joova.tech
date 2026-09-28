@@ -27,7 +27,7 @@ export function WishlistList() {
           className="flex flex-col gap-4 rounded-3xl border border-stone bg-white p-6 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="text-sm font-medium text-coral-ink">Wishlist</p>
+            <p className="text-sm font-medium text-ink">Wishlist</p>
             <h2 className="mt-1 font-display text-2xl font-extrabold">{item.name}</h2>
             <p className="mt-2 text-muted">{item.note ?? "Saved for later."}</p>
           </div>

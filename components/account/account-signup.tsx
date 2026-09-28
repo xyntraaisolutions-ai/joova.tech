@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { policies, support } from "@/content/site";
+import { support } from "@/content/site";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function WarrantyForm() {
+export function AccountSignup() {
   const [status, setStatus] = useState<"idle" | "success">("idle");
   const [website, setWebsite] = useState("");
 
   if (status === "success") {
     return (
       <p className="mt-8" role="status">
-        Thanks. Your email app should open with this warranty request addressed to{" "}
-        {support.email}. The product needs to be registered on your Joova Customer
-        Account before coverage applies. We reply within 6 to 24 hours.
+        Thanks. Your email app should open with this account request addressed to{" "}
+        {support.email}. We create the Joova Customer Account and confirm within
+        6 to 24 hours. Register each product from the account after it is open.
       </p>
     );
   }
@@ -29,26 +29,24 @@ export function WarrantyForm() {
         const name = String(data.get("name") ?? "");
         const email = String(data.get("email") ?? "");
         const order = String(data.get("order") ?? "");
-        const serial = String(data.get("serial") ?? "");
-        const message = String(data.get("message") ?? "");
+        const product = String(data.get("product") ?? "");
         const body = [
-          "Warranty claim",
+          "Joova Customer Account signup",
           `Name: ${name}`,
           `Email: ${email}`,
-          `Order number: ${order}`,
-          `Product serial: ${serial || "not provided"}`,
+          `Order number: ${order || "not provided yet"}`,
+          `Product to register: ${product || "not provided yet"}`,
           "",
-          message,
+          "Please open the account so I can register products, see purchase history, track orders, and manage returns and replacements.",
         ].join("\n");
-        window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova warranty form")}&body=${encodeURIComponent(body)}`;
+        window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova Customer Account")}&body=${encodeURIComponent(body)}`;
         setStatus("success");
       }}
     >
-      <h2 className="font-display text-2xl font-extrabold text-ink">Warranty form</h2>
+      <h2 className="font-display text-2xl text-ink">Sign up</h2>
       <p>
-        Use this form after the product is registered on your Joova Customer
-        Account. {policies.warrantyRegistration} Submit opens your email app to{" "}
-        {support.email}. We reply within 6 to 24 hours.
+        This opens your email app to {support.email}. We do not store a password
+        on this page. We reply within 6 to 24 hours and open the account.
       </p>
       <label className="block">
         <span className="text-sm text-ink">Name</span>
@@ -59,21 +57,12 @@ export function WarrantyForm() {
         <Input className="mt-2" type="email" name="email" required autoComplete="email" />
       </label>
       <label className="block">
-        <span className="text-sm text-ink">Order number</span>
-        <Input className="mt-2" name="order" required autoComplete="off" />
+        <span className="text-sm text-ink">Order number, if you have one</span>
+        <Input className="mt-2" name="order" autoComplete="off" />
       </label>
       <label className="block">
-        <span className="text-sm text-ink">Product serial, if you have it</span>
-        <Input className="mt-2" name="serial" autoComplete="off" />
-      </label>
-      <label className="block">
-        <span className="text-sm text-ink">What happened</span>
-        <textarea
-          name="message"
-          required
-          rows={5}
-          className="mt-2 w-full rounded-2xl border border-stone bg-paper p-4 text-base text-ink"
-        />
+        <span className="text-sm text-ink">Product to register</span>
+        <Input className="mt-2" name="product" autoComplete="off" />
       </label>
       <div className="hidden" aria-hidden>
         <label>
@@ -86,7 +75,7 @@ export function WarrantyForm() {
           />
         </label>
       </div>
-      <Button type="submit">Submit warranty form</Button>
+      <Button type="submit">Request a Joova Customer Account</Button>
     </form>
   );
 }

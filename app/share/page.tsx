@@ -56,7 +56,7 @@ export default function SharePage() {
           />
         </div>
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
             Electronics
           </p>
           <h1
@@ -91,7 +91,7 @@ export default function SharePage() {
       </Container>
       <Section className="bg-stone/40">
         <Container>
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-coral-ink">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-ink">
             In the case
           </p>
           <h2
@@ -103,7 +103,7 @@ export default function SharePage() {
           <ul className="mt-8 grid gap-4 sm:grid-cols-2">
             {shareBuds.map((bud, index) => (
               <li key={bud.name} className="rounded-3xl border border-stone bg-white p-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-coral-ink">
+                <p className="text-sm font-bold uppercase tracking-[0.16em] text-ink">
                   {index + 1}
                 </p>
                 <p className="font-display mt-3 text-2xl font-semibold">{bud.name}</p>

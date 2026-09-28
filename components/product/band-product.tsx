@@ -81,7 +81,7 @@ export function BandProduct() {
             <Link className="underline" href="/warranty">
               {policies.dockTitle}
             </Link>{" "}
-            starts when you submit the warranty form.
+            starts when you register the band in your Joova Customer Account.
           </p>
         </div>
       </Container>
