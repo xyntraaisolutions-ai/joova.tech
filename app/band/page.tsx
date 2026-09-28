@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { AppPreview } from "@/components/home/app-preview";
-import { BoxDesign } from "@/components/home/box-design";
 import { ColorPicker } from "@/components/home/color-picker";
 import { DayStory } from "@/components/home/day-story";
 import { FAQ } from "@/components/home/faq";
@@ -11,14 +10,15 @@ import { SocialProof } from "@/components/home/social-proof";
 import { SubscriptionCalculator } from "@/components/home/subscription-calculator";
 import { TrustGrid } from "@/components/home/trust-grid";
 import { BandProduct } from "@/components/product/band-product";
+import { InTheBox } from "@/components/product/in-the-box";
+import { SpecsTable } from "@/components/product/specs-table";
 import { StrapShop } from "@/components/product/strap-shop";
+import { UseAndCare } from "@/components/product/use-and-care";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import {
-  bandBannerSize,
   bandFeatures,
   bandImageSize,
-  bandLineupSize,
   faqs,
   noSubscription,
   policies,
@@ -69,11 +69,18 @@ export default function BandPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
       />
       <BandProduct />
+      <PromiseStrip />
       <Section>
         <Container>
-          <h2 className="font-display font-extrabold" style={{ fontSize: "var(--text-h2)" }}>
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-ink">
+            Tracking
+          </p>
+          <h2 className="font-display mt-3 font-extrabold" style={{ fontSize: "var(--text-h2)" }}>
             What it tracks
           </h2>
+          <p className="mt-4 max-w-2xl text-muted">
+            Sleep, heart rate, and activity, shown in the free Joova app. Wellness readings only.
+          </p>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {bandFeatures.map((feature) => (
               <li key={feature.title} className="rounded-3xl border border-stone bg-white p-6">
@@ -82,53 +89,13 @@ export default function BandPage() {
               </li>
             ))}
           </ul>
-          <Image
-            src="/bands/joova-band-features-1600.png"
-            alt="Joova Band in five colors. No subscription, sleep tracking, heart rate, up to 20 to 30 days of battery, magnetic charging, and two straps in the box."
-            width={bandImageSize.width}
-            height={bandImageSize.height}
-            className="mt-10 h-auto w-full"
-            sizes="(min-width: 1024px) 1100px, 100vw"
-          />
         </Container>
       </Section>
-      <Section className="bg-stone/40">
-        <Container className="grid gap-10 lg:grid-cols-2">
-          <Image
-            src="/bands/joova-band-in-the-box-1600.png"
-            alt="What's in the box: Joova Band, one extra strap, and a magnetic charging cable."
-            width={bandImageSize.width}
-            height={bandImageSize.height}
-            className="h-auto w-full"
-            sizes="(min-width: 1024px) 560px, 100vw"
-          />
-          <Image
-            src="/bands/joova-band-all-colors.png"
-            alt="Joova Band lineup in black, blue, green, orange, and red."
-            width={bandLineupSize.width}
-            height={bandLineupSize.height}
-            className="h-auto w-full"
-            sizes="(min-width: 1024px) 560px, 100vw"
-          />
-        </Container>
-      </Section>
-      <Section>
-        <Container>
-          <Image
-            src="/bands/joova-band-hero-banner-1920x900.png"
-            alt="Joova Band. Track everything. Pay once. Screenless fitness tracker, no subscription, $59.99."
-            width={bandBannerSize.width}
-            height={bandBannerSize.height}
-            className="h-auto w-full rounded-3xl"
-            sizes="100vw"
-          />
-        </Container>
-      </Section>
-      <PromiseStrip />
       <DayStory />
+      <AppPreview />
+      <SubscriptionCalculator />
       <ColorPicker />
-      <BoxDesign />
-      <Section id="straps" className="scroll-mt-24">
+      <Section id="straps" className="scroll-mt-24 bg-stone/40">
         <Container>
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-ink">
             Straps only
@@ -148,10 +115,50 @@ export default function BandPage() {
           <StrapShop />
         </Container>
       </Section>
-      <SubscriptionCalculator />
-      <AppPreview />
-      <SocialProof />
+      <Section id="details" className="scroll-mt-24">
+        <Container className="space-y-16">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-ink">
+              Details
+            </p>
+            <h2 className="font-display mt-3 font-extrabold" style={{ fontSize: "var(--text-h2)" }}>
+              Included, care, and specs
+            </h2>
+          </div>
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div className="stage overflow-hidden rounded-[28px]">
+              <Image
+                src="/bands/joova-band-in-the-box-1600.png"
+                alt="What's in the box: Joova Band, one extra strap, and a magnetic charging cable."
+                width={bandImageSize.width}
+                height={bandImageSize.height}
+                className="h-auto w-full"
+                sizes="(min-width: 1024px) 560px, 100vw"
+              />
+            </div>
+            <div>
+              <h3 className="font-display text-3xl font-extrabold">What&apos;s in the box</h3>
+              <div className="mt-6">
+                <InTheBox />
+              </div>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-display text-3xl font-extrabold">Battery, charging, and care</h3>
+            <div className="mt-6">
+              <UseAndCare />
+            </div>
+          </div>
+          <div>
+            <h3 className="font-display text-3xl font-extrabold">Specs</h3>
+            <div className="mt-6">
+              <SpecsTable />
+            </div>
+          </div>
+        </Container>
+      </Section>
       <TrustGrid />
+      <SocialProof />
       <FAQ />
       <FinalCTA />
     </>

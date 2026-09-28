@@ -2,7 +2,7 @@ import { specs } from "@/content/site";
 
 export function SpecsTable() {
   return (
-    <div className="overflow-hidden rounded-3xl border border-stone">
+    <div className="overflow-hidden rounded-3xl border border-stone bg-white">
       <dl>
         {specs.map((row) => (
           <div

@@ -641,7 +641,11 @@ export const bandFeatures = [
   },
   {
     title: "Up to 20–30 days",
-    detail: "Per charge, from a 55mAh battery. Standby is about 45 days. Battery life varies with settings and use.",
+    detail: "Battery life per charge. Battery life varies with settings and use.",
+  },
+  {
+    title: "Magnetic charging",
+    detail: "A full charge takes about 2 hours.",
   },
 ] as const;
 
@@ -679,9 +683,6 @@ export const specs = [
   { label: "Tracker", value: "Plastic case. No screen." },
   { label: "Strap", value: "Nylon woven loop, adjustable. Fits wrists about 14–22 cm (5.5–8.7 in)." },
   { label: "Colors", value: "Black, Blue, Green, Orange, and Red." },
-  { label: "In the box", value: "Tracker and worn strap, 1 extra strap, magnetic charging cable, quick start guide." },
-  { label: "Extra strap", value: "Black includes a blue strap. Every other color includes a black strap." },
-  { label: "Metrics", value: "Sleep, 24/7 heart rate, HRV trends, blood-oxygen readings, steps, distance, and calories. Wellness only." },
   { label: "Battery", value: "55mAh. Up to 20–30 days per charge. About 45 days standby. Battery life varies with settings and use." },
   { label: "Charging", value: "Magnetic cable. Full charge in about 2 hours." },
   { label: "Water", value: "1ATM. Splash and rain. Not for swimming or showering." },
