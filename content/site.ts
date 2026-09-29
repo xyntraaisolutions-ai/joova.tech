@@ -737,7 +737,7 @@ export const faqs = [
   },
   {
     q: "How is my data handled?",
-    a: "Your data is stored in the US and never sold. See the Privacy policy for details.",
+    a: "See the Privacy page.",
   },
 ];
 

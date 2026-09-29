@@ -1,4 +1,5 @@
 import { paymentMethods } from "@/content/site";
+import { cn } from "@/lib/utils";
 
 function Mark({ id }: { id: (typeof paymentMethods)[number]["id"] }) {
   if (id === "amex") {
@@ -102,10 +103,10 @@ function Mark({ id }: { id: (typeof paymentMethods)[number]["id"] }) {
   );
 }
 
-export function PaymentMarks() {
+export function PaymentMarks({ className }: { className?: string }) {
   return (
     <ul
-      className="flex flex-wrap items-center justify-center gap-2 [&_text]:font-sans"
+      className={cn("flex flex-wrap items-center gap-2 [&_text]:font-sans", className)}
       aria-label="Accepted payment methods"
     >
       {paymentMethods.map((method) => (

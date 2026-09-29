@@ -59,7 +59,7 @@ export function Storefront() {
                 Deals
               </h2>
               <p className="mt-3 max-w-xl text-muted">
-                Extra woven straps, and $10 off when the email waitlist sends a code. Every product is available now.
+                Extra woven straps in five colors. Every product is available now.
               </p>
             </div>
             <Link href="/deals" className="text-sm font-medium underline underline-offset-4">

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { blogPosts } from "@/content/blog";
 import { SITE_URL } from "@/content/site";
 import { helpArticles } from "@/content/site";
 
@@ -16,6 +17,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/buds",
     "/app",
     "/reviews",
+    "/videos",
+    "/blog",
+    ...blogPosts.map((post) => `/blog/${post.slug}`),
     "/warranty",
     "/returns",
     "/account",

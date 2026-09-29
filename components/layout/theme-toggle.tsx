@@ -21,15 +21,22 @@ export function ThemeToggle() {
 
   const night = theme === "night";
 
+  const label = night ? "Day mode" : "Night mode";
+
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-pressed={night}
-      aria-label={night ? "Switch to day mode" : "Switch to night mode"}
-      className="flex size-11 items-center justify-center rounded-full border border-stone hover:bg-stone"
-    >
-      {night ? <Sun className="size-4" /> : <Moon className="size-4" />}
-    </button>
+    <span className="group/tip relative inline-flex">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-pressed={night}
+        aria-label={night ? "Switch to day mode" : "Switch to night mode"}
+        className="flex size-11 items-center justify-center rounded-full border border-stone hover:bg-stone"
+      >
+        {night ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      </button>
+      <span className="header-tip" aria-hidden="true">
+        {label}
+      </span>
+    </span>
   );
 }

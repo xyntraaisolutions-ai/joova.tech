@@ -28,7 +28,8 @@ export default function PrivacyPage() {
           </p>
           <p className="mt-3">
             When you use a Joova product, we collect the information needed to
-            run that product and, where it applies, the Joova app. We use this
+            run that product and, where it applies, the Joova app. Tracker data
+            is stored by the Joova app and is never sold. We use this
             information to fill orders, provide support, and operate the
             products you buy.
           </p>

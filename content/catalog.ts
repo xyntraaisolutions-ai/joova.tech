@@ -363,13 +363,4 @@ export const deals: readonly Deal[] = [
     href: "/band#straps",
     priceLabel: strapPriceLabel,
   },
-  {
-    id: "waitlist",
-    title: "$10 off waitlist",
-    badge: "Waitlist",
-    detail:
-      "Join with your email. The code is sent when the waitlist is live. Signups are not stored yet.",
-    href: "/#waitlist",
-    priceLabel: null,
-  },
 ];
