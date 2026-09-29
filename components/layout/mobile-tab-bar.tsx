@@ -17,6 +17,8 @@ const groups = [
     links: [
       { href: "/shop", label: "All products" },
       { href: "/deals", label: "Deals" },
+      { href: "/videos", label: "Videos" },
+      { href: "/blog", label: "Blogs" },
       { href: "/wishlist", label: "Wishlist" },
     ],
   },

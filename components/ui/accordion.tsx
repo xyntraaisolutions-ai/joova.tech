@@ -1,8 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function Answer({ text }: { text: string }) {
+  const label = "Privacy page";
+  const index = text.indexOf(label);
+  if (index === -1) return text;
+  return (
+    <>
+      {text.slice(0, index)}
+      <Link href="/privacy" className="text-ink underline">
+        {label}
+      </Link>
+      {text.slice(index + label.length)}
+    </>
+  );
+}
 
 export function Accordion({
   items,
@@ -26,7 +42,7 @@ export function Accordion({
             </AccordionPrimitive.Trigger>
           </AccordionPrimitive.Header>
           <AccordionPrimitive.Content className="overflow-hidden pb-5 text-muted data-[state=closed]:animate-none">
-            {item.a}
+            <Answer text={item.a} />
           </AccordionPrimitive.Content>
         </AccordionPrimitive.Item>
       ))}

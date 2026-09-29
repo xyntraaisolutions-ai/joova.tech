@@ -33,14 +33,15 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <Container className="max-w-3xl py-10 md:py-16">
+    <Container className="py-10 md:py-16">
+      <article className="mx-auto w-full max-w-[40rem]">
       <h1 className="font-display" style={{ fontSize: "var(--text-h1)" }}>
         About Joova
       </h1>
       <p className="mt-3 font-display text-2xl font-semibold">
         Smarter Tech | Bigger Tomorrow
       </p>
-      <div className="mt-6 space-y-4 text-lg">
+      <div className="mt-6 space-y-4 text-lg hyphens-auto text-justify">
         <p>
           Technology should make life easier, not more complicated. That simple
           idea is why we started Joova.
@@ -56,7 +57,7 @@ export default function AboutPage() {
 
       <section className="mt-12">
         <h2 className="font-display text-3xl">Our story</h2>
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-4 hyphens-auto text-justify">
           <p>
             We saw two things over and over. Great technology was either priced
             out of reach, or buried under confusing features, fine print and
@@ -74,7 +75,7 @@ export default function AboutPage() {
 
       <section className="mt-12">
         <h2 className="font-display text-3xl">Our mission</h2>
-        <p className="mt-4">
+        <p className="mt-4 hyphens-auto text-justify">
           To make smart technology simple, accessible and worth it, so more
           people can enjoy a smarter today and a bigger tomorrow.
         </p>
@@ -86,7 +87,7 @@ export default function AboutPage() {
           {values.map((value) => (
             <li key={value.title} className="rounded-3xl bg-white p-5">
               <h3 className="font-bold">{value.title}.</h3>
-              <p className="mt-2 text-muted">{value.copy}</p>
+              <p className="mt-2 hyphens-auto text-justify text-muted">{value.copy}</p>
             </li>
           ))}
         </ul>
@@ -94,7 +95,7 @@ export default function AboutPage() {
 
       <section className="mt-12">
         <h2 className="font-display text-3xl">Our promise to you</h2>
-        <ul className="mt-6 space-y-4">
+        <ul className="mt-6 space-y-4 hyphens-auto text-justify">
           <li>
             <span className="font-bold">Quality you can trust: </span>
             every product is carefully selected and quality-checked before it
@@ -126,7 +127,7 @@ export default function AboutPage() {
 
       <section className="mt-12">
         <h2 className="font-display text-3xl">Join us</h2>
-        <p className="mt-4">
+        <p className="mt-4 hyphens-auto text-justify">
           We&apos;re just getting started, and we&apos;re glad you&apos;re
           here. Explore Joova, find something that makes your day a little
           smarter, and grow with us toward a bigger tomorrow.
@@ -146,6 +147,7 @@ export default function AboutPage() {
         <br />
         Business address: {company.address}
       </p>
+      </article>
     </Container>
   );
 }

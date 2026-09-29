@@ -1,4 +1,5 @@
 import { socialLinks } from "@/content/site";
+import { cn } from "@/lib/utils";
 
 function Icon({ id }: { id: (typeof socialLinks)[number]["id"] }) {
   const common = { viewBox: "0 0 24 24", className: "size-6", fill: "currentColor", "aria-hidden": true as const };
@@ -37,12 +38,18 @@ function Icon({ id }: { id: (typeof socialLinks)[number]["id"] }) {
   );
 }
 
-export function SocialIcons() {
+export function SocialIcons({ className }: { className?: string }) {
   return (
-    <ul className="flex items-center justify-center gap-6" aria-label="Social media">
+    <ul className={cn("flex items-center gap-1", className)} aria-label="Social media">
       {socialLinks.map((link) => (
         <li key={link.id}>
-          <a href={link.href} target="_blank" rel="noreferrer" aria-label={link.label} className="flex size-11 items-center justify-center text-paper">
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={link.label}
+            className="flex size-11 items-center justify-center text-paper transition-opacity hover:opacity-70"
+          >
             <Icon id={link.id} />
           </a>
         </li>

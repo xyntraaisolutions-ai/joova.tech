@@ -223,6 +223,26 @@ export function Header() {
           </Link>
           <ProductMenu />
           <Link
+            href="/videos"
+            className={cn(
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+              pathname === "/videos" ? "text-ink underline underline-offset-4" : "text-ink/80",
+            )}
+          >
+            Videos
+          </Link>
+          <Link
+            href="/blog"
+            className={cn(
+              "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+              pathname === "/blog" || pathname.startsWith("/blog/")
+                ? "text-ink underline underline-offset-4"
+                : "text-ink/80",
+            )}
+          >
+            Blogs
+          </Link>
+          <Link
             href="/about"
             className={cn(
               "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
@@ -241,30 +261,40 @@ export function Header() {
             {user ? user.name.split(" ")[0] : "Sign in"}
           </Link>
           <ThemeToggle />
-          <Link
-            href="/wishlist"
-            className="relative hidden size-11 items-center justify-center rounded-full hover:bg-stone md:inline-flex"
-            aria-label={`Wishlist, ${wishlistCount} ${wishlistCount === 1 ? "item" : "items"}`}
-          >
-            <Heart className="size-5" />
-            {wishlistCount > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-[var(--fixed-ink)]">
-                {wishlistCount}
-              </span>
-            ) : null}
-          </Link>
-          <button
-            className="relative hidden size-11 items-center justify-center rounded-full hover:bg-stone md:inline-flex"
-            onClick={() => setOpen(true)}
-            aria-label={`Open cart, ${count} items`}
-          >
-            <ShoppingBag className="size-5" />
-            {count > 0 ? (
-              <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-[var(--fixed-ink)]">
-                {count}
-              </span>
-            ) : null}
-          </button>
+          <span className="group/tip relative hidden md:inline-flex">
+            <Link
+              href="/wishlist"
+              className="relative inline-flex size-11 items-center justify-center rounded-full hover:bg-stone"
+              aria-label={`Wishlist, ${wishlistCount} ${wishlistCount === 1 ? "item" : "items"}`}
+            >
+              <Heart className="size-5" />
+              {wishlistCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-[var(--fixed-ink)]">
+                  {wishlistCount}
+                </span>
+              ) : null}
+            </Link>
+            <span className="header-tip" aria-hidden="true">
+              Wishlist
+            </span>
+          </span>
+          <span className="group/tip relative hidden md:inline-flex">
+            <button
+              className="relative inline-flex size-11 items-center justify-center rounded-full hover:bg-stone"
+              onClick={() => setOpen(true)}
+              aria-label={`Open cart, ${count} items`}
+            >
+              <ShoppingBag className="size-5" />
+              {count > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-[var(--fixed-ink)]">
+                  {count}
+                </span>
+              ) : null}
+            </button>
+            <span className="header-tip" aria-hidden="true">
+              Cart
+            </span>
+          </span>
         </div>
       </div>
     </header>

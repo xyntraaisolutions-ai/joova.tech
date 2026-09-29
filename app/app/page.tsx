@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AppPreview } from "@/components/home/app-preview";
 import { PhoneMockup } from "@/components/media/phone-mockup";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { appScreens } from "@/content/site";
 export const metadata: Metadata = {
   title: "The Joova app",
   description:
-    "Every Joova app feature is free. Your data is stored in the US and never sold.",
+    "Every Joova app feature is free. Tracker data is stored by the Joova app and is never sold.",
 };
 
 export default function AppPage() {
@@ -25,10 +26,13 @@ export default function AppPage() {
           The app is included. Your data stays yours.
         </p>
         <p className="mt-4 max-w-2xl text-muted">
-          Your data is stored in the US and never sold. You can delete your
-          account in the app. Supported phones: iPhone with iOS 15 or later, and
-          Android 9 or later. Store links go live after App Store and Google
-          Play approval.
+          Tracker data is stored by the Joova app and is never sold. See the{" "}
+          <Link href="/privacy" className="text-ink underline">
+            Privacy page
+          </Link>
+          . You can delete your account in the app. Supported phones: iPhone
+          with iOS 15 or later, and Android 9 or later. Store links go live
+          after App Store and Google Play approval.
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Badge>App Store (after approval)</Badge>
