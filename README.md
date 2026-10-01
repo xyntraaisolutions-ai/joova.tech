@@ -76,13 +76,13 @@ In Supabase, open Edge Functions → Secrets and set the same values the functio
 | Secret name | Used by |
 | --- | --- |
 | `RESEND_API_KEY` | `joova-internal`, `send-password-reset`, `stripe-webhook` |
-| `STRIPE_SECRET_KEY` | `joova-internal`, `stripe-webhook` |
+| `STRIPE_SECRET_KEY` | `joova-internal`, `stripe-webhook`, `start-checkout` |
 | `STRIPE_WEBHOOK_SECRET` | `stripe-webhook` |
 | `SUPER_ADMIN_EMAIL` | `joova-internal` |
 
 `STRIPE_WEBHOOK_SECRET` in Edge Function secrets is the signing secret for the Stripe endpoint below. It can differ from the Vault value used by the local Next.js route.
 
-Do not add the service role key to Netlify. Supabase injects it into `stripe-webhook`.
+Do not add the service role key to Netlify or to the Next.js app. Pay now calls the `start-checkout` Edge Function with the anon key. That function reads the Stripe secret and writes the order with the service role Supabase injects into the function. The properties-file service role key is only for local setup scripts and `stripe listen` against `/api/stripe/webhook`.
 
 Point the Stripe webhook at `https://ivieoxndmgzpqnvroafk.supabase.co/functions/v1/stripe-webhook`.
 
