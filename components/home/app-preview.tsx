@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { appScreens } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { PhoneMockup } from "@/components/media/phone-mockup";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 
 export function AppPreview() {
+  const { appScreens } = useSiteContent();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {

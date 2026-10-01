@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { support } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function AccountSignup() {
+  const { support } = useSiteContent();
   const [status, setStatus] = useState<"idle" | "success">("idle");
   const [website, setWebsite] = useState("");
 

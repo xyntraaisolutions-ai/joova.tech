@@ -1,25 +1,22 @@
 import Image from "next/image";
+import { useSiteContent } from "@/components/layout/site-content";
 import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
+  const { logo, company } = useSiteContent();
+  if (!logo) {
+    return <span className={cn("font-display text-[1.75rem] font-bold leading-none", className)}>{company.brand}</span>;
+  }
   return (
-    <span className={cn("inline-flex", className)}>
+    <span className={cn("site-logo inline-flex", className)}>
       <Image
-        src="/brand/joova-wordmark-orange.png"
+        src={logo.url}
         alt=""
-        width={977}
-        height={285}
+        width={logo.width}
+        height={logo.height}
         priority
         unoptimized
-        className="logo-day h-9 w-auto"
-      />
-      <Image
-        src="/brand/joova-wordmark-orange-night.png"
-        alt=""
-        width={977}
-        height={285}
-        unoptimized
-        className="logo-night h-9 w-auto"
+        className="h-9 w-auto"
       />
     </span>
   );

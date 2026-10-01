@@ -60,7 +60,7 @@ export const blogPosts: readonly BlogPost[] = [
         id: "how-to-wear-it",
         heading: "How to wear it",
         paragraphs: [
-          "Charge the band before the first wear. Fasten the woven loop and silver buckle so the tracker sits flat. The strap fits wrists about 14–22 cm (5.5–8.7 in). Black, Blue, Green, Orange, and Red are the colors, and the box includes one extra strap.",
+          "Charge the band before the first wear. Fasten the woven loop and silver buckle so the tracker sits flat. The strap fits wrists about 14–22 cm (5.5–8.7 in). Black, Blue, Green, Orange, and Red are the colors. The box includes 1 strap in the color you choose.",
           "The Joova app runs on iPhone with iOS 15 or later, and on Android 9 or later. The band works with Apple Health and Google Health Connect. Every feature in the app is included with the band. No subscription. Ever.",
           "The band is splash and rain resistant (1ATM). Take it off before swimming or showering, and dry it before you charge it.",
         ],

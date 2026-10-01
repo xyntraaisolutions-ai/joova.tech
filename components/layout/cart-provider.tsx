@@ -12,10 +12,19 @@ import {
 
 export type CartItem = {
   id: string;
+  productId?: string;
+  sku?: string;
   name: string;
   price: number;
   quantity: number;
   color?: string;
+  selection?: {
+    color?: string;
+    type?: string;
+    size?: string;
+    custom?: string;
+    sku?: string;
+  };
 };
 
 type CartContextValue = {

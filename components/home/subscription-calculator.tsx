@@ -1,13 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { calculatorDefaultMonthly, PRICE, RING_PRICE } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Section } from "@/components/ui/section";
 import { formatUsd } from "@/lib/utils";
 
 export function SubscriptionCalculator() {
+  const { calculatorDefaultMonthly, prices } = useSiteContent();
+  const PRICE = prices.band;
+  const RING_PRICE = prices.ring;
   const [years, setYears] = useState(3);
   const [monthly, setMonthly] = useState(calculatorDefaultMonthly);
 

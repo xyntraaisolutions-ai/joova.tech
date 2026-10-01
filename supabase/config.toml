@@ -1,0 +1,7 @@
+project_id = "ivieoxndmgzpqnvroafk"
+
+[functions.send-password-reset]
+verify_jwt = true
+
+[functions.joova-internal]
+verify_jwt = true

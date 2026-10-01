@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { support } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 
 export function ContactForm() {
+  const { support } = useSiteContent();
   const [status, setStatus] = useState<"idle" | "success">("idle");
   const [website, setWebsite] = useState("");
 
@@ -49,9 +50,26 @@ export function ContactForm() {
             const name = String(data.get("name") ?? "");
             const email = String(data.get("email") ?? "");
             const message = String(data.get("message") ?? "");
-            const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
-            window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova support")}&body=${encodeURIComponent(body)}`;
-            setStatus("success");
+            void fetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, email, message }),
+            })
+              .then((response) => response.json())
+              .then((body: { saved?: boolean }) => {
+                if (body.saved) {
+                  setStatus("success");
+                  return;
+                }
+                const text = `Name: ${name}\nEmail: ${email}\n\n${message}`;
+                window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova support")}&body=${encodeURIComponent(text)}`;
+                setStatus("success");
+              })
+              .catch(() => {
+                const text = `Name: ${name}\nEmail: ${email}\n\n${message}`;
+                window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova support")}&body=${encodeURIComponent(text)}`;
+                setStatus("success");
+              });
           }}
         >
           <h2 className="font-display text-2xl font-extrabold">Send a message</h2>

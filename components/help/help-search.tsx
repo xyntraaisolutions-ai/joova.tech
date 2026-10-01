@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { helpArticles } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { Input } from "@/components/ui/input";
 
 export function HelpSearch() {
+  const { helpArticles } = useSiteContent();
   const [query, setQuery] = useState("");
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -16,7 +17,7 @@ export function HelpSearch() {
         article.body.toLowerCase().includes(q) ||
         article.summary.toLowerCase().includes(q),
     );
-  }, [query]);
+  }, [helpArticles, query]);
 
   return (
     <div className="mt-8 max-w-xl">

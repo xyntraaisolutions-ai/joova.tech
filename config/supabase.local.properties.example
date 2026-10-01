@@ -1,0 +1,11 @@
+# Copy this file to config/supabase.local.properties and replace every mock value.
+# config/supabase.local.properties is gitignored. Do not commit it.
+# This file is for local admin scripts only. Do not add these values to Netlify.
+# The browser and the Netlify site use the public URL and anon key in .env.local.
+
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
+SUPABASE_DB_URL=postgresql://postgres.YOUR_PROJECT_REF:YOUR_DB_PASSWORD@aws-0-YOUR_REGION.pooler.supabase.com:5432/postgres
+SUPABASE_ACCESS_TOKEN=sbp_YOUR_ACCESS_TOKEN
+SUPER_ADMIN_EMAIL=you@example.com
+SUPER_ADMIN_PASSWORD=YOUR_PASSWORD

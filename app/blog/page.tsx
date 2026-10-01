@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { catalog } from "@/content/catalog";
-import { blogPosts } from "@/content/blog";
 import { Container } from "@/components/ui/container";
+import { loadContentBundle } from "@/lib/content/load";
 
 export const metadata: Metadata = {
   title: "Blogs",
@@ -11,7 +10,8 @@ export const metadata: Metadata = {
     "Read how the Joova Fitness Band and Smart Ring track activity. Wellness readings only. No subscription.",
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const { blogPosts, catalog } = await loadContentBundle();
   return (
     <Container className="py-10 md:py-16">
       <h1 className="font-display font-extrabold" style={{ fontSize: "var(--text-h1)" }}>

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { trustItems } from "@/content/site";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
+import { loadContentBundle } from "@/lib/content/load";
 
-export function TrustGrid() {
+export async function TrustGrid() {
+  const { trustItems } = await loadContentBundle();
   return (
     <Section className="bg-paper">
       <Container>

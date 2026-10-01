@@ -4,8 +4,7 @@ import { Container } from "@/components/ui/container";
 
 export const metadata: Metadata = {
   title: "Deals",
-  description:
-    "Current Joova offers: extra woven straps in five colors.",
+  description: "Current Joova offers. Every product is available now.",
 };
 
 export default function DealsPage() {
@@ -15,7 +14,7 @@ export default function DealsPage() {
         Deals
       </h1>
       <p className="mt-4 max-w-2xl text-lg text-muted">
-        Extra woven straps. Every product is available now. Checkout does not take a card on this site yet.
+        Every product is available now. Checkout does not take a card on this site yet.
       </p>
       <div className="mt-10">
         <DealList />

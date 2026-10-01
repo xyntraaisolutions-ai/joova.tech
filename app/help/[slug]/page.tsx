@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { helpArticles } from "@/content/site";
 import { Container } from "@/components/ui/container";
+import { loadContentBundle } from "@/lib/content/load";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  const { helpArticles } = await loadContentBundle();
   return helpArticles.map((article) => ({ slug: article.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const { helpArticles } = await loadContentBundle();
   const article = helpArticles.find((item) => item.slug === slug);
   return {
     title: article?.title ?? "Help",
@@ -21,6 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function HelpArticlePage({ params }: Props) {
   const { slug } = await params;
+  const { helpArticles } = await loadContentBundle();
   const article = helpArticles.find((item) => item.slug === slug);
   if (!article) notFound();
 

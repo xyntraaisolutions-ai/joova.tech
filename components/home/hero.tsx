@@ -3,15 +3,34 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { featuredProducts } from "@/content/catalog";
-import { policies } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { ImageSlideshow } from "@/components/media/image-slideshow";
 import { buttonClassName } from "@/components/ui/button";
+import type { CatalogImage, CatalogProduct } from "@/content/catalog";
 import { cn } from "@/lib/utils";
 
-const highlights = featuredProducts;
+function heroSlides(product: CatalogProduct) {
+  const seen = new Set<string>();
+  const slides: CatalogImage[] = [];
+  const add = (picture?: CatalogImage) => {
+    if (!picture?.src || seen.has(picture.src)) return;
+    seen.add(picture.src);
+    slides.push(picture);
+  };
+  const variants = (product.variants ?? []).filter((variant) => variant.available !== false);
+  const lead = variants.find((variant) => variant.id === product.defaultVariantId) ?? variants[0];
+  const ordered = lead ? [lead, ...variants.filter((variant) => variant.id !== lead.id)] : variants;
+  for (const variant of ordered) {
+    for (const picture of variant.pictures) add(picture);
+  }
+  for (const picture of product.sharedPictures ?? []) add(picture);
+  for (const picture of product.pictures) add(picture);
+  return slides;
+}
 
 export function Hero() {
+  const { featuredProducts, policies } = useSiteContent();
+  const highlights = featuredProducts;
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const dragX = useRef<number | null>(null);
@@ -67,7 +86,7 @@ export function Hero() {
         <div className="stage min-w-0 rounded-[28px] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8 md:order-2">
           <ImageSlideshow
             key={highlight.id}
-            slides={[...highlight.pictures]}
+            slides={heroSlides(highlight)}
             priority={highlight.id === "band"}
             paused={paused}
             imageClassName="h-[min(28vh,240px)] w-auto md:h-[min(52vh,480px)]"

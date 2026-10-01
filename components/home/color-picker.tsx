@@ -1,10 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
-import { bandLineupSize, strapPriceLabel } from "@/content/site";
+import { bandLineupSize } from "@/content/site";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 
-export function ColorPicker() {
+export async function ColorPicker() {
   return (
     <Section id="colors">
       <Container>
@@ -30,11 +29,6 @@ export function ColorPicker() {
             sizes="(min-width: 1024px) 1100px, 100vw"
           />
         </div>
-        <p className="mt-6 text-sm text-muted">
-          <Link className="underline" href="#straps">
-            Or buy a strap on its own for {strapPriceLabel} each.
-          </Link>
-        </p>
       </Container>
     </Section>
   );

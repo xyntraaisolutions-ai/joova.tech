@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
-import { company, policies, support } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 
-export const metadata: Metadata = {
-  title: "Terms",
-  description: `Terms of sale for ${company.legalName}. Joova products, orders, returns, and warranty.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { company } = await loadContentBundle();
+  return {
+    title: "Terms",
+    description: `Terms of sale for ${company.legalName}. Joova products, orders, returns, and warranty.`,
+  };
+}
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const { company, policies, support, pageCopy } = await loadContentBundle();
+  const terms = pageCopy.terms;
   return (
     <Container className="max-w-3xl py-10 md:py-16">
       <h1 className="font-display" style={{ fontSize: "var(--text-h1)" }}>
@@ -22,18 +27,13 @@ export default function TermsPage() {
         <section>
           <h2 className="font-display text-2xl text-ink">Orders</h2>
           <p className="mt-3">
-            The price is the price shown on the product page. What you see is
-            what you pay. Orders ship from US warehouses and are delivered in 7
-            to 10 days. Shipping is free in the United States.
+            {terms.orders}
           </p>
         </section>
         <section>
           <h2 className="font-display text-2xl text-ink">No subscription</h2>
           <p className="mt-3">
-            When a Joova product includes features in the Joova app, those
-            features come with the product. No subscription needed. Ever. We do
-            not charge a monthly fee for features included with the product you
-            buy.
+            {terms.subscription}
           </p>
         </section>
         <section>
@@ -59,9 +59,7 @@ export default function TermsPage() {
         <section>
           <h2 className="font-display text-2xl text-ink">Wellness</h2>
           <p className="mt-3">
-            Joova products are consumer technology. Where a product shows a
-            wellness reading, that reading is for general wellness only. Joova
-            does not diagnose, treat, or detect disease.
+            {terms.wellness}
           </p>
         </section>
         <section>
