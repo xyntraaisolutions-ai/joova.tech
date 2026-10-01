@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/layout/auth-provider";
-import { useCart } from "@/components/layout/cart-provider";
+import { useCart, type CartItem } from "@/components/layout/cart-provider";
 import { PaymentNote } from "@/components/shop/payment-note";
 import { US_STATES } from "@/components/shop/us-states";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CoverageLines, useProductCoverage } from "@/components/shop/coverage-lines";
 import { purchaseText } from "@/lib/content/variants";
 import { shippingWindow } from "@/lib/shipping/options";
 import { formatUsd } from "@/lib/utils";
@@ -17,6 +18,18 @@ type ShipChoice = { code: string; name: string; price: number; minDays: number; 
 type SavedAddress = { id: string; name: string; line1: string; line2: string; city: string; region: string; postal: string };
 
 const HOLD_KEY = "joova-checkout";
+
+function OrderLine({ item }: { item: CartItem }) {
+  const coverage = useProductCoverage(item.productId, item.name);
+  return (
+    <li>
+      <p className="font-bold">{item.name} × {item.quantity}</p>
+      {purchaseText(item.selection, item.color) ? <p className="text-muted">{purchaseText(item.selection, item.color)}</p> : null}
+      <CoverageLines coverage={coverage} />
+      <p>{formatUsd(item.price * item.quantity)}</p>
+    </li>
+  );
+}
 
 export function CheckoutReview() {
   const { items, subtotal } = useCart();
@@ -202,7 +215,7 @@ export function CheckoutReview() {
 
   return (
     <form
-      className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]"
+      className="grid gap-8 max-md:pb-28 lg:grid-cols-[minmax(0,1fr)_320px]"
       onSubmit={(event) => {
         event.preventDefault();
         void pay();
@@ -274,11 +287,7 @@ export function CheckoutReview() {
         <h2 className="font-display text-2xl">Order</h2>
         <ul className="mt-4 space-y-3 text-sm">
           {items.map((item) => (
-            <li key={item.id}>
-              <p className="font-bold">{item.name} × {item.quantity}</p>
-              {purchaseText(item.selection, item.color) ? <p className="text-muted">{purchaseText(item.selection, item.color)}</p> : null}
-              <p>{formatUsd(item.price * item.quantity)}</p>
-            </li>
+            <OrderLine key={item.id} item={item} />
           ))}
         </ul>
         <fieldset className="mt-4 space-y-2">
@@ -325,6 +334,19 @@ export function CheckoutReview() {
         {error ? <p className="mt-3 text-sm" role="alert">{error}</p> : null}
         <Button className="mt-4 w-full" type="submit" disabled={pending || taxPending || !tax || !ship || Boolean(promoError)}>{pending ? "Opening secure payment" : "Pay now"}</Button>
       </aside>
+      <div className="h-0 md:hidden">
+        <div
+          className="fixed inset-x-0 z-30 border-t border-stone bg-paper/95 p-3 backdrop-blur"
+          style={{ bottom: "calc(var(--app-tab) + env(safe-area-inset-bottom))" }}
+        >
+          <div className="mx-auto flex max-w-[1280px] items-center gap-3">
+            <p className="min-w-0 flex-1 font-bold">{formatUsd(orderTotal)}</p>
+            <Button type="submit" disabled={pending || taxPending || !tax || !ship || Boolean(promoError)}>
+              {pending ? "Opening" : "Pay now"}
+            </Button>
+          </div>
+        </div>
+      </div>
     </form>
   );
 }

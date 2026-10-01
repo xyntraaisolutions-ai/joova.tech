@@ -137,18 +137,18 @@ export function Hero() {
               See Details
             </Link>
           </div>
-          <div className="mt-4 -mx-5 flex max-w-full gap-2 overflow-x-auto px-5 pb-1 snap-x snap-mandatory [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-5 mt-4 flex max-w-full snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
             {highlight.signals.map((signal) => (
               <div
                 key={signal.label}
-                className="min-w-[9.5rem] snap-start rounded-2xl border border-paper/15 bg-paper/10 px-3 py-3 text-paper md:min-w-0"
+                className="w-[min(9.5rem,70%)] shrink-0 snap-start rounded-2xl border border-paper/15 bg-paper/10 px-3 py-3 text-paper md:w-auto md:min-w-0"
               >
                 <p className="text-sm font-semibold">{signal.label}</p>
                 <p className="text-xs text-paper/70">{signal.text}</p>
               </div>
             ))}
           </div>
-          <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-paper/70">
               {highlight.note ? `${highlight.note} · ` : null}
               {policies.shipping}

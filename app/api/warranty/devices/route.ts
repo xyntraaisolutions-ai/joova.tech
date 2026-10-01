@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { coverageFromCatalog, productCoverage } from "@/lib/catalog/coverage";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -22,20 +23,59 @@ export async function GET() {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return NextResponse.json({ devices: [] }, { status: 401 });
-  const { data, error } = await supabase
-    .from("warranty_registrations")
-    .select("id, serial, model_code, product_id, purchase_date, purchased_from, coverage_ends_at, registered_at")
-    .is("deleted_at", null)
-    .order("registered_at", { ascending: false });
-  if (error) return NextResponse.json({ devices: [] }, { status: 500 });
-  const devices = (data ?? []).map((row) => ({
-    id: row.id,
-    serial: row.serial ?? "",
-    model: row.model_code ?? row.product_id,
-    purchasedFrom: row.purchased_from ?? "",
-    purchaseDate: row.purchase_date,
-    ...deviceStatus(row.coverage_ends_at, row.purchase_date, row.model_code),
-  }));
+  const [{ data, error }, claims] = await Promise.all([
+    supabase
+      .from("warranty_registrations")
+      .select("id, serial, model_code, product_id, purchase_date, purchased_from, coverage_ends_at, registered_at")
+      .is("deleted_at", null)
+      .order("registered_at", { ascending: false }),
+    supabase
+      .from("warranty_claims")
+      .select("id, registration_id, serial, status, message, decision_note, customer_reply, created_at")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false }),
+  ]);
+  if (error || claims.error) return NextResponse.json({ devices: [] }, { status: 500 });
+  const productIds = [...new Set((data ?? []).map((row) => row.product_id).filter(Boolean))];
+  const products = productIds.length
+    ? await supabase.from("products").select("id, name, warranty_eligible, warranty_years, warranty_days, commerce").in("id", productIds)
+    : { data: [] as { id: string; name: string; warranty_eligible: boolean; warranty_years: number | null; warranty_days: number | null; commerce: Record<string, unknown> | null }[] };
+  const productById = new Map((products.data ?? []).map((product) => [product.id, product]));
+  const claimRows = claims.data ?? [];
+  const devices = (data ?? []).map((row) => {
+    const claim = claimRows.find((item) => item.registration_id === row.id)
+      ?? claimRows.find((item) => item.serial && item.serial === row.serial);
+    const product = row.product_id ? productById.get(row.product_id) : undefined;
+    const commerce = product?.commerce && typeof product.commerce === "object" ? product.commerce : {};
+    const coverage = product
+      ? productCoverage({
+          warrantyEligible: product.warranty_eligible === true,
+          warrantyYears: product.warranty_years,
+          warrantyDays: product.warranty_days,
+          freeShipping: commerce.freeShipping,
+          returnDays: commerce.returnDays,
+        })
+      : coverageFromCatalog({ id: row.product_id ?? "", name: row.model_code ?? "" });
+    return {
+      id: row.id,
+      serial: row.serial ?? "",
+      model: row.model_code ?? row.product_id,
+      name: product?.name ?? "",
+      purchasedFrom: row.purchased_from ?? "",
+      purchaseDate: row.purchase_date,
+      coverage: [coverage.warranty, coverage.shipping, coverage.returns],
+      claim: claim
+        ? {
+            id: claim.id,
+            status: claim.status,
+            message: claim.message,
+            decisionNote: claim.decision_note ?? "",
+            customerReply: claim.customer_reply ?? "",
+          }
+        : null,
+      ...deviceStatus(row.coverage_ends_at, row.purchase_date, row.model_code),
+    };
+  });
   return NextResponse.json({ devices });
 }
 

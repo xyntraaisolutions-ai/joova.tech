@@ -63,11 +63,11 @@ In the Supabase dashboard, open Vault and store these secret names exactly:
 | Secret name | What it is |
 | --- | --- |
 | `STRIPE_SECRET_KEY` | Stripe secret key (`sk_` or `rk_`) |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret for the local Next.js webhook route |
 | `RESEND_API_KEY` | Resend API key for Joova email |
 | `SUPER_ADMIN_EMAIL` | Super Admin email address |
 
-The database functions `read_stripe_key`, `read_stripe_webhook_secret`, `read_resend_key`, and `read_super_admin_email` read those names. Only the service role can call them.
+The database functions `read_stripe_key`, `read_stripe_webhook_secret`, `read_resend_key`, and `read_super_admin_email` read those names. Only the service role can call them. The Vault webhook secret is for local `stripe listen` against `/api/stripe/webhook`. The deployed site does not use that route.
 
 ### Edge Function secrets
 
@@ -75,8 +75,15 @@ In Supabase, open Edge Functions → Secrets and set the same values the functio
 
 | Secret name | Used by |
 | --- | --- |
-| `RESEND_API_KEY` | `joova-internal`, `send-password-reset` |
-| `STRIPE_SECRET_KEY` | `joova-internal` |
+| `RESEND_API_KEY` | `joova-internal`, `send-password-reset`, `stripe-webhook` |
+| `STRIPE_SECRET_KEY` | `joova-internal`, `stripe-webhook` |
+| `STRIPE_WEBHOOK_SECRET` | `stripe-webhook` |
 | `SUPER_ADMIN_EMAIL` | `joova-internal` |
 
-Point the Stripe webhook at `https://YOUR_NETLIFY_SITE/api/stripe/webhook` after the site is deployed.
+`STRIPE_WEBHOOK_SECRET` in Edge Function secrets is the signing secret for the Stripe endpoint below. It can differ from the Vault value used by the local Next.js route.
+
+Do not add the service role key to Netlify. Supabase injects it into `stripe-webhook`.
+
+Point the Stripe webhook at `https://ivieoxndmgzpqnvroafk.supabase.co/functions/v1/stripe-webhook`.
+
+Subscribe that endpoint to `checkout.session.completed` and `checkout.session.expired`. After creating it, copy its `whsec_` value into the `STRIPE_WEBHOOK_SECRET` edge secret. The function reads that secret on each request.

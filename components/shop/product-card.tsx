@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShopCardActions } from "@/components/shop/shop-card-actions";
 import type { CatalogProduct } from "@/content/catalog";
+import { policies } from "@/content/site";
 import { buttonClassName } from "@/components/ui/button";
 import { formatUsd } from "@/lib/utils";
 
@@ -42,6 +43,7 @@ export function ProductCard({ product, actions = false }: { product: CatalogProd
             <span className="ml-2 text-base font-medium text-muted line-through">{product.compareAtLabel ?? formatUsd(product.compareAt ?? 0)}</span>
           ) : null}
         </p>
+        <p className="mt-1 text-sm text-muted">{policies.returnsTitle}</p>
         <p className="mt-3 flex-1 text-muted">{product.summary}</p>
         {actions ? (
           <ShopCardActions product={product} />

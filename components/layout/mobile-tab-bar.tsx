@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Home, Menu, ShoppingBag, Store, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/components/layout/auth-provider";
 import { useCart } from "@/components/layout/cart-provider";
 import { useSiteContent } from "@/components/layout/site-content";
+import { useSiteMenu } from "@/components/layout/site-menu";
+import { buttonClassName } from "@/components/ui/button";
 import { categoryMenu } from "@/lib/content/helpers";
 import { cn } from "@/lib/utils";
 
@@ -59,11 +61,11 @@ export function MobileTabBar() {
         }
       : group,
   );
-  const [more, setMore] = useState(false);
+  const { open: more, setOpen: setMore } = useSiteMenu();
 
   useEffect(() => {
     setMore(false);
-  }, [pathname]);
+  }, [pathname, setMore]);
   if (pathname.startsWith("/portal")) return null;
   const home = pathname === "/";
   const shop = pathname === "/shop" || pathname === "/deals";
@@ -144,14 +146,26 @@ export function MobileTabBar() {
 
       <Dialog.Root open={more} onOpenChange={setMore}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-[var(--fixed-ink)]/45 md:hidden" />
-          <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-auto rounded-t-3xl bg-paper p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl md:hidden">
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[var(--fixed-ink)]/45 xl:hidden" />
+          <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-auto rounded-t-3xl bg-paper p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl xl:hidden">
             <div className="mb-4 flex items-center justify-between">
               <Dialog.Title className="font-display text-2xl">Menu</Dialog.Title>
               <Dialog.Close className="flex size-11 items-center justify-center rounded-full hover:bg-stone" aria-label="Close menu">
                 <X className="size-5" />
               </Dialog.Close>
             </div>
+            <form action="/shop" role="search" className="mb-5 flex gap-2">
+              <label htmlFor="menu-search" className="sr-only">Search products</label>
+              <input
+                id="menu-search"
+                name="q"
+                placeholder="Search products"
+                className="h-12 min-w-0 flex-1 rounded-full border border-stone bg-white px-4 text-[17px]"
+              />
+              <button type="submit" className={buttonClassName("primary", "md", "shrink-0")}>
+                Search
+              </button>
+            </form>
             <div className="space-y-5">
               {menuGroups.map((group) => (
                 <section key={group.title}>

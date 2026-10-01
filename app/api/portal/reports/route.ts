@@ -27,6 +27,7 @@ export async function GET(request: Request) {
     .from("orders")
     .select("id, subtotal, tax_amount, shipping_amount, discount_amount")
     .eq("payment_status", "paid")
+    .eq("order_kind", "sale")
     .is("deleted_at", null)
     .gte("created_at", chicagoStamp(from, "00:00:00"))
     .lte("created_at", chicagoStamp(to, "23:59:59"));
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
   const refunds = await supabase
     .from("returns")
     .select("order_id, orders(subtotal, tax_amount, shipping_amount, discount_amount)")
-    .eq("status", "refunded")
+    .or("status.eq.refunded,and(status.eq.closed,resolution.eq.refund)")
     .is("deleted_at", null)
     .gte("refunded_at", chicagoStamp(from, "00:00:00"))
     .lte("refunded_at", chicagoStamp(to, "23:59:59"));

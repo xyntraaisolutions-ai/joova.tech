@@ -14,7 +14,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
 
   return (
     <div className="pb-[calc(var(--app-tab)+env(safe-area-inset-bottom))] md:pb-0">
-      <div className="sticky top-0 z-40">
+      <div className="sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
         <AnnouncementBar />
         <Header />
       </div>

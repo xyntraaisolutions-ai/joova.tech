@@ -7,6 +7,7 @@ import { sendTransactionalEmail } from "@/lib/mail/send";
 import { ensureOrderInvoice, stripeInvoiceFile } from "@/lib/stripe/invoice";
 import { taxPercentLabel } from "@/lib/tax/avalara";
 import { formatUsd } from "@/lib/utils";
+import { coverageList } from "@/lib/catalog/coverage";
 import { purchaseText } from "@/lib/content/variants";
 
 type Ship = {
@@ -24,6 +25,7 @@ type Line = {
   price?: number | string;
   color?: string | null;
   selection?: { color?: string; type?: string; size?: string; custom?: string; sku?: string; labels?: Record<string, string> } | null;
+  coverage?: unknown;
 };
 
 export type PaidOrder = {
@@ -74,6 +76,7 @@ function receipt(order: PaidOrder, date: string): OrderReceipt {
       return {
         name: item.name ?? "Item",
         detail: purchaseText(item.selection, item.color ?? undefined),
+        coverage: coverageList(item.coverage).join("\n"),
         quantity,
         amount: money(Number(item.price ?? 0) * quantity),
       };

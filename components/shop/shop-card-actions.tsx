@@ -39,6 +39,8 @@ export function RequestItemButton({ product, className, size = "md" }: { product
 export function ShopCardActions({ product }: { product: CatalogProduct }) {
   const outOfStock = product.availability === "out_of_stock";
   const canBuy = !outOfStock && !product.unpriced && product.price > 0;
+  const choices = (product.variants ?? []).filter((option) => option.available !== false);
+  const needsChoice = choices.length > 1;
   const { addItem } = useCart();
 
   function add() {
@@ -56,14 +58,14 @@ export function ShopCardActions({ product }: { product: CatalogProduct }) {
 
   return (
     <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-      {canBuy ? (
+      {canBuy && !needsChoice ? (
         <Button type="button" className="w-full sm:w-fit" onClick={add}>
           Add to cart
         </Button>
       ) : null}
       {outOfStock ? <RequestItemButton product={product} className="w-full sm:w-fit" /> : null}
-      <Link href={product.href} className={`${buttonClassName(canBuy || outOfStock ? "secondary" : "primary")} w-full sm:w-fit`}>
-        See Details
+      <Link href={product.href} className={`${buttonClassName(canBuy && !needsChoice || outOfStock ? "secondary" : "primary")} w-full sm:w-fit`}>
+        {needsChoice ? "Choose options" : "See Details"}
       </Link>
     </div>
   );
@@ -119,7 +121,7 @@ function RequestItem({ product, onClose }: { product: CatalogProduct; onClose: (
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center bg-[var(--fixed-ink)]/45 p-4 sm:items-center">
-      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="w-full max-w-md rounded-3xl bg-paper p-6 text-ink shadow-lg">
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="max-h-[min(90vh,40rem)] w-full max-w-md overflow-y-auto rounded-3xl bg-paper p-6 text-ink shadow-lg">
         <h2 id={titleId} className="font-display text-2xl">Request this item</h2>
         <p className="mt-2 text-sm text-muted">
           {product.name} is out of stock. Send a request and we will email you when it is back.

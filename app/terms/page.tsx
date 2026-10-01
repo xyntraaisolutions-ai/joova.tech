@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LastUpdated } from "@/components/content/last-updated";
 import { Container } from "@/components/ui/container";
 import { loadContentBundle } from "@/lib/content/load";
 
@@ -16,9 +17,10 @@ export default async function TermsPage() {
   const terms = pageCopy.terms;
   return (
     <Container className="max-w-3xl py-10 md:py-16">
-      <h1 className="font-display" style={{ fontSize: "var(--text-h1)" }}>
+      <h1 className="font-display font-extrabold" style={{ fontSize: "var(--text-h1)" }}>
         Terms
       </h1>
+      <LastUpdated value={terms.updatedOn} />
       <p className="mt-4 text-lg text-muted">
         These terms cover joova.tech and Joova products sold by {company.legalName},{" "}
         {company.address}.

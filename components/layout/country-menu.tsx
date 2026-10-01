@@ -50,15 +50,17 @@ export function CountryMenu() {
     <div className="relative" ref={rootRef}>
       <button
         type="button"
-        className="inline-flex h-11 items-center rounded-full px-3 text-sm font-medium hover:bg-stone"
+        className="inline-flex h-11 items-center rounded-full px-2 text-sm font-medium hover:bg-stone sm:px-3"
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-label={`${market.name}, ${market.currency}`}
         onClick={() => setOpen((value) => !value)}
       >
-        {market.code} · {market.currency}
+        <span className="sm:hidden">{market.code}</span>
+        <span className="hidden sm:inline">{market.code} · {market.currency}</span>
       </button>
       {open ? (
-        <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl border border-stone bg-paper p-3 shadow-lg">
+        <div className="absolute right-0 z-40 mt-2 w-[min(18rem,calc(100vw-2.5rem))] rounded-2xl border border-stone bg-paper p-3 shadow-lg">
           <p className="px-2 text-sm font-bold">{market.name}</p>
           <p className="mt-1 px-2 text-xs text-muted">Payment at checkout is in US dollars.</p>
           <label className="mt-3 block text-sm">
@@ -77,7 +79,7 @@ export function CountryMenu() {
                   type="button"
                   role="option"
                   aria-selected={country.code === market.code}
-                  className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-sm hover:bg-stone/50"
+                  className="flex min-h-11 w-full items-center justify-between rounded-xl px-2 text-left text-sm hover:bg-stone/50"
                   disabled={pending}
                   onClick={() => void choose(country.code)}
                 >

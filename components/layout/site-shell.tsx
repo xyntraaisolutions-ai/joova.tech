@@ -1,11 +1,13 @@
 import { AppFrame } from "@/components/layout/app-frame";
 import { CartDrawer } from "@/components/layout/cart-drawer";
 import { MobileTabBar } from "@/components/layout/mobile-tab-bar";
+import { SiteMenuProvider } from "@/components/layout/site-menu";
 import { SaveFeedback } from "@/components/ui/save-feedback";
 import type { ReactNode } from "react";
 
 export function SiteShell({ children }: { children: ReactNode }) {
   return (
+    <SiteMenuProvider>
     <SaveFeedback>
       <a
         href="#main"
@@ -17,5 +19,6 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <MobileTabBar />
       <CartDrawer />
     </SaveFeedback>
+    </SiteMenuProvider>
   );
 }

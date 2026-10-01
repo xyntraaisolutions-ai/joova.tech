@@ -6,7 +6,7 @@ import { renderOrderConfirmation, type PaidOrder } from "@/lib/mail/order";
 import { receiptLogoDataUri, receiptPdf, receiptPdfFilename } from "@/lib/mail/receipt-pdf";
 
 const orderSelect =
-  "id, email, subtotal, tax_percent, tax_amount, shipping, created_at, payment_status, order_items(name, quantity, price, color, selection)";
+  "id, email, subtotal, tax_percent, tax_amount, shipping, created_at, payment_status, order_items(name, quantity, price, color, selection, coverage)";
 
 function filename(orderId: string, extension: "html" | "pdf") {
   const safe = orderId.replace(/[^A-Za-z0-9-]+/g, "");

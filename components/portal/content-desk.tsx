@@ -146,8 +146,26 @@ export function ContentDesk({ section }: { section: string }) {
       {pageName ? (
         <Section id={`page:${pageName}`} active={section}>
           <h2 className="font-display text-2xl">{pageLabel(pageName)}</h2>
+          {data.pages ? (
+            <form
+              key={`${pageName}-${updatedOn(data.pages, pageName)}`}
+              className="mt-4 rounded-3xl bg-white p-4"
+              onSubmit={async (event) => {
+                event.preventDefault();
+                const form = new FormData(event.currentTarget);
+                setError(await save({ kind: "page", page: pageName, key: "updatedOn", value: String(form.get("value") ?? "") }));
+              }}
+            >
+              <label className="block text-sm">
+                Last updated
+                <Input className="mt-2" type="date" name="value" defaultValue={updatedOn(data.pages, pageName)} required />
+              </label>
+              <p className="mt-2 text-sm text-muted">This date is shown on the public page.</p>
+              <Button className="mt-3" type="submit" size="sm">Save date</Button>
+            </form>
+          ) : null}
           <ul className="mt-4 space-y-3">
-            {(data.pages ?? []).filter((page) => page.page === pageName).map((page) => (
+            {(data.pages ?? []).filter((page) => page.page === pageName && page.key !== "updatedOn" && !retiredCopy.has(page.key)).map((page) => (
             <li key={`${page.page}-${page.key}`}>
               <form
                 className="rounded-3xl bg-white p-4"
@@ -974,6 +992,31 @@ function NavEditor({
 function Section({ id, active, children }: { id: string; active: string; children: ReactNode }) {
   if (id !== active) return null;
   return <div>{children}</div>;
+}
+
+const retiredCopy = new Set([
+  "devicesName",
+  "devicesTerm",
+  "devicesExtra",
+  "strapsName",
+  "strapsTerm",
+  "strapsExtra",
+  "product1Name",
+  "product1Term",
+  "product1Extra",
+  "product2Name",
+  "product2Term",
+  "product2Extra",
+  "product3Name",
+  "product3Term",
+  "product3Extra",
+  "product4Name",
+  "product4Term",
+  "product4Extra",
+]);
+
+function updatedOn(pages: { page: string; key: string; value: string }[], pageName: string) {
+  return pages.find((page) => page.page === pageName && page.key === "updatedOn" && page.value)?.value ?? "";
 }
 
 function pageLabel(page: string) {

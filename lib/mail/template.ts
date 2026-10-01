@@ -18,7 +18,7 @@ export const orderEmailDefaults: PasswordEmailTemplate = {
   fromEmail: passwordEmailFrom.email,
   subject: "Your Joova order {{order_id}}",
   heading: "Your order is confirmed",
-  body: "Thank you for your order, {{name}}.\n\nPayment for {{order_id}} is received. This email is your receipt. The Stripe invoice is attached.\n\nShipping is free in the United States. Orders ship from US warehouses and are delivered in 7 to 10 days. We will email you again when it ships.",
+  body: "Thank you for your order, {{name}}.\n\nPayment for {{order_id}} is received. This email is your receipt. The Stripe invoice is attached.\n\nEach item lists its warranty, shipping, and return eligibility. Eligible products ship free in the United States, leave US warehouses, and arrive in 7 to 10 days. We will email you again when it ships.",
   buttonLabel: "Track this order",
   footer: "Joova Tech LLC · Grapevine, Texas · {{support_email}}",
 };
@@ -26,6 +26,7 @@ export const orderEmailDefaults: PasswordEmailTemplate = {
 export type OrderReceiptLine = {
   name: string;
   detail: string;
+  coverage: string;
   quantity: number;
   amount: string;
 };
@@ -151,7 +152,7 @@ export function renderOrderEmail(
     .map(
       (line) => `<tr>
         <td style="padding:12px 0;border-top:1px solid #e7e5e4;font-size:15px;line-height:1.4;color:#0c121c;">
-          <strong>${escapeHtml(line.name)}</strong>${line.detail ? `<br><span style="color:#6b7280;">${escapeHtml(line.detail)}</span>` : ""}
+          <strong>${escapeHtml(line.name)}</strong>${line.detail ? `<br><span style="color:#6b7280;">${escapeHtml(line.detail)}</span>` : ""}${line.coverage ? `<br><span style="color:#6b7280;">${escapeHtml(line.coverage).replaceAll("\n", "<br>")}</span>` : ""}
         </td>
         <td style="padding:12px 8px;border-top:1px solid #e7e5e4;font-size:15px;text-align:center;vertical-align:top;">${line.quantity}</td>
         <td style="padding:12px 0;border-top:1px solid #e7e5e4;font-size:15px;text-align:right;vertical-align:top;white-space:nowrap;">${escapeHtml(line.amount)}</td>
@@ -250,7 +251,10 @@ export function renderOrderEmail(
     "Ship to:",
     ...receipt.shipTo,
     "",
-    ...receipt.lines.map((line) => `${line.name}${line.detail ? ` (${line.detail})` : ""} × ${line.quantity}  ${line.amount}`),
+    ...receipt.lines.flatMap((line) => [
+      `${line.name}${line.detail ? ` (${line.detail})` : ""} × ${line.quantity}  ${line.amount}`,
+      ...(line.coverage ? [line.coverage] : []),
+    ]),
     "",
     `Subtotal ${receipt.subtotal}`,
     ...(receipt.discount ? [`Discount ${receipt.discount}`] : []),

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { Container } from "@/components/ui/container";
@@ -29,7 +30,8 @@ export default async function ReviewsPage() {
       {reviews.length < 10 ? (
         <p className="mt-6 max-w-2xl text-muted">
           This page stays empty until we have at least 10 genuine reviews. Paid
-          creator content will be marked. We never fabricate ratings.
+          creator content will be marked.           We never fabricate ratings.{" "}
+          <Link className="font-bold text-ink underline" href="/shop">Shop Joova</Link>
         </p>
       ) : (
         <ul className="mt-8 grid gap-4">

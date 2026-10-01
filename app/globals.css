@@ -80,7 +80,7 @@ html[data-theme="night"] {
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 7.5rem;
+  scroll-padding-top: 11rem;
   overflow-x: clip;
 }
 
