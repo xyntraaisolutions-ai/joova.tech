@@ -1,45 +1,19 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Suspense } from "react";
+import { TrackPage } from "@/components/track/track-page";
 import { Container } from "@/components/ui/container";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Track my order",
-  description: "Track a Joova order. Tracking goes live after the first shipments.",
+  description: "See a Joova order, its status, and tracking. Sign in, or look it up with the order number and email.",
 };
 
-export default function TrackPage() {
+export default function TrackRoute() {
   return (
     <Container className="max-w-xl py-10 md:py-16">
-      <h1
-        className="font-display font-extrabold"
-        style={{ fontSize: "var(--text-h1)" }}
-      >
-        Track my order
-      </h1>
-      <p className="mt-4 text-muted">
-        Tracking will use AfterShip or Shopify order status after orders ship.
-        Lookups are not live yet. A{" "}
-        <Link className="font-medium text-ink underline" href="/account">
-          Joova Customer Account
-        </Link>{" "}
-        is where purchase history, order tracking, returns, and replacements
-        will live.
-      </p>
-      <form className="mt-8 space-y-4" action="#">
-        <label className="block">
-          <span className="text-sm text-muted">Order number</span>
-          <Input className="mt-2" name="order" autoComplete="off" />
-        </label>
-        <label className="block">
-          <span className="text-sm text-muted">Email</span>
-          <Input className="mt-2" type="email" name="email" />
-        </label>
-        <Button type="submit" disabled>
-          Look up (coming soon)
-        </Button>
-      </form>
+      <Suspense fallback={<p className="text-muted">Loading tracking.</p>}>
+        <TrackPage />
+      </Suspense>
     </Container>
   );
 }

@@ -39,25 +39,60 @@ export const boxImageSize = { width: 864, height: 1152 } as const;
 
 export const policies = {
   returnsTitle: "30-day free returns",
-  strapTitle: "Lifetime strap warranty",
-  dockTitle: "Tracker warranty",
+  strapTitle: "90-day strap coverage",
+  dockTitle: "1-year limited warranty",
   announcement: "Free US shipping · 30-day free returns",
   heroLine:
-    "2 straps in every box · 30-day free returns · Lifetime strap warranty · 2-year tracker warranty",
-  strapSummary:
-    "Woven straps are covered for life against manufacturing defects, after the band is registered.",
+    "1 strap in the box · 30-day free returns · 1-year limited warranty",
+  strapSummary: "Extra straps are covered for 90 days from the purchase date.",
   dockSummary:
-    "The tracker is covered for 2 years, plus a third year, after you register the band.",
+    "Joova devices are covered for 1 year from the purchase date. Register within 30 days and we add 1 extra year, free.",
   shipping: "Ships from US warehouses. Delivered in 7 to 10 days.",
   returnsSummary:
     "You have 30 days from delivery to start a free return in the United States. We cover return shipping. This is the only free return window.",
   warrantyRegistration:
-    "Warranty starts only after the product is registered. Sign up for a Joova Customer Account, then register each eligible product.",
+    "Every Joova device comes with a 1-year limited warranty. Register it and we add 1 extra year, free.",
   accountSummary:
     "Your Joova Customer Account keeps purchase history, order tracking, returns, and replacements in one place.",
 } as const;
 
 export const announcement = policies.announcement;
+
+export const developmentNotice = "This Website is in Development Phase";
+
+export const noticeFontColors = [
+  { id: "red", label: "Red", value: "var(--band-red)" },
+  { id: "orange", label: "Orange", value: "var(--joova-coral)" },
+  { id: "blue", label: "Blue", value: "var(--band-blue)" },
+  { id: "green", label: "Green", value: "var(--band-green)" },
+  { id: "white", label: "White", value: "var(--fixed-paper)" },
+] as const;
+
+export const noticeBackgrounds = [
+  { id: "ink", label: "Ink", value: "var(--fixed-ink)" },
+  { id: "white", label: "White", value: "var(--fixed-paper)" },
+  { id: "red", label: "Red", value: "var(--band-red)" },
+  { id: "orange", label: "Orange", value: "var(--joova-coral)" },
+  { id: "blue", label: "Blue", value: "var(--band-blue)" },
+] as const;
+
+export type NoticeFontColor = (typeof noticeFontColors)[number]["id"];
+export type NoticeBackground = (typeof noticeBackgrounds)[number]["id"];
+
+export const headerSlogan = "Smarter Tech | Bigger Tomorrow";
+
+export const footerBlurb =
+  "Joova brings smart, simple and fairly priced technology into everyday life. Built by Joova Tech LLC in the USA.";
+
+export const footerMarketplaces = "Also on Amazon and TikTok Shop (links coming).";
+
+export const storeLinks = [
+  { id: "amazon", label: "Amazon (FBA)", href: "" },
+  { id: "tiktok-shop", label: "TikTok Shop", href: "" },
+  { id: "walmart", label: "Walmart Marketplace", href: "" },
+  { id: "best-buy", label: "Best Buy Marketplace", href: "" },
+  { id: "target", label: "Target Plus", href: "" },
+] as const;
 
 export const shareImageSize = { width: 1024, height: 520 } as const;
 
@@ -612,8 +647,8 @@ export const boxFacts = [
 ];
 
 export const inTheBox = [
-  "Joova Band tracker and the strap you wear",
-  "1 extra strap. Black includes blue. Every other color includes black.",
+  "Joova Band tracker",
+  "1 woven strap in the color you choose",
   "Magnetic charging cable",
   "Quick start guide",
 ];
@@ -688,8 +723,8 @@ export const specs = [
   { label: "Water", value: "1ATM. Splash and rain. Not for swimming or showering." },
   { label: "Phone", value: "Joova app. iPhone with iOS 15 or later, and Android 9 or later." },
   { label: "Health apps", value: "Works with Apple Health and Google Health Connect." },
-  { label: "Strap warranty", value: "Lifetime against manufacturing defects, after the band is registered in your Joova Customer Account." },
-  { label: "Tracker warranty", value: "2 years, plus a third year, after you register the band in your Joova Customer Account." },
+  { label: "In the box", value: "1 woven strap in the color you choose, a magnetic charging cable, and a quick start guide." },
+  { label: "Device warranty", value: "1 year from the purchase date. Register within 30 days for 1 extra year, free." },
   { label: "Shipping", value: "Ships from US warehouses. Delivered in 7 to 10 days. Free in the United States." },
   { label: "Returns", value: "30-day free returns. US return shipping is covered." },
 ];
@@ -717,7 +752,7 @@ export const faqs = [
   },
   {
     q: "What comes in the box?",
-    a: `The tracker and the strap you wear, 1 extra strap, a magnetic charging cable, and a quick start guide. A black band includes a blue extra strap. Every other color includes a black extra strap. More colors are ${strapPriceLabel} each.`,
+    a: "The tracker, 1 woven strap in the color you choose, a magnetic charging cable, and a quick start guide.",
   },
   {
     q: "When does it ship?",
@@ -729,7 +764,7 @@ export const faqs = [
   },
   {
     q: "What is covered by warranty?",
-    a: "Warranty starts when you register the product. Sign up for a Joova Customer Account, then register the band. Straps: lifetime against manufacturing defects. Tracker: 2 years, plus a third year, after registration.",
+    a: "1 year from the purchase date. Register the device within 30 days and we add 1 extra year, free. See the Warranty page.",
   },
   {
     q: "Is it a medical device?",
@@ -777,9 +812,9 @@ export const appScreens = [
 
 export const trustItems = [
   { title: "30-day free returns", href: "/returns", copy: "30 days from delivery. US return shipping is covered." },
-  { title: "Lifetime strap warranty", href: "/warranty", copy: "Manufacturing defects on the woven straps, for life, after you register the band." },
-  { title: "Tracker warranty", href: "/warranty", copy: "2 years on the tracker, plus a third year, after you register it in your Joova Customer Account." },
-  { title: "Replacement ships first", href: "/warranty", copy: "We send the replacement, then you send the old one." },
+  { title: "1-year limited warranty", href: "/warranty", copy: "Every Joova device is covered for 1 year from the purchase date." },
+  { title: "1 extra year, free", href: "/warranty", copy: "Register within 30 days of purchase and coverage runs for 2 years." },
+  { title: "Repair or replace", href: "/warranty", copy: "On a covered claim, we repair or replace the product." },
   { title: "US-based support", href: "/contact", copy: "Real people. Every message gets a reply within 6 to 24 hours." },
   { title: "Secure checkout", href: "/band", copy: "American Express, Visa, Mastercard, Apple Pay, Google Pay, Shop Pay, PayPal, Bancontact, and Wero." },
 ];
@@ -807,7 +842,7 @@ export const helpArticles = [
     slug: "handling",
     title: "Handling",
     summary: "How to wear, wipe, and look after the band.",
-    body: "Wear the woven loop on your wrist and fasten the silver buckle so the tracker sits flat.\n\nWipe the strap after sweat. Keep the magnetic contacts clean and dry. Charge the band only when it is dry.\n\nSwap straps by sliding the tracker out of one loop and into the next until it sits flush.",
+    body: "Wear the woven loop on your wrist and fasten the silver buckle so the tracker sits flat.\n\nWipe the strap after sweat. Keep the magnetic contacts clean and dry. Charge the band only when it is dry.",
   },
   {
     slug: "water",
@@ -817,9 +852,9 @@ export const helpArticles = [
   },
   {
     slug: "strap-swap",
-    title: "Swap a strap",
-    summary: "Change colors in a few seconds.",
-    body: "Pinch the strap near the tracker, slide the pod out, and slide it into the next strap until it sits flush.",
+    title: "The included strap",
+    summary: "The box includes 1 woven strap in the color you choose.",
+    body: "The band comes with 1 woven strap. Fasten the silver buckle so the tracker sits flat.",
   },
   {
     slug: "syncing",

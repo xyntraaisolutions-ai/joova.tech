@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
-import { company, support } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 
-export const metadata: Metadata = {
-  title: "Privacy",
-  description: `Privacy policy for ${company.legalName}. We use account and order information to run joova.tech and Joova products. We do not sell personal information.`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { company } = await loadContentBundle();
+  return {
+    title: "Privacy",
+    description: `Privacy policy for ${company.legalName}. We use account and order information to run joova.tech and Joova products. We do not sell personal information.`,
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const { company, support, pageCopy } = await loadContentBundle();
+  const privacy = pageCopy.privacy;
   return (
     <Container className="max-w-3xl py-10 md:py-16">
       <h1 className="font-display" style={{ fontSize: "var(--text-h1)" }}>
@@ -21,28 +26,20 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-display text-2xl text-ink">What we collect</h2>
           <p className="mt-3">
-            We collect the information you give us to create a Joova Customer
-            Account, place an order, register a product, or contact support.
-            That includes your name, email, order details, and the messages you
-            send us.
+            {privacy.collectAccount}
           </p>
           <p className="mt-3">
-            When you use a Joova product, we collect the information needed to
-            run that product and, where it applies, the Joova app. Tracker data
-            is stored by the Joova app and is never sold. We use this
-            information to fill orders, provide support, and operate the
-            products you buy.
+            {privacy.collectProduct}
           </p>
         </section>
         <section>
           <h2 className="font-display text-2xl text-ink">What we do not do</h2>
-          <p className="mt-3">We do not sell personal information.</p>
+          <p className="mt-3">{privacy.sell}</p>
         </section>
         <section>
           <h2 className="font-display text-2xl text-ink">Cookies</h2>
           <p className="mt-3">
-            A full cookie policy and pixel rules will be added with the consent
-            banner.
+            {privacy.cookies}
           </p>
         </section>
         <section>

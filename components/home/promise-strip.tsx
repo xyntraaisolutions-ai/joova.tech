@@ -1,13 +1,13 @@
-import { policies } from "@/content/site";
 import { Container } from "@/components/ui/container";
+import { loadContentBundle } from "@/lib/content/load";
 
-const promises = [
-  { kicker: "The price", text: "No subscription needed. Ever." },
-  { kicker: "The box", text: "2 straps in every box" },
-  { kicker: "The straps", text: policies.strapTitle },
-];
-
-export function PromiseStrip() {
+export async function PromiseStrip() {
+  const { policies } = await loadContentBundle();
+  const promises = [
+    { kicker: "The price", text: "No subscription needed. Ever." },
+    { kicker: "The box", text: "1 strap in the box" },
+    { kicker: "Returns", text: policies.returnsTitle },
+  ];
   return (
     <section className="border-y border-stone">
       <Container className="grid md:grid-cols-3 md:px-0">

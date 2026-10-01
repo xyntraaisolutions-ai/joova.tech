@@ -7,46 +7,42 @@ import { Home, Menu, ShoppingBag, Store, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/layout/auth-provider";
 import { useCart } from "@/components/layout/cart-provider";
-import { catalogCategories, categoryMenu } from "@/content/catalog";
-import { supportMenu } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
+import { categoryMenu } from "@/lib/content/helpers";
 import { cn } from "@/lib/utils";
 
-const groups = [
-  {
-    title: "Browse",
-    links: [
-      { href: "/shop", label: "All products" },
-      { href: "/deals", label: "Deals" },
-      { href: "/videos", label: "Videos" },
-      { href: "/blog", label: "Blogs" },
-      { href: "/wishlist", label: "Wishlist" },
-    ],
-  },
-  {
-    title: "Products",
-    links: catalogCategories.flatMap((category) => [
-      { href: category.href, label: category.label },
-      ...categoryMenu(category.id).map((item) => ({
-        href: item.href,
-        label: item.label,
-        nested: true,
-      })),
-    ]),
-  },
-  {
-    title: "Help",
-    links: [
-      { href: "/about", label: "About" },
-      ...supportMenu,
-      { href: "/account", label: "Sign in" },
-      { href: "/warranty", label: "Warranty" },
-      { href: "/returns", label: "Returns" },
-    ],
-  },
-];
-
 export function MobileTabBar() {
+  const { catalog, catalogCategories, navItems } = useSiteContent();
   const pathname = usePathname();
+  const headerLinks = navItems.filter((item) => item.area === "header" && !item.parentId && item.kind === "link");
+  const support = navItems.find((item) => item.area === "header" && item.kind === "menu" && !item.parentId);
+  const footerLinks = navItems.filter((item) => item.area === "footer" && item.parentId);
+  const groups = [
+    {
+      title: "Browse",
+      links: headerLinks,
+    },
+    {
+      title: "Products",
+      links: catalogCategories.flatMap((category) => [
+        { href: category.href, label: category.label },
+        ...categoryMenu(catalog, category.id).map((item) => ({
+          href: item.href,
+          label: item.label,
+          nested: true,
+        })),
+      ]),
+    },
+    {
+      title: "Help",
+      links: [
+        ...(support ? navItems.filter((item) => item.parentId === support.id) : []),
+        ...footerLinks,
+        { href: "/returns", label: "Returns" },
+        { href: "/account", label: "Sign in" },
+      ],
+    },
+  ];
   const { count, setOpen } = useCart();
   const { user } = useAuth();
   const menuGroups = groups.map((group) =>
@@ -54,7 +50,11 @@ export function MobileTabBar() {
       ? {
           ...group,
           links: group.links.map((link) =>
-            link.href === "/account" ? { ...link, label: user ? "Account" : "Sign in" } : link,
+            link.href === "/account"
+              ? user && user.role && user.role !== "customer"
+                ? { href: "/portal", label: "Portal" }
+                : { ...link, label: user ? "Account" : "Sign in" }
+              : link,
           ),
         }
       : group,
@@ -64,6 +64,7 @@ export function MobileTabBar() {
   useEffect(() => {
     setMore(false);
   }, [pathname]);
+  if (pathname.startsWith("/portal")) return null;
   const home = pathname === "/";
   const shop = pathname === "/shop" || pathname === "/deals";
 

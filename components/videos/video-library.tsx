@@ -4,11 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, VolumeX } from "lucide-react";
 import { useState } from "react";
-import { catalog, type CatalogProduct } from "@/content/catalog";
-import { productVideos, type ProductVideo } from "@/content/videos";
+import { useSiteContent } from "@/components/layout/site-content";
+import type { CatalogProduct } from "@/content/catalog";
+import type { ProductVideo } from "@/content/videos";
 import { cn } from "@/lib/utils";
 
 export function VideoLibrary() {
+  const { catalog, productVideos } = useSiteContent();
   const [productId, setProductId] = useState("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const videos =
@@ -125,7 +127,17 @@ function VideoCard({
     <article>
       <div className="stage overflow-hidden rounded-[28px] shadow-[0_24px_80px_rgba(12,18,28,0.08)]">
         <div className="relative aspect-video">
-          {playing ? (
+          {playing && video.src ? (
+            <video
+              className="absolute inset-0 h-full w-full bg-[var(--fixed-ink)]"
+              src={video.src}
+              poster={video.poster || product?.image.src || undefined}
+              controls
+              autoPlay
+              muted
+              playsInline
+            />
+          ) : playing && video.youtubeId ? (
             <iframe
               className="absolute inset-0 h-full w-full"
               src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?rel=0&autoplay=1&mute=1&playsinline=1`}
@@ -135,7 +147,7 @@ function VideoCard({
             />
           ) : (
             <button type="button" className="absolute inset-0" onClick={onPlay} aria-label={`Play ${video.title}, muted`}>
-              <Poster youtubeId={video.youtubeId} featured={featured} />
+              <Poster youtubeId={video.youtubeId} poster={video.poster || product?.image.src} featured={featured} />
               <span className="absolute inset-0 flex items-center justify-center">
                 <span className="flex size-16 items-center justify-center rounded-full bg-coral text-[var(--fixed-ink)] shadow-[0_12px_40px_rgba(12,18,28,0.28)] sm:size-20">
                   <Play className="ml-1 size-7 fill-current sm:size-8" aria-hidden />
@@ -173,8 +185,9 @@ function VideoCard({
   );
 }
 
-function Poster({ youtubeId, featured }: { youtubeId: string; featured: boolean }) {
-  const [src, setSrc] = useState(`https://i.ytimg.com/vi/${youtubeId}/sddefault.jpg`);
+function Poster({ youtubeId, poster, featured }: { youtubeId: string; poster?: string; featured: boolean }) {
+  const [src, setSrc] = useState(poster || (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/sddefault.jpg` : ""));
+  if (!src) return <span className="absolute inset-0 bg-stone" />;
 
   return (
     <Image
@@ -183,7 +196,9 @@ function Poster({ youtubeId, featured }: { youtubeId: string; featured: boolean 
       fill
       sizes={featured ? "(min-width: 1024px) 900px, 100vw" : "(min-width: 1024px) 440px, 100vw"}
       className="object-cover"
-      onError={() => setSrc(`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`)}
+      onError={() => {
+        if (youtubeId) setSrc(`https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`);
+      }}
     />
   );
 }

@@ -1,12 +1,15 @@
 import { BandPhoto } from "@/components/media/band-photo";
 import { ProductTurntable } from "@/components/media/product-turntable";
-import { bandImageSize, priceLabel } from "@/content/site";
+import { bandImageSize } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 import Link from "next/link";
 import { buttonClassName } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 
-export function FinalCTA() {
+export async function FinalCTA() {
+  const { priceLabels } = await loadContentBundle();
+  const priceLabel = priceLabels.band;
   return (
     <Section className="pb-24">
       <Container className="cinematic grid items-center gap-10 rounded-[28px] px-6 py-12 sm:px-12 lg:grid-cols-2">

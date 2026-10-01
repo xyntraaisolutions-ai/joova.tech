@@ -1,7 +1,9 @@
-import { paymentMethods } from "@/content/site";
+"use client";
+
+import { useSiteContent } from "@/components/layout/site-content";
 import { cn } from "@/lib/utils";
 
-function Mark({ id }: { id: (typeof paymentMethods)[number]["id"] }) {
+function Mark({ id }: { id: string }) {
   if (id === "amex") {
     return (
       <svg viewBox="0 0 48 32" className="h-8 w-12" aria-hidden="true">
@@ -104,6 +106,7 @@ function Mark({ id }: { id: (typeof paymentMethods)[number]["id"] }) {
 }
 
 export function PaymentMarks({ className }: { className?: string }) {
+  const { paymentMethods } = useSiteContent();
   return (
     <ul
       className={cn("flex flex-wrap items-center gap-2 [&_text]:font-sans", className)}

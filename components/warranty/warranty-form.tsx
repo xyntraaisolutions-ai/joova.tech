@@ -1,13 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { policies, support } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function WarrantyForm() {
-  const [status, setStatus] = useState<"idle" | "success">("idle");
+  const { policies, support } = useSiteContent();
+  const [status, setStatus] = useState<"idle" | "saved" | "success">("idle");
   const [website, setWebsite] = useState("");
+
+  if (status === "saved") {
+    return (
+      <p className="mt-8" role="status">
+        Thanks. We saved your warranty request. The product needs to be registered on your Joova Customer
+        Account before coverage applies. We reply within 6 to 24 hours.
+      </p>
+    );
+  }
 
   if (status === "success") {
     return (
@@ -40,8 +50,24 @@ export function WarrantyForm() {
           "",
           message,
         ].join("\n");
-        window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova warranty form")}&body=${encodeURIComponent(body)}`;
-        setStatus("success");
+        void fetch("/api/warranty", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, order, serial, message }),
+        })
+          .then((response) => response.json())
+          .then((result: { saved?: boolean }) => {
+            if (result.saved) {
+              setStatus("saved");
+              return;
+            }
+            window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova warranty form")}&body=${encodeURIComponent(body)}`;
+            setStatus("success");
+          })
+          .catch(() => {
+            window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova warranty form")}&body=${encodeURIComponent(body)}`;
+            setStatus("success");
+          });
       }}
     >
       <h2 className="font-display text-2xl font-extrabold text-ink">Warranty form</h2>

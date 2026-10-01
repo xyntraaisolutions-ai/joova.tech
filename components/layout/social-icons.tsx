@@ -1,7 +1,9 @@
-import { socialLinks } from "@/content/site";
+"use client";
+
+import { useSiteContent } from "@/components/layout/site-content";
 import { cn } from "@/lib/utils";
 
-function Icon({ id }: { id: (typeof socialLinks)[number]["id"] }) {
+function Icon({ id }: { id: string }) {
   const common = { viewBox: "0 0 24 24", className: "size-6", fill: "currentColor", "aria-hidden": true as const };
   if (id === "facebook") {
     return (
@@ -39,6 +41,7 @@ function Icon({ id }: { id: (typeof socialLinks)[number]["id"] }) {
 }
 
 export function SocialIcons({ className }: { className?: string }) {
+  const { socialLinks } = useSiteContent();
   return (
     <ul className={cn("flex items-center gap-1", className)} aria-label="Social media">
       {socialLinks.map((link) => (

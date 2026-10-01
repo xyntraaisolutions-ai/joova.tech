@@ -19,10 +19,19 @@ export type MockSession = {
 
 export type MockOrderItem = {
   id: string;
+  productId?: string;
   name: string;
   price: number;
   quantity: number;
   color?: string;
+  sku?: string;
+  selection?: {
+    color?: string;
+    type?: string;
+    size?: string;
+    custom?: string;
+    sku?: string;
+  };
 };
 
 export type MockOrder = {

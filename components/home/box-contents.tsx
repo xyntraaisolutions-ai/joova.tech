@@ -1,9 +1,10 @@
-import { inTheBox, policies } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 import { VideoPlayer } from "@/components/media/video-player";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 
-export function BoxContents() {
+export async function BoxContents() {
+  const { inTheBox } = await loadContentBundle();
   return (
     <Section className="bg-stone/40">
       <Container className="grid gap-10 lg:grid-cols-2">
@@ -12,10 +13,10 @@ export function BoxContents() {
             className="font-display font-extrabold"
             style={{ fontSize: "var(--text-h2)" }}
           >
-            2 straps in every box
+            1 strap in the box
           </h2>
           <p className="mt-4 max-w-md text-muted">
-            Swap a strap in seconds. {policies.strapSummary}
+            The band comes with 1 woven strap in the color you choose.
           </p>
           <ul className="mt-8 space-y-3">
             {inTheBox.map((item) => (

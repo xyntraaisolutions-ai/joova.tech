@@ -2,36 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClassName } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { company, policies } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 
-const shortAbout =
-  "Joova brings smart, simple and fairly priced technology into everyday life. Built by Joova Tech LLC in the USA, every Joova product is designed to be easy to use and worth it. Smarter Tech | Bigger Tomorrow.";
+export async function generateMetadata(): Promise<Metadata> {
+  const { pageCopy } = await loadContentBundle();
+  return {
+    title: "About Joova",
+    description: pageCopy.about.shortAbout,
+  };
+}
 
-const values = [
-  {
-    title: "Honest",
-    copy: "We tell you what our products do and what they don't. No hidden costs, no exaggerated claims.",
-  },
-  {
-    title: "Simple",
-    copy: "From unboxing to everyday use, everything should feel easy and natural.",
-  },
-  {
-    title: "Warm",
-    copy: "We're here to help, not to sell at any cost. Real people, real answers.",
-  },
-  {
-    title: "Forward",
-    copy: "We keep looking for better ways technology can improve daily life, and bring them to you.",
-  },
-] as const;
-
-export const metadata: Metadata = {
-  title: "About Joova",
-  description: shortAbout,
-};
-
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { company, policies, pageCopy } = await loadContentBundle();
+  const about = pageCopy.about;
+  const values = [
+    { title: "Honest", copy: about.honest },
+    { title: "Simple", copy: about.simple },
+    { title: "Warm", copy: about.warm },
+    { title: "Forward", copy: about.forward },
+  ];
   return (
     <Container className="py-10 md:py-16">
       <article className="mx-auto w-full max-w-[40rem]">
@@ -43,15 +32,11 @@ export default function AboutPage() {
       </p>
       <div className="mt-6 space-y-4 text-lg hyphens-auto text-justify">
         <p>
-          Technology should make life easier, not more complicated. That simple
-          idea is why we started Joova.
+          {about.idea}
         </p>
         <p>
           Joova is the consumer technology brand of {company.legalName}, a
-          US-based company. We design smart, good-looking devices for everyday
-          life. They&apos;re easy to set up, easy to understand, and fairly
-          priced. Whatever you choose, you get the same Joova experience:
-          thoughtful design, honest value and support you can count on.
+          US-based company. {about.brand}
         </p>
       </div>
 
@@ -59,16 +44,12 @@ export default function AboutPage() {
         <h2 className="font-display text-3xl">Our story</h2>
         <div className="mt-4 space-y-4 hyphens-auto text-justify">
           <p>
-            We saw two things over and over. Great technology was either priced
-            out of reach, or buried under confusing features, fine print and
-            extra costs. We believed people deserved better: smart technology
-            that simply works, at a price that feels fair.
+            {about.story1}
           </p>
           <p>
             So we built Joova around one question:{" "}
             <em>how can technology make everyday life a little better?</em>{" "}
-            Every product we choose, every design decision and every word we
-            write starts there.
+            {about.story2}
           </p>
         </div>
       </section>
@@ -76,8 +57,7 @@ export default function AboutPage() {
       <section className="mt-12">
         <h2 className="font-display text-3xl">Our mission</h2>
         <p className="mt-4 hyphens-auto text-justify">
-          To make smart technology simple, accessible and worth it, so more
-          people can enjoy a smarter today and a bigger tomorrow.
+          {about.mission}
         </p>
       </section>
 
@@ -98,12 +78,11 @@ export default function AboutPage() {
         <ul className="mt-6 space-y-4 hyphens-auto text-justify">
           <li>
             <span className="font-bold">Quality you can trust: </span>
-            every product is carefully selected and quality-checked before it
-            reaches you.
+            {about.quality}
           </li>
           <li>
             <span className="font-bold">Fair, clear pricing: </span>
-            what you see is what you pay.
+            {about.pricing}
           </li>
           <li>
             <span className="font-bold">{policies.returnsTitle}: </span>
@@ -120,7 +99,7 @@ export default function AboutPage() {
           </li>
           <li>
             <span className="font-bold">Always improving: </span>
-            we listen to our customers and keep making Joova better.
+            {about.improving}
           </li>
         </ul>
       </section>
@@ -128,9 +107,7 @@ export default function AboutPage() {
       <section className="mt-12">
         <h2 className="font-display text-3xl">Join us</h2>
         <p className="mt-4 hyphens-auto text-justify">
-          We&apos;re just getting started, and we&apos;re glad you&apos;re
-          here. Explore Joova, find something that makes your day a little
-          smarter, and grow with us toward a bigger tomorrow.
+          {about.join}
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link href="/shop" className={buttonClassName("primary", "md", "w-full sm:w-fit")}>

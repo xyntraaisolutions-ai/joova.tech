@@ -3,6 +3,8 @@ export type ProductVideo = {
   productId: string;
   title: string;
   youtubeId: string;
+  src?: string;
+  poster?: string;
 };
 
 export const productVideos: readonly ProductVideo[] = [

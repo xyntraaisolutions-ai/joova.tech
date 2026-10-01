@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { helpArticles } from "@/content/site";
 import { HelpSearch } from "@/components/help/help-search";
 import { Container } from "@/components/ui/container";
+import { loadContentBundle } from "@/lib/content/load";
 
 export const metadata: Metadata = {
   title: "FAQs",
   description: "Setup, battery life, charging, handling, water, strap swap, and syncing for Joova Band.",
 };
 
-export default function HelpIndexPage() {
+export default async function HelpIndexPage() {
+  const { helpArticles } = await loadContentBundle();
   return (
     <Container className="py-10 md:py-16">
       <h1
