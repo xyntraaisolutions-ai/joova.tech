@@ -566,9 +566,13 @@ export function SalesTax({ onError }: { onError: (message: string) => void }) {
   );
 }
 
+type TaxDirectory = FileSystemDirectoryHandle & {
+  values(): AsyncIterable<FileSystemFileHandle | FileSystemDirectoryHandle>;
+};
+
 async function csvFilesInDirectory(directory: FileSystemDirectoryHandle): Promise<File[]> {
   const files: File[] = [];
-  for await (const handle of directory.values()) {
+  for await (const handle of (directory as TaxDirectory).values()) {
     if (handle.kind === "file") {
       if (!handle.name.toLowerCase().endsWith(".csv")) continue;
       files.push(await handle.getFile());
