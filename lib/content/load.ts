@@ -2,6 +2,7 @@ import { cache } from "react";
 import { arrangeProductMedia } from "@/lib/content/variants";
 import { productsInCategory } from "@/lib/content/helpers";
 import { applyCountryPrice, defaultMarket, resolveMarket, type Market } from "@/lib/geo/market";
+import { productCoverage } from "@/lib/catalog/coverage";
 import { formatMoney, formatUsd } from "@/lib/utils";
 import { blockIds, staticBundle } from "@/lib/content/static";
 import type { ContentBundle } from "@/lib/content/types";
@@ -176,6 +177,13 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
             availableCount,
             colors,
             warrantyNote,
+            coverage: productCoverage({
+              warrantyEligible: product.warranty_eligible === true,
+              warrantyYears: typeof product.warranty_years === "number" ? product.warranty_years : null,
+              warrantyDays: typeof product.warranty_days === "number" ? product.warranty_days : null,
+              freeShipping: commerce.freeShipping,
+              returnDays: commerce.returnDays,
+            }),
           };
         });
 

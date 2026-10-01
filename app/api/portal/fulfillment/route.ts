@@ -7,6 +7,8 @@ import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin
 
 const orderSelect =
   "id, email, status, payment_status, subtotal, created_at, stock_committed_at, shipping, order_items(id, product_id, name, quantity, price, color, selection), shipments(id, carrier, tracking_number, status, shipped_at, delivered_at)";
+const returnSelect =
+  "id, order_id, email, reason, resolution, status, decision_note, customer_reply, requested_at, reviewed_at, received_at, orders(id, email, subtotal, shipping, order_items(name, quantity, color, selection))";
 
 const stages = {
   open: ["pending_payment", "preparing"],
@@ -23,6 +25,21 @@ export async function GET(request: Request) {
   const safe = q.replace(/[%_,().*\\]/g, "");
   const stage = url.searchParams.get("stage") ?? "open";
   const allowed = stage in stages ? stages[stage as keyof typeof stages] : null;
+
+  if (stage === "returns") {
+    let listed = session.supabase.from("returns").select(returnSelect).is("deleted_at", null).in("status", ["approved", "received"]);
+    if (safe) listed = listed.or(`order_id.ilike.%${safe}%,email.ilike.%${safe}%,reason.ilike.%${safe}%`);
+    const rows = await listed.order("reviewed_at", { ascending: true }).limit(50);
+    if (rows.error) return NextResponse.json({ error: "Returns could not be loaded." }, { status: 400 });
+    const [waiting, received] = await Promise.all([
+      session.supabase.from("returns").select("id", { count: "exact", head: true }).is("deleted_at", null).eq("status", "approved"),
+      session.supabase.from("returns").select("id", { count: "exact", head: true }).is("deleted_at", null).eq("status", "received"),
+    ]);
+    return NextResponse.json({
+      returns: rows.data ?? [],
+      returnCounts: { approved: waiting.count ?? 0, received: received.count ?? 0 },
+    });
+  }
 
   let query = session.supabase.from("orders").select(orderSelect).is("deleted_at", null).eq("payment_status", "paid");
   if (allowed) query = query.in("status", [...allowed]);
@@ -50,18 +67,31 @@ export async function GET(request: Request) {
   });
 }
 
-const bodySchema = z.object({
+const shipSchema = z.object({
   order: z.string().trim().min(1).max(40),
   carrier: z.string().trim().max(80),
   tracking: z.string().trim().max(80),
   status: z.enum(["preparing", "shipped", "out_for_delivery", "delivered"]),
 });
+const returnSchema = z.object({ action: z.literal("receive"), id: z.uuid() });
 
 export async function POST(request: Request) {
   const gate = await requirePortalApi(["inventory"]);
   if ("error" in gate && gate.error) return gate.error;
   const { session, viewAs } = gate;
-  const parsed = bodySchema.safeParse(await request.json().catch(() => null));
+  const json = await request.json().catch(() => null);
+  const returning = returnSchema.safeParse(json);
+  if (returning.success) {
+    const received = await session.supabase.rpc("fulfill_receive_return", {
+      p_id: returning.data.id,
+      p_view_as: viewAs,
+    });
+    const receivedBody = received.data as { ok?: boolean; error?: string } | null;
+    const receivedError = rpcFailed(receivedBody, received.error);
+    if (receivedError) return NextResponse.json({ error: receivedError }, { status: 400 });
+    return NextResponse.json({ ok: true });
+  }
+  const parsed = shipSchema.safeParse(json);
   if (!parsed.success) return NextResponse.json({ error: "Check the shipment details." }, { status: 400 });
   const { data, error } = await session.supabase.rpc("fulfill_order", {
     p_order: parsed.data.order,

@@ -13,8 +13,8 @@ async function supportAddress() {
   return settings.data?.email || passwordEmailFrom.email;
 }
 
-export async function sendLowStockEmail(input: { productName: string; sku: string; available: number }) {
-  const to = await supportAddress();
+export async function sendLowStockEmail(input: { productName: string; sku: string; available: number; to?: string }) {
+  const to = input.to || await supportAddress();
   const subject = `Low stock: ${input.productName}`;
   const text = [
     `${input.productName} is down to ${input.available} available.`,
@@ -38,6 +38,21 @@ export async function sendBackInStockEmail(input: { email: string; name: string;
     subject,
     text,
     html: page(subject, `<p>Hi ${escapeHtml(input.name)},</p><p>${escapeHtml(input.productName)} is back in stock.</p><p><a href="${escapeHtml(link)}">View this item</a></p>`),
+  });
+}
+
+export async function sendReplacementOrderEmail(input: { email: string; orderId: string; kind: "exchange" | "warranty" }) {
+  const label = input.kind === "warranty" ? "Warranty replacement" : "Exchange order";
+  const subject = `${label} ${input.orderId}`;
+  const text = [
+    `${label} ${input.orderId} is being prepared.`,
+    "It ships the same way as a new order. We will email you when it ships.",
+  ].join("\n");
+  return sendTransactionalEmail({
+    to: input.email,
+    subject,
+    text,
+    html: page(subject, `<p>${escapeHtml(label)} ${escapeHtml(input.orderId)} is being prepared.</p><p>It ships the same way as a new order. We will email you when it ships.</p>`),
   });
 }
 

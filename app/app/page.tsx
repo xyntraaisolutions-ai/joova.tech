@@ -21,7 +21,7 @@ export default async function AppPage() {
           className="font-display max-w-3xl font-extrabold"
           style={{ fontSize: "var(--text-h1)" }}
         >
-          APP Download
+          The Joova app
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted">
           The app is included. Your data stays yours.

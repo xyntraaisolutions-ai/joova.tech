@@ -9,7 +9,7 @@ export async function DealList() {
     return <p className="text-muted">No current offers. A product appears here when it is on sale or listed as a deal.</p>;
   }
   return (
-    <ul className="grid gap-4 md:grid-cols-3">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {deals.map((deal) => (
         <li key={deal.id} className="flex flex-col overflow-hidden rounded-3xl border border-stone bg-white">
           {deal.image?.src ? (
@@ -19,7 +19,7 @@ export async function DealList() {
                 alt={deal.image.alt}
                 width={deal.image.width}
                 height={deal.image.height}
-                sizes="(min-width: 768px) 30vw, 100vw"
+                sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
                 className="aspect-[4/5] w-full object-contain"
               />
             </Link>

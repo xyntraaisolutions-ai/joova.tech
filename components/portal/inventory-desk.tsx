@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SizeWeightFields } from "@/components/portal/box-size";
 import { PortalMenu, PortalPanel } from "@/components/portal/portal-menu";
+import { LowStockSetup } from "@/components/portal/low-stock";
 import { StockCounters } from "@/components/portal/stock-counters";
 import { ProductMedia } from "@/components/portal/product-media";
 import { ProductVariants, draftLabel, saveVariantMedia, type DraftVariant } from "@/components/portal/product-variants";
@@ -130,6 +131,7 @@ const productTabs = [
   { id: "variants", label: "Variants" },
   { id: "price", label: "Price" },
   { id: "stock", label: "Stock" },
+  { id: "alerts", label: "Low stock" },
   { id: "shipping", label: "Shipping" },
   { id: "size", label: "Size & Weight" },
   { id: "warranty", label: "Warranty" },
@@ -281,7 +283,7 @@ function commerceText(commerce: Record<string, unknown> | undefined, key: string
   return value === null || value === undefined ? "" : String(value);
 }
 
-export function InventoryDesk() {
+export function InventoryDesk({ initialProduct = "" }: { initialProduct?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [images, setImages] = useState<ImageRow[]>([]);
@@ -351,6 +353,15 @@ export function InventoryDesk() {
   useEffect(() => {
     void load();
   }, []);
+
+  const openedProduct = useRef("");
+  useEffect(() => {
+    if (!initialProduct || openedProduct.current === initialProduct) return;
+    if (!products.some((product) => product.id === initialProduct)) return;
+    openedProduct.current = initialProduct;
+    choose(initialProduct);
+    setFormTab("alerts");
+  }, [initialProduct, products]);
 
   useEffect(() => {
     setCountryPrices((current) => {
@@ -1085,6 +1096,9 @@ export function InventoryDesk() {
         ) : null}
         {error ? <p className="mt-4 text-sm text-band-red" role="alert">{error}</p> : null}
       </form>
+      {formTab === "alerts" ? (
+        <LowStockSetup productId={form.id} saved={products.some((product) => product.id === form.id)} />
+      ) : null}
       {formTab === "media" ? (
         <div className="rounded-3xl bg-white p-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -1422,7 +1436,15 @@ function ProductList({
           <tbody>
             {visible.map((product) => (
               <tr key={product.id} className="border-b border-stone align-top">
-                <td className="px-4 py-3 font-bold">{product.name}</td>
+                <td className="px-4 py-3 font-bold">
+                  <button
+                    type="button"
+                    className="text-left font-bold underline-offset-2 hover:underline"
+                    onClick={() => onEdit(product.id)}
+                  >
+                    {product.name}
+                  </button>
+                </td>
                 <td className="px-4 py-3">{product.sku ?? ""}</td>
                 <td className="px-4 py-3">{categoryName(product.category_id)}</td>
                 <td className="px-4 py-3">${Number(product.price).toFixed(2)}</td>

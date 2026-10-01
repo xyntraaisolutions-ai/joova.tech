@@ -47,11 +47,11 @@ export const policies = {
   strapSummary: "Extra straps are covered for 90 days from the purchase date.",
   dockSummary:
     "Joova devices are covered for 1 year from the purchase date. Register within 30 days and we add 1 extra year, free.",
-  shipping: "Ships from US warehouses. Delivered in 7 to 10 days.",
+  shipping: "Eligible products ship free in the United States from US warehouses and arrive in 7 to 10 days.",
   returnsSummary:
-    "You have 30 days from delivery to start a free return in the United States. We cover return shipping. This is the only free return window.",
+    "Eligible products have 30 days from delivery to start a free return in the United States. Choose a refund or an exchange for a similar item. A refund is issued after we receive the item and appears on the original payment method in 5 to 10 business days. We cover return shipping. This is the only free return window.",
   warrantyRegistration:
-    "Every Joova device comes with a 1-year limited warranty. Register it and we add 1 extra year, free.",
+    "Eligible devices come with a 1-year limited warranty. Register within 30 days and we add 1 extra year, free. Eligible straps are covered for 90 days.",
   accountSummary:
     "Your Joova Customer Account keeps purchase history, order tracking, returns, and replacements in one place.",
 } as const;

@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { catalog, catalogCategories, type CatalogProduct } from "@/content/catalog";
+import { productCoverage } from "@/lib/catalog/coverage";
 import { SITE_URL } from "@/content/site";
 import { arrangeProductMedia } from "@/lib/content/variants";
 import { applyCountryPrice, defaultMarket, resolveMarket, type Market } from "@/lib/geo/market";
@@ -64,6 +65,15 @@ function mapProduct(row: Row, images: Row[], variants: Row[], stock?: { availabi
     availableCount: availability === "in_stock" && typeof stock?.available === "number" ? stock.available : undefined,
     colors: colors.length ? colors : fallback?.colors,
     warrantyNote: typeof commerce.warrantyNote === "string" && commerce.warrantyNote ? commerce.warrantyNote : fallback?.warrantyNote,
+    coverage: "warranty_eligible" in row
+      ? productCoverage({
+          warrantyEligible: row.warranty_eligible === true,
+          warrantyYears: typeof row.warranty_years === "number" ? row.warranty_years : null,
+          warrantyDays: typeof row.warranty_days === "number" ? row.warranty_days : null,
+          freeShipping: commerce.freeShipping,
+          returnDays: commerce.returnDays,
+        })
+      : undefined,
   };
 }
 

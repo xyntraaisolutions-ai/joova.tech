@@ -1,3 +1,4 @@
+import { coverageList } from "@/lib/catalog/coverage";
 import { NextRequest, NextResponse } from "next/server";
 import { ordersForUser, userFromToken } from "@/lib/mock-store";
 import { sessionToken } from "@/lib/session-cookie";
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const [{ data }, claims] = await Promise.all([
       supabase
         .from("orders")
-        .select("id, status, payment_status, subtotal, created_at, guest, order_items(id, product_id, name, quantity, price, color, selection), shipments(carrier, tracking_number, status, delivered_at), returns(status), warranty_registrations(product_id, serial, coverage_ends_at)")
+        .select("id, status, payment_status, subtotal, created_at, guest, order_items(id, product_id, name, quantity, price, color, selection, coverage), shipments(carrier, tracking_number, status, delivered_at), returns(id, status, reason, resolution, decision_note, customer_reply, replacement_carrier, replacement_tracking, replacement_order_id, requested_at), warranty_registrations(product_id, serial, coverage_ends_at)")
         .eq("user_id", auth.user.id)
         .order("created_at", { ascending: false }),
       supabase.from("warranty_claims").select("id, order_id, status, message").eq("user_id", auth.user.id),
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
         price: Number(item.price),
         color: item.color ?? undefined,
         selection: item.selection && typeof item.selection === "object" ? item.selection : undefined,
+        coverage: coverageList(item.coverage),
       })),
       shipments: order.shipments ?? [],
       returns: order.returns ?? [],

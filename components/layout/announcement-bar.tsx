@@ -18,7 +18,7 @@ export function AnnouncementBar() {
   if (!development && !shipping) return null;
 
   return (
-    <div className="pt-[env(safe-area-inset-top)]">
+    <>
       {development ? (
         <p
           className="joova-focus-blink px-4 py-2 text-center text-[13px] font-bold leading-snug tracking-wide sm:text-sm"
@@ -37,6 +37,6 @@ export function AnnouncementBar() {
           </Link>
         </p>
       ) : null}
-    </div>
+    </>
   );
 }

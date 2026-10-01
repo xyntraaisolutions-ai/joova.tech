@@ -16,14 +16,14 @@ type Address = {
   is_default: boolean;
 };
 
-export function SavedAddresses({ onMessage }: { onMessage: (value: string) => void }) {
+export function SavedAddresses({ onMessage }: { onMessage: (value: string, ok?: boolean) => void }) {
   const [addresses, setAddresses] = useState<Address[]>([]);
 
   async function load() {
     const response = await fetch("/api/account/addresses");
     const data = (await response.json()) as { addresses?: Address[]; error?: string };
     if (!response.ok) {
-      onMessage(data.error ?? "Saved addresses could not be loaded.");
+      onMessage(data.error ?? "Saved addresses could not be loaded.", false);
       return;
     }
     setAddresses(data.addresses ?? []);
@@ -56,7 +56,7 @@ export function SavedAddresses({ onMessage }: { onMessage: (value: string) => vo
                 const response = await fetch(`/api/account/addresses?id=${address.id}`, { method: "DELETE" });
                 const data = (await response.json()) as { error?: string };
                 if (!response.ok) {
-                  onMessage(data.error ?? "The address could not be removed.");
+                  onMessage(data.error ?? "The address could not be removed.", false);
                   return;
                 }
                 onMessage("Address removed.");
@@ -88,7 +88,7 @@ export function SavedAddresses({ onMessage }: { onMessage: (value: string) => vo
           });
           const data = (await response.json()) as { error?: string };
           if (!response.ok) {
-            onMessage(data.error ?? "The address could not be saved.");
+            onMessage(data.error ?? "The address could not be saved.", false);
             return;
           }
           onMessage("Address saved.");

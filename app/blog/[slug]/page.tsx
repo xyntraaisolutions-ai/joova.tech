@@ -110,7 +110,7 @@ export default async function BlogArticlePage({ params }: Props) {
               <h2 className="font-display text-2xl font-extrabold md:text-3xl">{section.heading}</h2>
               <div className="mt-4 space-y-4">
                 {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph} className="hyphens-auto text-justify">
+                  <p key={paragraph}>
                     {paragraph}
                   </p>
                 ))}

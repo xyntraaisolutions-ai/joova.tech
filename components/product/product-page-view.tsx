@@ -29,9 +29,9 @@ export function ProductPageView({ product, categoryLabel, related, siteUrl }: Pr
   };
 
   return (
-    <>
+    <div className={canBuy ? "max-md:pb-28" : undefined}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <Container className={`py-8 md:py-12 ${canBuy ? "max-md:pb-28" : ""}`}>
+      <Container className="py-8 md:py-12">
         <p className="mb-6 text-sm text-muted">
           <Link href="/shop" className="font-bold text-ink underline">Shop</Link>
           <span> / {categoryLabel}</span>
@@ -80,6 +80,6 @@ export function ProductPageView({ product, categoryLabel, related, siteUrl }: Pr
           </Container>
         </Section>
       ) : null}
-    </>
+    </div>
   );
 }

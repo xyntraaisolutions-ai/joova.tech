@@ -1,16 +1,24 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { stripeClient } from "@/lib/stripe/server";
 import { readAvailable, syncAvailability } from "@/lib/portal/availability";
+import { receiptPdf } from "@/lib/mail/receipt-pdf";
+import { sendTransactionalEmail } from "@/lib/mail/send";
+import { escapeHtml } from "@/lib/mail/template";
+import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
+import type { PaidOrder } from "@/lib/mail/order";
 
 export async function refundReturn(supabase: SupabaseClient, viewAs: string, returnId: string) {
   const found = await supabase
     .from("returns")
-    .select("id, order_id, status, stripe_refund_id, stock_restored")
+    .select("id, order_id, email, status, resolution, stripe_refund_id, stock_restored, refund_receipt_path, refund_invoice_path")
     .eq("id", returnId)
     .is("deleted_at", null)
     .maybeSingle();
   if (found.error || !found.data) return { error: "That return was not found." };
   const row = found.data;
+  if (row.resolution === "exchange" && !row.stock_restored) {
+    return { error: "This return is an exchange. Create the exchange order instead of refunding." };
+  }
   const order = await supabase
     .from("orders")
     .select("id, payment_status, payment_reference")
@@ -57,5 +65,108 @@ export async function refundReturn(supabase: SupabaseClient, viewAs: string, ret
   }
 
   await Promise.all([...before.entries()].map(([id, previous]) => syncAvailability(supabase, id, previous)));
-  return { ok: true as const };
+
+  const documents = await storeRefundDocuments(supabase, returnId, row.order_id, refundId);
+  const fresh = !row.stock_restored;
+  let emailError = "";
+  if (fresh) {
+    const mailed = await sendRefundEmail({
+      email: row.email,
+      orderId: row.order_id,
+      receipt: documents.receipt,
+      invoice: documents.invoice,
+    });
+    if (!mailed) emailError = "The refund was saved. The customer email could not be sent.";
+  }
+  return emailError ? { ok: true as const, notice: emailError } : { ok: true as const };
+}
+
+async function storeRefundDocuments(supabase: SupabaseClient, returnId: string, orderId: string, refundId: string) {
+  const loaded = await supabase
+    .from("orders")
+    .select("id, email, subtotal, tax_percent, tax_amount, shipping_amount, shipping_name, discount_amount, promo_code, shipping, created_at, stripe_invoice_id, order_items(name, quantity, price, color, selection, coverage)")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (loaded.error || !loaded.data || !isServiceRoleConfigured()) return { receipt: null as Buffer | null, invoice: null as Buffer | null };
+  const row = loaded.data;
+  const paid: PaidOrder = {
+    orderId: row.id,
+    email: row.email,
+    subtotal: row.subtotal,
+    taxPercent: row.tax_percent,
+    taxAmount: row.tax_amount,
+    shippingAmount: row.shipping_amount,
+    shippingName: row.shipping_name,
+    discountAmount: row.discount_amount,
+    promoCode: row.promo_code,
+    shipping: row.shipping && typeof row.shipping === "object" ? row.shipping : {},
+    items: row.order_items ?? [],
+    createdAt: row.created_at,
+    paid: true,
+  };
+  const receipt = await receiptPdf(paid, null, "Joova", {
+    heading: "Refund receipt",
+    note: `Refund for ${paid.orderId}. The amount returns to the original payment method and appears in 5 to 10 business days after the item was received. Stripe refund ${refundId}.`,
+  });
+  let invoice: Buffer | null = null;
+  const stripe = await stripeClient();
+  const invoiceId = row.stripe_invoice_id?.trim() ?? "";
+  if (stripe && invoiceId.startsWith("in_")) {
+    try {
+      const note = await stripe.creditNotes.create(
+        {
+          invoice: invoiceId,
+          refunds: [{ refund: refundId }],
+          reason: "order_change",
+          memo: `Refund for ${orderId}`,
+        },
+        { idempotencyKey: `joova-credit-${returnId}` },
+      );
+      if (note.pdf) {
+        const file = await fetch(note.pdf);
+        if (file.ok) invoice = Buffer.from(await file.arrayBuffer());
+      }
+    } catch (error) {
+      console.error("stripe-credit-note", error instanceof Error ? error.message : "failed");
+    }
+  }
+  const admin = createAdminClient();
+  const receiptPath = `${returnId}/refund-receipt.pdf`;
+  const invoicePath = invoice ? `${returnId}/refund-invoice.pdf` : "";
+  const savedReceipt = await admin.storage.from("return-files").upload(receiptPath, receipt, {
+    contentType: "application/pdf",
+    upsert: true,
+  });
+  if (savedReceipt.error) console.error("return-file", savedReceipt.error.message);
+  if (invoice && invoicePath) {
+    const savedInvoice = await admin.storage.from("return-files").upload(invoicePath, invoice, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+    if (savedInvoice.error) console.error("return-file", savedInvoice.error.message);
+  }
+  await admin.from("returns").update({
+    refund_receipt_path: savedReceipt.error ? "" : receiptPath,
+    ...(invoicePath ? { refund_invoice_path: invoicePath } : {}),
+  }).eq("id", returnId);
+  return { receipt, invoice };
+}
+
+async function sendRefundEmail(input: { email: string; orderId: string; receipt: Buffer | null; invoice: Buffer | null }) {
+  const email = input.email.trim().toLowerCase();
+  if (!email.includes("@")) return false;
+  const subject = `Refund for ${input.orderId}`;
+  const text = [
+    `The refund for order ${input.orderId} has been sent.`,
+    "It returns to the original payment method.",
+    "It appears 5 to 10 business days after we received the item.",
+    "The refund receipt is attached.",
+    input.invoice ? "The refund invoice is attached." : "",
+  ].filter(Boolean).join("\n");
+  const html = `<div style="font-family:Arial,sans-serif;color:#111;line-height:1.5"><h1 style="font-size:22px">${escapeHtml(subject)}</h1><p>The refund for order ${escapeHtml(input.orderId)} has been sent. It returns to the original payment method and appears 5 to 10 business days after we received the item.</p><p>The refund receipt is attached.${input.invoice ? " The refund invoice is attached." : ""}</p></div>`;
+  const attachments = [
+    ...(input.receipt ? [{ filename: `joova-refund-receipt-${input.orderId}.pdf`, content: input.receipt.toString("base64") }] : []),
+    ...(input.invoice ? [{ filename: `joova-refund-invoice-${input.orderId}.pdf`, content: input.invoice.toString("base64") }] : []),
+  ];
+  return sendTransactionalEmail({ to: email, subject, text, html, attachments });
 }

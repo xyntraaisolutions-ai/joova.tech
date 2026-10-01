@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ShoppingBag } from "lucide-react";
+import { ChevronDown, Menu, Search, ShoppingBag } from "lucide-react";
 import { CountryMenu } from "@/components/layout/country-menu";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useAuth } from "@/components/layout/auth-provider";
 import { useCart } from "@/components/layout/cart-provider";
 import { useSiteContent } from "@/components/layout/site-content";
+import { useSiteMenu } from "@/components/layout/site-menu";
+import { buttonClassName } from "@/components/ui/button";
 import { categoryMenu } from "@/lib/content/helpers";
 import { cn } from "@/lib/utils";
 
@@ -77,16 +79,16 @@ function ProductMenu({ label }: { label: string }) {
               <div key={group.id}>
                 <Link
                   href={group.href}
-                  className="text-xs font-bold uppercase tracking-[0.16em] text-ink"
+                  className="inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-[0.16em] text-ink"
                 >
                   {group.label}
                 </Link>
-                <ul className="mt-2">
+                <ul className="mt-1">
                   {group.items.map((item) => (
                     <li key={`${group.id}-${item.href}`}>
                       <Link
                         href={item.href}
-                        className="block py-2 text-sm text-muted hover:text-ink"
+                        className="flex min-h-11 items-center text-sm text-muted hover:text-ink"
                       >
                         {item.label}
                       </Link>
@@ -223,10 +225,12 @@ function AccountMenu() {
     return (
       <Link
         href="/portal"
-        className="inline-flex h-11 shrink-0 flex-col items-start justify-center px-2 leading-tight"
+        aria-label={`${user.name}, portal`}
+        className="inline-flex h-11 max-w-40 shrink-0 items-center px-2 text-sm font-bold tracking-[-0.01em] text-ink xl:max-w-48 xl:flex-col xl:items-start xl:justify-center xl:leading-tight"
       >
-        <span className="whitespace-nowrap text-sm font-bold tracking-[-0.01em] text-ink">{user.name}</span>
-        <span className="whitespace-nowrap text-[11px] text-muted">{user.email}</span>
+        <span className="xl:hidden">Account</span>
+        <span className="hidden w-full truncate xl:block">{user.name}</span>
+        <span className="hidden w-full truncate text-[11px] font-medium text-muted xl:block">{user.email}</span>
       </Link>
     );
   }
@@ -238,16 +242,21 @@ function AccountMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex h-11 shrink-0 items-center gap-1 px-2 text-left leading-tight"
+        className="inline-flex h-11 max-w-40 shrink-0 items-center gap-1 px-2 text-left text-sm font-bold tracking-[-0.01em] text-ink xl:max-w-48 xl:leading-tight"
       >
-        <span>
-          <span className="block whitespace-nowrap text-sm font-bold tracking-[-0.01em] text-ink">{user.name}</span>
-          <span className="block whitespace-nowrap text-[11px] text-muted">{user.email}</span>
+        <span className="xl:hidden">Account</span>
+        <span className="hidden min-w-0 xl:block">
+          <span className="block truncate">{user.name}</span>
+          <span className="block truncate text-[11px] font-medium text-muted">{user.email}</span>
         </span>
         <ChevronDown className={cn("size-4 shrink-0 transition", open && "rotate-180")} aria-hidden />
       </button>
       {open ? (
-        <div role="menu" aria-label="Account" className="absolute right-0 top-full z-50 mt-2 min-w-52 rounded-2xl border border-stone bg-white py-2 shadow-lg">
+        <div role="menu" aria-label="Account" className="absolute right-0 top-full z-50 mt-2 min-w-52 max-w-[min(18rem,calc(100vw-2.5rem))] rounded-2xl border border-stone bg-white py-2 shadow-lg">
+          <div className="border-b border-stone px-5 py-3">
+            <p className="truncate text-sm font-bold text-ink">{user.name}</p>
+            <p className="truncate text-[11px] text-muted">{user.email}</p>
+          </div>
           <Link href="/account#profile" role="menuitem" className="block px-5 py-3 text-sm text-muted hover:text-ink">
             Profile
           </Link>
@@ -271,9 +280,66 @@ function AccountMenu() {
   );
 }
 
+function HeaderSearch() {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  return (
+    <>
+      <form action="/shop" role="search" className="hidden items-center gap-1 lg:flex">
+        <label htmlFor="site-search" className="sr-only">Search products</label>
+        <input
+          id="site-search"
+          name="q"
+          placeholder="Search"
+          className="h-11 w-44 min-w-0 rounded-full border border-stone bg-white px-4 text-sm xl:w-56"
+        />
+        <button type="submit" className="inline-flex size-11 items-center justify-center rounded-full hover:bg-stone" aria-label="Search">
+          <Search className="size-5" />
+        </button>
+      </form>
+      <button
+        type="button"
+        className="inline-flex size-11 items-center justify-center rounded-full hover:bg-stone lg:hidden"
+        aria-expanded={open}
+        aria-controls="header-search"
+        aria-label="Search products"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <Search className="size-5" />
+      </button>
+      {open ? (
+        <form
+          id="header-search"
+          action="/shop"
+          role="search"
+          className="absolute inset-x-0 top-full z-50 flex gap-2 border-b border-stone bg-paper px-5 py-3 sm:px-8 lg:hidden"
+        >
+          <label htmlFor="header-search-input" className="sr-only">Search products</label>
+          <input
+            id="header-search-input"
+            name="q"
+            placeholder="Search products"
+            autoFocus
+            className="h-12 min-w-0 flex-1 rounded-full border border-stone bg-white px-4 text-[17px]"
+          />
+          <button type="submit" className={buttonClassName("primary", "md", "shrink-0")}>
+            Search
+          </button>
+        </form>
+      ) : null}
+    </>
+  );
+}
+
 export function Header() {
   const { navItems, headerSlogan, company } = useSiteContent();
   const { count, setOpen } = useCart();
+  const { setOpen: setMenuOpen } = useSiteMenu();
   const pathname = usePathname();
   const headerItems = navItems.filter((item) => item.area === "header" && !item.parentId);
 
@@ -284,17 +350,23 @@ export function Header() {
       )}
     >
       <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-4 px-5 py-3 sm:px-8">
-        <Link href="/" className="shrink-0" aria-label={`${company.brand} home. ${headerSlogan}`}>
-          <span className="flex w-fit flex-col gap-0.5">
+        <Link href="/" className="shrink-0 [&_img]:h-9 [&_img]:w-auto max-sm:[&_img]:max-w-[6.5rem]" aria-label={`${company.brand} home. ${headerSlogan}`}>
+          <span className="flex flex-col gap-0.5">
             <Logo />
-            <span className="@container block w-0 min-w-full">
-              <span className="block whitespace-nowrap text-justify text-[6.5cqw] font-medium leading-none tracking-normal text-ink [text-align-last:justify]">
-                {headerSlogan}
-              </span>
+            <span className="hidden whitespace-nowrap text-xs font-medium leading-none text-ink sm:block">
+              {headerSlogan}
             </span>
           </span>
         </Link>
-        <nav className="hidden items-center gap-4 xl:gap-5 md:flex" aria-label="Primary">
+        <button
+          type="button"
+          className="hidden size-11 items-center justify-center rounded-full hover:bg-stone md:inline-flex xl:hidden"
+          aria-label="Open menu"
+          onClick={() => setMenuOpen(true)}
+        >
+          <Menu className="size-5" />
+        </button>
+        <nav className="hidden items-center gap-4 xl:flex xl:gap-5" aria-label="Primary">
           {headerItems.map((item) => {
             if (item.kind === "products") return <ProductMenu key={item.id} label={item.label} />;
             if (item.kind === "menu") {
@@ -308,7 +380,7 @@ export function Header() {
                 key={item.id}
                 href={item.href}
                 className={cn(
-                  "text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
+                  "inline-flex min-h-11 items-center text-[15px] font-medium tracking-[-0.01em] hover:text-ink",
                   active ? "text-ink underline underline-offset-4" : "text-ink/80",
                 )}
               >
@@ -318,15 +390,7 @@ export function Header() {
           })}
         </nav>
         <div className="flex items-center gap-1">
-          <form action="/shop" role="search" className="hidden lg:block">
-            <label htmlFor="site-search" className="sr-only">Search products</label>
-            <input
-              id="site-search"
-              name="q"
-              placeholder="Search"
-              className="h-11 w-36 rounded-full border border-stone bg-white px-4 text-sm xl:w-48"
-            />
-          </form>
+          <HeaderSearch />
           <AccountMenu />
           <CountryMenu />
           <ThemeToggle />

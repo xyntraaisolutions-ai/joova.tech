@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LastUpdated } from "@/components/content/last-updated";
 import { Container } from "@/components/ui/container";
 import { loadContentBundle } from "@/lib/content/load";
 
@@ -15,9 +16,10 @@ export default async function PrivacyPage() {
   const privacy = pageCopy.privacy;
   return (
     <Container className="max-w-3xl py-10 md:py-16">
-      <h1 className="font-display" style={{ fontSize: "var(--text-h1)" }}>
+      <h1 className="font-display font-extrabold" style={{ fontSize: "var(--text-h1)" }}>
         Privacy
       </h1>
+      <LastUpdated value={privacy.updatedOn} />
       <p className="mt-4 text-lg text-muted">
         This policy covers joova.tech and Joova products from {company.legalName},{" "}
         {company.address}.

@@ -81,7 +81,7 @@ export function ImageSlideshow({
       </div>
       {slides.length > 1 ? (
         <div className="mt-4 flex items-center justify-between gap-3">
-          <div className="flex gap-2" role="tablist" aria-label="Slides">
+          <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Slides">
             {slides.map((item, i) => (
               <button
                 key={item.src}
@@ -91,7 +91,7 @@ export function ImageSlideshow({
                 aria-label={item.alt}
                 onClick={() => go(i)}
                 className={cn(
-                  "h-2.5 rounded-full transition",
+                  "h-2.5 shrink-0 rounded-full transition",
                   i === index ? "w-8 bg-ink" : "w-2.5 bg-stone",
                 )}
               />

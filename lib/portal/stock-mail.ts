@@ -10,9 +10,16 @@ export async function notifyStockChange(productId: string, previous: number, ava
   if (!product.data) return;
   const name = product.data.name || productId;
   const sku = product.data.sku ?? "";
-
-  if (previous > LOW_STOCK_UNITS && available <= LOW_STOCK_UNITS) {
-    await sendLowStockEmail({ productName: name, sku, available });
+  const rule = await admin.from("inventory_low_stock").select("enabled, threshold, notify, watcher_emails").eq("product_id", productId).maybeSingle();
+  const watch = rule.data as { enabled?: boolean; threshold?: number; notify?: boolean; watcher_emails?: string[] } | null;
+  const threshold = watch?.threshold ?? LOW_STOCK_UNITS;
+  if (watch?.enabled && watch.notify && previous > threshold && available <= threshold) {
+    const watchers = [...new Set((watch.watcher_emails ?? []).map((email: string) => email.trim().toLowerCase()).filter((email: string) => email.includes("@")))];
+    if (!watchers.length) {
+      await sendLowStockEmail({ productName: name, sku, available });
+    } else {
+      for (const to of watchers) await sendLowStockEmail({ productName: name, sku, available, to });
+    }
   }
 
   if (previous > 0 || available <= 0) return;

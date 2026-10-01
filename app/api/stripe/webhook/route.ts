@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { recordPaidCheckout } from "@/lib/checkout/record-paid";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendPaidOrderEmails, type PaidOrder } from "@/lib/mail/order";
 import { stripeClient, stripeWebhookSecret } from "@/lib/stripe/server";
 
 export async function POST(request: NextRequest) {
@@ -33,23 +33,12 @@ export async function POST(request: NextRequest) {
   if (session.payment_status !== "paid") return NextResponse.json({ ok: true });
 
   const payment = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? "";
-  const paid = await admin.rpc("mark_order_paid", { p_session: session.id, p_payment: payment });
-  const order = paid.data as (PaidOrder & { ok?: boolean; already?: boolean; error?: string }) | null;
-  if (paid.error || !order?.ok) {
-    return NextResponse.json({ error: order?.error ?? "The payment could not be recorded." }, { status: 400 });
+  const invoiceId = typeof session.invoice === "string" ? session.invoice : session.invoice?.id ?? null;
+  const recorded = await recordPaidCheckout({ sessionId: session.id, paymentId: payment, invoiceId });
+  if (!recorded.ok) {
+    return NextResponse.json({ error: recorded.error }, { status: 400 });
   }
-  if (order.already) return NextResponse.json({ ok: true });
-
-  const claimed = await admin.rpc("claim_order_email", { p_order: order.orderId });
-  if (claimed.data !== true) return NextResponse.json({ ok: true });
-  const sent = await sendPaidOrderEmails({
-    ...order,
-    paid: true,
-    checkoutSessionId: session.id,
-    stripeInvoiceId: typeof session.invoice === "string" ? session.invoice : session.invoice?.id ?? null,
-  });
-  if (!sent) {
-    await admin.rpc("clear_order_email", { p_order: order.orderId });
+  if (!recorded.emailSent) {
     return NextResponse.json({ error: "The confirmation email could not be sent." }, { status: 500 });
   }
   return NextResponse.json({ ok: true });

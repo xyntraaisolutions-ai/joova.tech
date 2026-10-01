@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CarrierRates } from "@/components/portal/carrier-rates";
+import { SerialUnits } from "@/components/portal/serial-units";
 import { ShippingOptions } from "@/components/portal/shipping-options";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,26 @@ type Shipment = {
   status: string;
   shipped_at?: string | null;
   delivered_at?: string | null;
+};
+
+type WarehouseReturn = {
+  id: string;
+  order_id: string;
+  email: string;
+  reason: string;
+  resolution?: string;
+  status: string;
+  decision_note?: string;
+  customer_reply?: string;
+  orders?: {
+    subtotal?: number;
+    shipping?: { name?: string; line1?: string; city?: string; region?: string; postal?: string } | null;
+    order_items?: Item[];
+  } | {
+    subtotal?: number;
+    shipping?: { name?: string; line1?: string; city?: string; region?: string; postal?: string } | null;
+    order_items?: Item[];
+  }[] | null;
 };
 
 type Order = {
@@ -79,7 +100,9 @@ function when(value?: string | null) {
 }
 
 export function FulfillmentDesk() {
-  const [view, setView] = useState<"orders" | "settings">("orders");
+  const [view, setView] = useState<"orders" | "returns" | "serials" | "settings">("orders");
+  const [warehouseReturns, setWarehouseReturns] = useState<WarehouseReturn[]>([]);
+  const [returnCounts, setReturnCounts] = useState({ approved: 0, received: 0 });
   const [stage, setStage] = useState<Stage>("open");
   const [q, setQ] = useState("");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -89,6 +112,7 @@ export function FulfillmentDesk() {
 
   useEffect(() => {
     void load("open", "");
+    void loadReturns("");
   }, []);
 
   async function load(nextStage = stage, query = q) {
@@ -101,6 +125,18 @@ export function FulfillmentDesk() {
     }
     setOrders(data.orders ?? []);
     if (data.counts) setCounts(data.counts);
+  }
+
+  async function loadReturns(query = q) {
+    setError("");
+    const response = await fetch(`/api/portal/fulfillment?stage=returns&q=${encodeURIComponent(query)}`);
+    const data = (await response.json()) as { returns?: WarehouseReturn[]; returnCounts?: typeof returnCounts; error?: string };
+    if (!response.ok) {
+      setError(data.error ?? "Returns could not be loaded.");
+      return;
+    }
+    setWarehouseReturns(data.returns ?? []);
+    if (data.returnCounts) setReturnCounts(data.returnCounts);
   }
 
   const tabs: { id: Stage; label: string }[] = [
@@ -126,6 +162,36 @@ export function FulfillmentDesk() {
         </button>
         <button
           type="button"
+          aria-pressed={view === "returns"}
+          className={cn(
+            "min-h-11 rounded-full px-4 text-sm font-bold",
+            view === "returns" ? "bg-ink text-paper" : "border border-stone text-ink",
+          )}
+          onClick={() => {
+            setView("returns");
+            setNotice("");
+            void loadReturns();
+          }}
+        >
+          Returns ({returnCounts.approved + returnCounts.received})
+        </button>
+        <button
+          type="button"
+          aria-pressed={view === "serials"}
+          className={cn(
+            "min-h-11 rounded-full px-4 text-sm font-bold",
+            view === "serials" ? "bg-ink text-paper" : "border border-stone text-ink",
+          )}
+          onClick={() => {
+            setView("serials");
+            setNotice("");
+            setError("");
+          }}
+        >
+          Serials
+        </button>
+        <button
+          type="button"
           aria-pressed={view === "settings"}
           className={cn(
             "min-h-11 rounded-full px-4 text-sm font-bold",
@@ -136,10 +202,94 @@ export function FulfillmentDesk() {
           Settings
         </button>
       </nav>
+      {view === "serials" ? <SerialUnits /> : null}
       {view === "settings" ? (
         <div className="mt-6 space-y-6">
           <ShippingOptions />
           <CarrierRates />
+        </div>
+      ) : null}
+      {view === "returns" ? (
+        <div className="mt-6">
+          <p className="text-sm text-muted">Approved returns arrive here. Mark a package received. Support refunds the original payment or creates the exchange order after that.</p>
+          <form
+            className="mt-4 flex flex-wrap gap-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void loadReturns();
+            }}
+          >
+            <label className="min-w-64 flex-1">
+              <span className="text-sm text-ink">Search order number or email</span>
+              <Input className="mt-2" value={q} onChange={(event) => setQ(event.target.value)} />
+            </label>
+            <Button type="submit" className="self-end">Search</Button>
+          </form>
+          {error ? <p className="mt-3" role="alert">{error}</p> : null}
+          {notice ? <p className="mt-3" role="status">{notice}</p> : null}
+          <p className="mt-4 text-sm text-muted">{returnCounts.approved} waiting to be received · {returnCounts.received} received</p>
+          <p className="mt-2 text-sm text-muted">Received packages stay here until Support takes the next step. A refund appears on the original payment method 5 to 10 business days after the item is received. An exchange order ships like a new order.</p>
+          {warehouseReturns.length === 0 ? (
+            <p className="mt-4 text-muted">{q ? "No returns match that search." : "No approved returns are waiting."}</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {warehouseReturns.map((item) => {
+                const order = Array.isArray(item.orders) ? item.orders[0] : item.orders;
+                return (
+                  <li key={item.id} className="rounded-3xl bg-white p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-bold">{item.order_id}</p>
+                        <p className="text-sm text-muted">{item.email}</p>
+                      </div>
+                      <p className="text-sm font-bold">{item.status === "approved" ? "Approved" : "Received"} · {item.resolution === "exchange" ? "Exchange" : "Refund"}</p>
+                    </div>
+                    <p className="mt-3 text-sm">{item.reason}</p>
+                    {item.customer_reply ? <p className="mt-2 text-sm text-muted">Customer reply: {item.customer_reply}</p> : null}
+                    {order?.order_items?.length ? (
+                      <ul className="mt-2 text-sm text-muted">
+                        {order.order_items.map((line) => (
+                          <li key={`${item.id}-${line.name}`}>
+                            {line.name}{line.quantity ? ` × ${line.quantity}` : ""}
+                            {purchaseText(line.selection, line.color ?? undefined) ? ` · ${purchaseText(line.selection, line.color ?? undefined)}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <div className="mt-4">
+                      {item.status === "approved" ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={async () => {
+                            const response = await fetch("/api/portal/fulfillment", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ action: "receive", id: item.id }),
+                            });
+                            const data = (await response.json()) as { error?: string };
+                            if (!response.ok) {
+                              setError(data.error ?? "The return could not be marked received.");
+                              return;
+                            }
+                            setNotice("Return marked received.");
+                            setError("");
+                            await loadReturns();
+                          }}
+                        >
+                          Mark received
+                        </Button>
+                      ) : (
+                        <p className="text-sm text-muted">
+                          Received. Support {item.resolution === "exchange" ? "creates the exchange order." : "refunds the original payment."}
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       ) : null}
       {view === "orders" ? (

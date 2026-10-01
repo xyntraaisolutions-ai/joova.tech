@@ -22,21 +22,38 @@ export function ShopCatalog({
 }) {
   const [text, setText] = useState(query);
   const [category, setCategory] = useState<CatalogCategoryId | "all">("all");
+  const [sort, setSort] = useState<"featured" | "name" | "price-asc" | "price-desc">("featured");
   useEffect(() => {
     setText(query);
   }, [query]);
+  const stocked = categories.filter((item) =>
+    catalog.some((product) => product.category === item.id || product.alsoIn?.includes(item.id)),
+  );
   const needle = text.trim().toLowerCase();
   const visible = useMemo(() => {
-    return catalog.filter((product) => {
+    const matched = catalog.filter((product) => {
       if (category !== "all" && product.category !== category && !product.alsoIn?.includes(category)) return false;
       if (!needle) return true;
-      const haystack = [product.name, product.menuLabel, product.model, product.sku, product.summary, product.status]
+      const haystack = [
+        product.name,
+        product.menuLabel,
+        product.model,
+        product.sku,
+        product.summary,
+        product.status,
+        ...(product.variants ?? []).flatMap((option) => [option.name, option.color, option.type, option.size, option.custom, option.sku]),
+      ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
       return haystack.includes(needle);
     });
-  }, [catalog, category, needle]);
+    const ordered = [...matched];
+    if (sort === "name") ordered.sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === "price-asc") ordered.sort((a, b) => a.price - b.price);
+    if (sort === "price-desc") ordered.sort((a, b) => b.price - a.price);
+    return ordered;
+  }, [catalog, category, needle, sort]);
 
   return (
     <div>
@@ -47,7 +64,7 @@ export function ShopCatalog({
           value={text}
           onChange={(event) => setText(event.target.value)}
           placeholder="Name, model, or SKU"
-          className="mt-2 h-12 w-full rounded-full border border-stone bg-white px-5 text-base"
+          className="mt-2 h-12 w-full rounded-full border border-stone bg-white px-5 text-[17px]"
           autoComplete="off"
         />
       </form>
@@ -61,7 +78,7 @@ export function ShopCatalog({
         >
           All
         </button>
-        {categories.map((item) => (
+        {stocked.map((item) => (
           <button
             key={item.id}
             type="button"
@@ -74,6 +91,19 @@ export function ShopCatalog({
           </button>
         ))}
       </div>
+      <label className="mt-4 flex flex-wrap items-center gap-3 text-sm font-medium">
+        Sort
+        <select
+          className="h-11 rounded-full border border-stone bg-white px-4 text-[17px]"
+          value={sort}
+          onChange={(event) => setSort(event.target.value as typeof sort)}
+        >
+          <option value="featured">Featured</option>
+          <option value="name">Name</option>
+          <option value="price-asc">Price, low to high</option>
+          <option value="price-desc">Price, high to low</option>
+        </select>
+      </label>
       {visible.length === 0 ? (
         <p className="mt-10 text-muted">No products match that search.</p>
       ) : needle || category !== "all" ? (

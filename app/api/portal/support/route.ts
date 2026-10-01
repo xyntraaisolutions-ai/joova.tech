@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { sendReviewRequestEmail } from "@/lib/mail/notices";
+import { sendReplacementOrderEmail, sendReviewRequestEmail } from "@/lib/mail/notices";
 import { resendOrderConfirmation, sendShipmentEmail, type PaidOrder } from "@/lib/mail/order";
 import { requirePortalApi, rpcFailed } from "@/lib/portal/api";
 import { refundReturn } from "@/lib/portal/refund";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 
 const orderSelect =
-  "id, email, user_id, status, payment_status, subtotal, tax_percent, tax_amount, shipping_amount, shipping_name, discount_amount, promo_code, shipping, created_at, deleted_at, checkout_session_id, stripe_invoice_id, order_items(id, product_id, name, quantity, price, color, selection), shipments(id, carrier, tracking_number, status, delivered_at), returns(id, status, reason, deleted_at), warranty_registrations(id, product_id, serial, coverage_ends_at, deleted_at)";
+  "id, email, user_id, status, payment_status, subtotal, tax_percent, tax_amount, shipping_amount, shipping_name, discount_amount, promo_code, shipping, created_at, deleted_at, checkout_session_id, stripe_invoice_id, order_items(id, product_id, name, quantity, price, color, selection, coverage), shipments(id, carrier, tracking_number, status, delivered_at), returns(id, status, reason, decision_note, resolution, deleted_at), warranty_registrations(id, product_id, serial, coverage_ends_at, deleted_at)";
 
 const customerSelect = "id, name, email, active, support_note, created_at, deleted_at";
 const messageSelect = "id, name, email, message, status, reply, kind, created_at, deleted_at";
-const claimSelect = "id, user_id, name, email, order_id, product_id, serial, message, status, created_at, deleted_at";
+const claimSelect = "id, user_id, name, email, order_id, product_id, serial, message, status, decision_note, customer_reply, registration_id, replacement_order_id, created_at, reviewed_at, deleted_at";
+const returnSelect =
+  "id, order_id, email, user_id, reason, resolution, status, decision_note, customer_reply, replacement_carrier, replacement_tracking, replacement_order_id, refund_receipt_path, refund_invoice_path, requested_at, reviewed_at, received_at, closed_at, reopened_at, deleted_at, orders(id, email, payment_status, subtotal, shipping, order_items(name, quantity, color, selection), shipments(status, carrier, tracking_number, delivered_at))";
 
 function paidOrder(row: {
   id: string;
@@ -125,6 +127,7 @@ export async function GET(request: Request) {
   let messageIds: string[] | null = null;
   let orderIds: string[] | null = null;
   let claimIds: string[] | null = null;
+  let returnIds: string[] | null = null;
   if (terms.length) {
     const [profiles, messages, claims, orders, items, shipments, returns, registrations] = await Promise.all([
       loadRows(() => db.from("profiles").select("id, email").eq("role", "customer").or(anyIlike(["name", "email", "support_note"], terms)).limit(400)),
@@ -133,7 +136,7 @@ export async function GET(request: Request) {
       loadRows(() => db.from("orders").select("id, email, user_id").or(anyIlike(["id", "email", "status", "payment_status", "shipping->>name", "shipping->>line1", "shipping->>line2", "shipping->>city", "shipping->>region", "shipping->>postal"], terms)).limit(400)),
       loadRows(() => db.from("order_items").select("order_id").or(anyIlike(["name", "product_id", "color", "selection->>sku", "selection->>color", "selection->>type", "selection->>size", "selection->>custom"], terms)).limit(400)),
       loadRows(() => db.from("shipments").select("order_id").or(anyIlike(["carrier", "tracking_number", "status"], terms)).limit(400)),
-      loadRows(() => db.from("returns").select("order_id, email").or(anyIlike(["reason", "status", "email"], terms)).limit(400)),
+      loadRows(() => db.from("returns").select("id, order_id, email").or(anyIlike(["reason", "status", "email", "order_id", "decision_note", "customer_reply"], terms)).limit(400)),
       loadRows(() => db.from("warranty_registrations").select("order_id").or(anyIlike(["product_id", "serial"], terms)).limit(400)),
     ]);
     const failed = [profiles, messages, claims, orders, items, shipments, returns, registrations].find((result) => result.error);
@@ -196,7 +199,13 @@ export async function GET(request: Request) {
     if (ownedOrders.error || ownedMessages.error || ownedClaims.error) {
       return NextResponse.json({ error: "Search could not be completed." }, { status: 400 });
     }
-    orderIds = [...new Set([...textValues(matchedOrders, "id"), ...textValues(ownedOrders.rows, "id")])];
+    const matchedOrderIds = [...new Set([...textValues(matchedOrders, "id"), ...textValues(ownedOrders.rows, "id")])];
+    orderIds = matchedOrderIds;
+    const linkedReturns = matchedOrderIds.length
+      ? await loadRows(() => db.from("returns").select("id").in("order_id", matchedOrderIds).limit(400))
+      : { error: "", rows: [] as Record<string, unknown>[] };
+    if (linkedReturns.error) return NextResponse.json({ error: "Search could not be completed." }, { status: 400 });
+    returnIds = [...new Set([...textValues(returns.rows, "id"), ...textValues(linkedReturns.rows, "id")])];
     messageIds = [...new Set([...textValues(messages.rows, "id"), ...textValues(ownedMessages.rows, "id")])];
     claimIds = [...new Set([...textValues(claims.rows, "id"), ...textValues(ownedClaims.rows, "id")])];
   }
@@ -295,8 +304,29 @@ export async function GET(request: Request) {
         pageSize,
       );
   if (claims.error) return NextResponse.json({ error: "Warranty claims could not be loaded." }, { status: 400 });
+
+  const returns = returnIds && returnIds.length === 0
+    ? { rows: [], total: 0, page: 1, pages: 1 }
+    : await readPage(
+        (returnIds
+          ? session.supabase.from("returns").select("id", { count: "exact", head: true }).is("deleted_at", null).in("id", returnIds)
+          : session.supabase.from("returns").select("id", { count: "exact", head: true }).is("deleted_at", null)),
+        (from, to) => {
+          const query = session.supabase.from("returns").select(returnSelect).is("deleted_at", null);
+          return (returnIds ? query.in("id", returnIds) : query).order("requested_at", { ascending: false }).range(from, to);
+        },
+        pageNumber(url, "returnsPage"),
+        pageSize,
+      );
+  if (returns.error) return NextResponse.json({ error: "Returns could not be loaded." }, { status: 400 });
+  const openReturns = returnIds && returnIds.length === 0
+    ? { count: 0 }
+    : await (returnIds
+      ? session.supabase.from("returns").select("id", { count: "exact", head: true }).in("status", ["requested", "needs_info"]).is("deleted_at", null).in("id", returnIds)
+      : session.supabase.from("returns").select("id", { count: "exact", head: true }).in("status", ["requested", "needs_info"]).is("deleted_at", null));
+
   const emails = [...new Set(
-    [...messages.rows, ...requests.rows, ...orders.rows, ...claims.rows]
+    [...messages.rows, ...requests.rows, ...orders.rows, ...claims.rows, ...returns.rows]
       .map((row) => ("email" in row && typeof row.email === "string" ? row.email.trim().toLowerCase() : ""))
       .filter((email) => email.includes("@")),
   )].slice(0, 80);
@@ -307,8 +337,8 @@ export async function GET(request: Request) {
   const openClaims = claimIds && claimIds.length === 0
     ? { count: 0 }
     : await (claimIds
-      ? session.supabase.from("warranty_claims").select("id", { count: "exact", head: true }).in("status", ["open", "reviewing"]).is("deleted_at", null).in("id", claimIds)
-      : session.supabase.from("warranty_claims").select("id", { count: "exact", head: true }).in("status", ["open", "reviewing"]).is("deleted_at", null));
+      ? session.supabase.from("warranty_claims").select("id", { count: "exact", head: true }).in("status", ["open", "reviewing", "needs_info"]).is("deleted_at", null).in("id", claimIds)
+      : session.supabase.from("warranty_claims").select("id", { count: "exact", head: true }).in("status", ["open", "reviewing", "needs_info"]).is("deleted_at", null));
 
   let account = null;
   if (z.uuid().safeParse(customerId).success) {
@@ -390,6 +420,7 @@ export async function GET(request: Request) {
     orders,
     orderCounts,
     claims: { ...claims, open: openClaims.count ?? 0 },
+    returns: { ...returns, open: openReturns.count ?? 0 },
     account,
     people: people.data ?? [],
   });
@@ -415,10 +446,27 @@ const actionSchema = z.discriminatedUnion("action", [
     status: z.enum(["requested", "approved", "received", "refunded", "closed"]),
   }),
   z.object({
+    action: z.literal("reviewReturn"),
+    id: z.uuid(),
+    decision: z.enum(["approve", "reject", "needs_info", "reopen"]),
+    note: z.string().trim().max(2000).optional(),
+  }),
+  z.object({
     action: z.literal("claim"),
     id: z.uuid(),
     status: z.enum(["open", "reviewing", "approved", "replaced", "closed"]),
   }),
+  z.object({
+    action: z.literal("reviewClaim"),
+    id: z.uuid(),
+    decision: z.enum(["approve", "reject", "needs_info", "replace"]),
+    note: z.string().trim().max(2000).optional(),
+  }),
+  z.object({ action: z.literal("issueRefund"), id: z.uuid() }),
+  z.object({ action: z.literal("createExchange"), id: z.uuid() }),
+  z.object({ action: z.literal("closeReturn"), id: z.uuid() }),
+  z.object({ action: z.literal("createWarrantyOrder"), id: z.uuid() }),
+  z.object({ action: z.literal("closeClaim"), id: z.uuid() }),
   z.object({
     action: z.literal("reply"),
     id: z.uuid(),
@@ -453,6 +501,66 @@ export async function POST(request: Request) {
   const parsed = actionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Check the support form." }, { status: 400 });
   const body = parsed.data;
+  if (body.action === "reviewReturn") {
+    const reviewed = await session.supabase.rpc("support_review_return", {
+      p_id: body.id,
+      p_decision: body.decision,
+      p_note: body.note ?? "",
+      p_view_as: viewAs,
+    });
+    const reviewBody = reviewed.data as { ok?: boolean; error?: string } | null;
+    const reviewError = rpcFailed(reviewBody, reviewed.error);
+    if (reviewError) return NextResponse.json({ error: reviewError }, { status: 400 });
+    return NextResponse.json({ ok: true });
+  }
+  if (body.action === "reviewClaim") {
+    const reviewed = await session.supabase.rpc("support_review_claim", {
+      p_id: body.id,
+      p_decision: body.decision,
+      p_note: body.note ?? "",
+      p_view_as: viewAs,
+    });
+    const reviewBody = reviewed.data as { ok?: boolean; error?: string } | null;
+    const reviewError = rpcFailed(reviewBody, reviewed.error);
+    if (reviewError) return NextResponse.json({ error: reviewError }, { status: 400 });
+    return NextResponse.json({ ok: true });
+  }
+  if (body.action === "issueRefund") {
+    const refunded = await refundReturn(session.supabase, viewAs, body.id);
+    if ("error" in refunded) return NextResponse.json({ error: refunded.error }, { status: 400 });
+    return NextResponse.json({ ok: true, notice: "notice" in refunded ? refunded.notice : undefined });
+  }
+  if (body.action === "createExchange" || body.action === "createWarrantyOrder") {
+    const created = await session.supabase.rpc("support_create_replacement_order", {
+      p_kind: body.action === "createExchange" ? "exchange" : "warranty",
+      p_id: body.id,
+      p_view_as: viewAs,
+    });
+    const createdBody = created.data as { ok?: boolean; error?: string; orderId?: string; email?: string; already?: boolean } | null;
+    const createdError = rpcFailed(createdBody, created.error);
+    if (createdError) return NextResponse.json({ error: createdError }, { status: 400 });
+    const kind = body.action === "createExchange" ? "exchange" : "warranty";
+    let notice = "";
+    if (createdBody?.email && createdBody.orderId && !createdBody.already) {
+      const mailed = await sendReplacementOrderEmail({ email: createdBody.email, orderId: createdBody.orderId, kind });
+      if (!mailed) notice = `${createdBody.orderId} is in fulfillment. The customer email could not be sent.`;
+    }
+    return NextResponse.json({ ok: true, notice: notice || undefined, orderId: createdBody?.orderId });
+  }
+  if (body.action === "closeReturn") {
+    const closed = await session.supabase.rpc("support_close_return", { p_id: body.id, p_view_as: viewAs });
+    const closedBody = closed.data as { ok?: boolean; error?: string } | null;
+    const closedError = rpcFailed(closedBody, closed.error);
+    if (closedError) return NextResponse.json({ error: closedError }, { status: 400 });
+    return NextResponse.json({ ok: true });
+  }
+  if (body.action === "closeClaim") {
+    const closed = await session.supabase.rpc("support_close_claim", { p_id: body.id, p_view_as: viewAs });
+    const closedBody = closed.data as { ok?: boolean; error?: string } | null;
+    const closedError = rpcFailed(closedBody, closed.error);
+    if (closedError) return NextResponse.json({ error: closedError }, { status: 400 });
+    return NextResponse.json({ ok: true });
+  }
   if (body.action === "return" && body.status === "refunded") {
     const refunded = await refundReturn(session.supabase, viewAs, body.id);
     if ("error" in refunded) return NextResponse.json({ error: refunded.error }, { status: 400 });

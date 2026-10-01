@@ -29,7 +29,7 @@ type Customer = {
   deleted_at?: string | null;
 };
 type Page<T> = { rows: T[]; total: number; page: number; pages: number; open?: number };
-type ListPages = { customers: number; messages: number; requests: number; orders: number; claims: number };
+type ListPages = { customers: number; messages: number; requests: number; orders: number; returns: number; claims: number };
 type AccountPages = { orders: number; messages: number; claims: number };
 type CustomerTab = "profile" | "orders" | "messages" | "warranty";
 
@@ -52,7 +52,7 @@ type Order = {
     selection?: { color?: string; type?: string; size?: string; custom?: string; sku?: string } | null;
   }[];
   shipments: { carrier: string | null; tracking_number: string | null; status: string }[];
-  returns: { id: string; status: string; reason: string; deleted_at?: string | null }[];
+  returns: { id: string; status: string; reason: string; decision_note?: string; resolution?: string; deleted_at?: string | null }[];
   warranty_registrations?: { id: string; product_id: string; serial?: string | null; coverage_ends_at?: string | null; deleted_at?: string | null }[];
 };
 type Claim = {
@@ -65,6 +65,9 @@ type Claim = {
   serial?: string | null;
   status: string;
   message: string;
+  replacement_order_id?: string | null;
+  decision_note?: string;
+  customer_reply?: string;
   created_at?: string;
   deleted_at?: string | null;
 };
@@ -84,10 +87,41 @@ function orderTotal(counts?: Record<string, number>) {
   return Object.values(counts ?? {}).reduce((sum, count) => sum + count, 0);
 }
 
-const firstPages: ListPages = { customers: 1, messages: 1, requests: 1, orders: 1, claims: 1 };
+const firstPages: ListPages = { customers: 1, messages: 1, requests: 1, orders: 1, returns: 1, claims: 1 };
 const firstAccountPages: AccountPages = { orders: 1, messages: 1, claims: 1 };
 const emptyPage = { rows: [], total: 0, page: 1, pages: 1, open: 0 };
-type Section = "customers" | "messages" | "requests" | "orders" | "claims";
+type Section = "customers" | "messages" | "requests" | "orders" | "returns" | "claims";
+
+type ReturnOrder = {
+  id: string;
+  email?: string;
+  payment_status?: string;
+  subtotal?: number;
+  shipping?: { name?: string; line1?: string; city?: string; region?: string; postal?: string } | null;
+  order_items?: { name: string; quantity?: number; color?: string | null; selection?: { color?: string; type?: string; size?: string; custom?: string; sku?: string } | null }[];
+  shipments?: { status?: string; carrier?: string | null; tracking_number?: string | null; delivered_at?: string | null }[];
+};
+
+type ReturnRequest = {
+  id: string;
+  order_id: string;
+  email: string;
+  reason: string;
+  resolution?: string;
+  status: string;
+  decision_note?: string;
+  replacement_carrier?: string;
+  replacement_tracking?: string;
+  replacement_order_id?: string | null;
+  refund_receipt_path?: string;
+  refund_invoice_path?: string;
+  customer_reply?: string;
+  requested_at?: string;
+  reviewed_at?: string | null;
+  received_at?: string | null;
+  deleted_at?: string | null;
+  orders?: ReturnOrder | ReturnOrder[] | null;
+};
 
 const statusLabel: Record<string, string> = {
   open: "Open",
@@ -99,9 +133,13 @@ const statusLabel: Record<string, string> = {
   out_for_delivery: "Out for delivery",
   delivered: "Delivered",
   requested: "Requested",
+  needs_info: "More information",
   approved: "Approved",
+  rejected: "Rejected",
   received: "Received",
   refunded: "Refunded",
+  reopened: "Reopened",
+  exchange_ordered: "Exchange order",
   reviewing: "Reviewing",
   replaced: "Replaced",
   unpaid: "Unpaid",
@@ -130,8 +168,107 @@ async function post(body: unknown) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = (await response.json()) as { error?: string };
-  return response.ok ? "" : data.error ?? "That change could not be saved.";
+  const data = (await response.json()) as { error?: string; notice?: string };
+  if (!response.ok) return { error: data.error ?? "That change could not be saved.", notice: "" };
+  return { error: "", notice: data.notice ?? "" };
+}
+
+function actionCopy(body: Record<string, unknown>) {
+  const action = String(body.action ?? "");
+  const subject = String(body.subject ?? "").trim();
+  const named = subject ? ` for ${subject}` : "";
+  if (action === "customer") {
+    return {
+      title: "Save this customer",
+      detail: `Save the name and support note${named}?`,
+      done: `Customer record saved${named}.`,
+    };
+  }
+  if (action === "reply") {
+    const closing = body.status === "closed";
+    return {
+      title: closing ? "Send this reply and close it" : "Send this reply",
+      detail: closing
+        ? `Send this reply${named} and close the message?`
+        : `Send this reply${named}?`,
+      done: closing ? `Reply sent${named}. The message is closed.` : `Reply sent${named}.`,
+    };
+  }
+  if (action === "reviewReturn") {
+    const decision = String(body.decision ?? "");
+    if (decision === "approve") return { title: "Approve this return", detail: `Approve the return${named}? Fulfillment can then receive the package.`, done: `Return approved${named}.` };
+    if (decision === "reject") return { title: "Reject this return", detail: `Reject the return${named}? The customer will see the reason you wrote.`, done: `Return rejected${named}.` };
+    if (decision === "needs_info") return { title: "Ask for more information", detail: `Ask the customer for more information${named}? They can reply from their account.`, done: `Request for more information sent${named}.` };
+    if (decision === "reopen") return { title: "Reopen this return", detail: `Reopen the rejected return${named}? The customer can request it again.`, done: `Return reopened${named}.` };
+  }
+  if (action === "issueRefund") {
+    return {
+      title: "Refund the original payment",
+      detail: `Refund${named} through Stripe? The customer gets a confirmation with the refund receipt. The receipt and invoice stay on this return. You can close the case after that.`,
+      done: `Refund sent${named}. The receipt is saved on this return. It appears on the original payment method in 5 to 10 business days.`,
+    };
+  }
+  if (action === "createExchange") {
+    return {
+      title: "Create the exchange order",
+      detail: `Create a replacement order${named}? It is reserved in stock and goes through fulfillment like a new order.`,
+      done: `Exchange order created${named}. Fulfillment can ship it like a new order.`,
+    };
+  }
+  if (action === "closeReturn") {
+    return {
+      title: "Close this return",
+      detail: `Close this return${named}?`,
+      done: `Return closed${named}.`,
+    };
+  }
+  if (action === "createWarrantyOrder") {
+    return {
+      title: "Create the replacement order",
+      detail: `Create a warranty replacement order${named}? It is reserved in stock and goes through fulfillment like a new order.`,
+      done: `Replacement order created${named}. Fulfillment can ship it like a new order.`,
+    };
+  }
+  if (action === "closeClaim") {
+    return {
+      title: "Close this warranty claim",
+      detail: `Close this claim${named}? The replacement order keeps moving through fulfillment.`,
+      done: `Warranty claim closed${named}.`,
+    };
+  }
+  if (action === "reviewClaim") {
+    const decision = String(body.decision ?? "");
+    if (decision === "approve") return { title: "Approve this warranty claim", detail: `Approve the claim${named}? A repair or replacement can follow.`, done: `Warranty claim approved${named}.` };
+    if (decision === "reject") return { title: "Close this warranty claim", detail: `Close the claim${named}? The customer will see the reason you wrote.`, done: `Warranty claim closed${named}.` };
+    if (decision === "needs_info") return { title: "Ask for more information", detail: `Ask the customer for more information${named}? They can reply from My Devices.`, done: `Request for more information sent${named}.` };
+    if (decision === "replace") return { title: "Mark the replacement sent", detail: `Mark the replacement sent${named}? This closes the warranty claim.`, done: `Replacement marked sent${named}. The claim is closed.` };
+  }
+  if (action === "warranty") {
+    return { title: "Register this warranty", detail: `Register this product on the warranty${named}?`, done: `Warranty registered${named}.` };
+  }
+  if (action === "fileClaim") {
+    return { title: "File this warranty claim", detail: `File this warranty claim${named}?`, done: `Warranty claim filed${named}.` };
+  }
+  if (action === "resend") {
+    const email = String(body.email ?? "").trim();
+    return {
+      title: "Resend confirmation",
+      detail: email
+        ? `Send the order confirmation${named} to ${email}? The email includes the receipt, and the Stripe invoice is attached.`
+        : `Send the order confirmation${named} again?`,
+      done: email ? `Confirmation sent to ${email}.` : `Confirmation sent${named}.`,
+    };
+  }
+  if (action === "shipment") {
+    return { title: "Update this shipment", detail: `Save this shipment update${named}?`, done: `Shipment updated${named}.` };
+  }
+  if (action === "return") {
+    return { title: "Update this return", detail: `Save this return update${named}?`, done: `Return updated${named}.` };
+  }
+  if (action === "claim") {
+    return { title: "Update this warranty claim", detail: `Save this claim update${named}?`, done: `Warranty claim updated${named}.` };
+  }
+  return { title: "Confirm this change", detail: "Save this change?", done: "Saved." };
 }
 
 export function SupportDesk() {
@@ -139,6 +276,16 @@ export function SupportDesk() {
   const [q, setQ] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [pending, setPending] = useState<{
+    title: string;
+    detail: string;
+    done: string;
+    body: Record<string, unknown>;
+    resolve: (message: string) => void;
+  } | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [doneMessage, setDoneMessage] = useState("");
+  const [dialogError, setDialogError] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [pages, setPages] = useState<ListPages>(firstPages);
   const [accountPages, setAccountPages] = useState<AccountPages>(firstAccountPages);
@@ -149,6 +296,7 @@ export function SupportDesk() {
   const [messages, setMessages] = useState<Page<Message>>(emptyPage);
   const [requests, setRequests] = useState<Page<Message>>(emptyPage);
   const [orders, setOrders] = useState<Page<Order>>(emptyPage);
+  const [returns, setReturns] = useState<Page<ReturnRequest>>(emptyPage);
   const [claims, setClaims] = useState<Page<Claim>>(emptyPage);
   const [people, setPeople] = useState<Customer[]>([]);
   const [selected, setSelected] = useState("");
@@ -184,6 +332,7 @@ export function SupportDesk() {
       messagesPage: String(pageState.messages),
       requestsPage: String(pageState.requests),
       ordersPage: String(pageState.orders),
+      returnsPage: String(pageState.returns),
       claimsPage: String(pageState.claims),
       accountOrdersPage: String(accountState.orders),
       accountMessagesPage: String(accountState.messages),
@@ -200,6 +349,7 @@ export function SupportDesk() {
       requests?: Page<Message>;
       orders?: Page<Order>;
       orderCounts?: Record<string, number>;
+      returns?: Page<ReturnRequest>;
       claims?: Page<Claim>;
       account?: Account | null;
       people?: { id: string; name: string; email: string }[];
@@ -215,6 +365,7 @@ export function SupportDesk() {
     setRequests(data.requests ?? emptyPage);
     setOrders(data.orders ?? emptyPage);
     setOrderCounts(data.orderCounts ?? {});
+    setReturns(data.returns ?? emptyPage);
     setClaims(data.claims ?? emptyPage);
     setAccount(data.account ?? null);
     setPeople((data.people ?? []).map((person) => ({ ...person, active: true, support_note: "" })));
@@ -222,6 +373,7 @@ export function SupportDesk() {
     if (data.messages) setPages((current) => ({ ...current, messages: data.messages?.page ?? current.messages }));
     if (data.requests) setPages((current) => ({ ...current, requests: data.requests?.page ?? current.requests }));
     if (data.orders) setPages((current) => ({ ...current, orders: data.orders?.page ?? current.orders }));
+    if (data.returns) setPages((current) => ({ ...current, returns: data.returns?.page ?? current.returns }));
     if (data.claims) setPages((current) => ({ ...current, claims: data.claims?.page ?? current.claims }));
   }
 
@@ -267,15 +419,47 @@ export function SupportDesk() {
     await load();
   }
 
-  async function save(body: unknown) {
-    setNotice("");
-    const messageText = await post(body);
-    setError(messageText);
-    if (!messageText) {
-      setNotice("Saved.");
-      await load();
+  function dismissPending() {
+    if (confirming) return;
+    if (pending && !doneMessage) pending.resolve("");
+    setPending(null);
+    setDoneMessage("");
+    setDialogError("");
+    setConfirming(false);
+  }
+
+  async function confirmPending() {
+    if (!pending || doneMessage) return;
+    setConfirming(true);
+    setDialogError("");
+    const payload = { ...pending.body };
+    delete payload.subject;
+    delete payload.email;
+    const result = await post(payload);
+    setConfirming(false);
+    if (result.error) {
+      setDialogError(result.error);
+      setError(result.error);
+      return;
     }
-    return messageText;
+    const finished = result.notice || pending.done;
+    setError("");
+    setNotice(finished);
+    setDoneMessage(finished);
+    pending.resolve("");
+    await load();
+  }
+
+  async function save(body: unknown) {
+    const record = body && typeof body === "object" ? body as Record<string, unknown> : {};
+    const copy = actionCopy(record);
+    setError("");
+    setNotice("");
+    setDoneMessage("");
+    setDialogError("");
+    return await new Promise<string>((resolve) => {
+      setPending({ ...copy, body: record, resolve });
+    });
   }
 
   function customerByEmail(email: string) {
@@ -288,11 +472,13 @@ export function SupportDesk() {
   const openMessages = messages.open ?? 0;
   const openRequests = requests.open ?? 0;
   const openClaims = claims.open ?? 0;
+  const openReturns = returns.open ?? 0;
   const tabs: { id: Section; label: string }[] = [
     { id: "customers", label: `Customers (${customers.total})` },
     { id: "messages", label: `Messages (${messages.total})` },
     { id: "requests", label: `Customer requests (${requests.total})` },
     { id: "orders", label: `Orders (${orderTotal(orderCounts)})` },
+    { id: "returns", label: `Returns (${openReturns})` },
     { id: "claims", label: `Warranty (${claims.total})` },
   ];
 
@@ -324,10 +510,44 @@ export function SupportDesk() {
         {" · "}
         {orderTotal(orderCounts)} {orderTotal(orderCounts) === 1 ? "order" : "orders"}
         {" · "}
+        {openReturns} open {openReturns === 1 ? "return" : "returns"}
+        {" · "}
         {openClaims} open warranty {openClaims === 1 ? "claim" : "claims"}
       </p>
       {error ? <p className="mt-3" role="alert">{error}</p> : null}
       {notice ? <p className="mt-3" role="status">{notice}</p> : null}
+      <Dialog.Root open={Boolean(pending)} onOpenChange={(open) => { if (!open) dismissPending(); }}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-ink/70" />
+          <Dialog.Content
+            className="fixed left-1/2 top-1/2 z-50 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white p-6 text-ink"
+            onEscapeKeyDown={(event) => { if (confirming) event.preventDefault(); }}
+            onPointerDownOutside={(event) => { if (confirming) event.preventDefault(); }}
+          >
+            {doneMessage ? (
+              <>
+                <Dialog.Title className="font-display text-xl">Done</Dialog.Title>
+                <Dialog.Description className="mt-2 text-sm text-muted">{doneMessage}</Dialog.Description>
+                <div className="mt-4">
+                  <Button type="button" size="sm" onClick={dismissPending}>Close</Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Dialog.Title className="font-display text-xl">{pending?.title}</Dialog.Title>
+                <Dialog.Description className="mt-2 text-sm text-muted">{pending?.detail}</Dialog.Description>
+                {dialogError ? <p className="mt-3 text-sm" role="alert">{dialogError}</p> : null}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Dialog.Close className={buttonClassName("secondary", "sm")} disabled={confirming}>Cancel</Dialog.Close>
+                  <Button type="button" size="sm" disabled={confirming} onClick={() => void confirmPending()}>
+                    {confirming ? "Working" : "Confirm"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       <nav className="mt-6 flex flex-wrap gap-2" aria-label="Sections">
         {tabs.map((tab) => (
@@ -469,9 +689,33 @@ export function SupportDesk() {
         </section>
       ) : null}
 
+      {section === "returns" ? (
+        <section className="mt-6">
+          <h2 className="font-display text-2xl">Returns</h2>
+          <p className="mt-2 text-sm text-muted">Requests start as requested. The customer chooses a refund or an exchange for a similar item. Approve one inside the 30-day window, reject it with a reason, or ask for more information. After Fulfillment marks it received, refund the original payment or create an exchange order. The exchange order ships like a new order. Close the return after the refund or the exchange order is in place.</p>
+          {returns.rows.length === 0 ? (
+            <p className="mt-4 text-muted">{q ? "No returns match that search." : "No return requests yet."}</p>
+          ) : (
+            <ul className="mt-4 space-y-4">
+              {returns.rows.map((item) => (
+                <ReturnCard
+                  key={item.id}
+                  item={item}
+                  customer={customerByEmail(item.email)}
+                  onSave={save}
+                  onOpenCustomer={(id) => void openCustomer(id)}
+                />
+              ))}
+            </ul>
+          )}
+          <Pager page={returns.page} pages={returns.pages} total={returns.total} pageSize={pageSize} onPage={(page) => turn("returns", page)} />
+        </section>
+      ) : null}
+
       {section === "claims" ? (
         <section className="mt-6">
           <h2 className="font-display text-2xl">Warranty claims</h2>
+          <p className="mt-2 text-sm text-muted">Claims start as open on a registered device. Approve a repair or replacement, reject it with a reason, or ask for more information. A replacement order ships like a new order. Close the claim after that order is created.</p>
           {claims.rows.length === 0 ? (
             <p className="mt-4 text-muted">{q ? "No warranty claims match that search." : "No warranty claims yet."}</p>
           ) : (
@@ -492,6 +736,196 @@ export function SupportDesk() {
         </section>
       ) : null}
     </div>
+  );
+}
+
+function returnOrder(item: ReturnRequest) {
+  if (!item.orders) return null;
+  return Array.isArray(item.orders) ? item.orders[0] ?? null : item.orders;
+}
+
+function policyLine(deliveredAt?: string | null) {
+  if (!deliveredAt) return "Not delivered. The 30-day window has not started.";
+  const start = new Date(deliveredAt);
+  if (Number.isNaN(start.getTime())) return "Delivery date is missing.";
+  const end = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const open = Date.now() <= end.getTime();
+  return open
+    ? `Delivered ${when(deliveredAt)}. The 30-day window is open through ${when(end.toISOString())}. Return shipping is covered in the United States.`
+    : `Delivered ${when(deliveredAt)}. The 30-day window closed on ${when(end.toISOString())}.`;
+}
+
+function ReturnCard({
+  item,
+  customer,
+  onSave,
+  onOpenCustomer,
+}: {
+  item: ReturnRequest;
+  customer: Customer | null;
+  onSave: (body: unknown) => Promise<string>;
+  onOpenCustomer: (id: string) => void;
+}) {
+  const order = returnOrder(item);
+  const delivered = order?.shipments?.find((shipment) => shipment.delivered_at)?.delivered_at;
+  const ship = order?.shipping;
+  const waiting = item.status === "requested" || item.status === "needs_info";
+  return (
+    <li className="rounded-3xl bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-bold">{item.order_id}</p>
+          <p className="text-sm text-muted">{item.email}</p>
+        </div>
+        <p className="text-sm font-bold">{label(item.status)}</p>
+      </div>
+      <p className="mt-3 text-sm font-bold">{item.resolution === "exchange" ? "Exchange for a similar item" : "Refund to the original payment method"}</p>
+      <p className="mt-2 text-sm">{item.reason}</p>
+      <p className="mt-2 text-sm text-muted">{policyLine(delivered)}</p>
+      {order?.order_items?.length ? (
+        <ul className="mt-2 text-sm text-muted">
+          {order.order_items.map((line) => (
+            <li key={`${item.id}-${line.name}`}>
+              {line.name}{line.quantity ? ` × ${line.quantity}` : ""}
+              {purchaseText(line.selection, line.color ?? undefined) ? ` · ${purchaseText(line.selection, line.color ?? undefined)}` : ""}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {ship?.line1 ? (
+        <p className="mt-2 text-sm text-muted">
+          Ship to {ship.name ? `${ship.name}, ` : ""}{ship.line1}, {[ship.city, ship.region, ship.postal].filter(Boolean).join(", ")}
+        </p>
+      ) : null}
+      <p className="mt-2 text-sm text-muted">Requested {when(item.requested_at)}</p>
+      {item.decision_note ? <p className="mt-2 text-sm">Note to customer: {item.decision_note}</p> : null}
+      {item.customer_reply ? <p className="mt-2 text-sm">Customer reply: {item.customer_reply}</p> : null}
+      {item.status === "approved" ? (
+        <p className="mt-2 text-sm text-muted">
+          Approved. Fulfillment receives the package. After that, {item.resolution === "exchange" ? "create the exchange order here." : "refund the original payment here."}
+        </p>
+      ) : null}
+      {item.status === "received" ? (
+        <p className="mt-2 text-sm text-muted">
+          Received {when(item.received_at)}. {item.resolution === "exchange" ? "Create the exchange order. It ships like a new order." : "Refund the original payment. The customer sees it in 5 to 10 business days."}
+        </p>
+      ) : null}
+      {item.status === "exchange_ordered" ? (
+        <p className="mt-2 text-sm text-muted">
+          Exchange order {item.replacement_order_id} is in fulfillment. Close this return when you are finished with the case.
+        </p>
+      ) : null}
+      {item.status === "reopened" ? <p className="mt-2 text-sm text-muted">Reopened. The customer can request this return again.</p> : null}
+      {item.status === "refunded" ? (
+        <p className="mt-2 text-sm text-muted">Refund sent to the original payment method. It appears 5 to 10 business days after the item was received. Close the case when you are finished.</p>
+      ) : null}
+      {item.status === "closed" ? (
+        <p className="mt-2 text-sm text-muted">
+          Closed. {item.resolution === "exchange"
+            ? `Exchange order ${item.replacement_order_id || "created"}.`
+            : "Refund sent to the original payment method. It appears 5 to 10 business days after the item was received."}
+        </p>
+      ) : null}
+      {item.refund_receipt_path || item.refund_invoice_path ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {item.refund_receipt_path ? (
+            <>
+              <a className={buttonClassName("secondary", "sm")} href={`/api/portal/support/return-file?id=${item.id}&kind=receipt`} target="_blank" rel="noopener noreferrer">View refund receipt</a>
+              <a className={buttonClassName("secondary", "sm")} href={`/api/portal/support/return-file?id=${item.id}&kind=receipt&format=pdf`}>Download refund receipt</a>
+            </>
+          ) : null}
+          {item.refund_invoice_path ? (
+            <>
+              <a className={buttonClassName("secondary", "sm")} href={`/api/portal/support/return-file?id=${item.id}&kind=invoice`} target="_blank" rel="noopener noreferrer">View refund invoice</a>
+              <a className={buttonClassName("secondary", "sm")} href={`/api/portal/support/return-file?id=${item.id}&kind=invoice&format=pdf`}>Download refund invoice</a>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+      {item.status === "received" && item.resolution === "exchange" ? (
+        <form className="mt-4" onSubmit={async (event) => {
+          event.preventDefault();
+          await onSave({ action: "createExchange", id: item.id, subject: item.order_id });
+        }}>
+          <Button type="submit" size="sm">Create exchange order</Button>
+        </form>
+      ) : null}
+      {item.status === "received" && item.resolution !== "exchange" ? (
+        <form className="mt-4" onSubmit={async (event) => {
+          event.preventDefault();
+          await onSave({ action: "issueRefund", id: item.id, subject: item.order_id });
+        }}>
+          <Button type="submit" size="sm">Refund the original payment</Button>
+        </form>
+      ) : null}
+      {item.status === "refunded" || item.status === "exchange_ordered" ? (
+        <form className="mt-4" onSubmit={async (event) => {
+          event.preventDefault();
+          await onSave({ action: "closeReturn", id: item.id, subject: item.order_id });
+        }}>
+          <Button type="submit" size="sm">Close this return</Button>
+        </form>
+      ) : null}
+      {waiting ? (
+        <form
+          className="mt-4 space-y-3"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            await onSave({
+              action: "reviewReturn",
+              id: item.id,
+              decision: String(data.get("decision") ?? ""),
+              note: String(data.get("note") ?? ""),
+              subject: item.order_id,
+            });
+          }}
+        >
+          <label className="block text-sm">
+            Decision
+            <select name="decision" className="mt-2 h-12 w-full rounded-2xl border border-stone bg-white px-4" defaultValue={item.status === "needs_info" ? "reject" : "approve"}>
+              {item.status === "requested" ? <option value="approve">Approve</option> : null}
+              <option value="reject">Reject</option>
+              {item.status === "requested" ? <option value="needs_info">Request more information</option> : null}
+            </select>
+          </label>
+          <label className="block text-sm">
+            Reason for the customer
+            <textarea name="note" className="mt-2 min-h-20 w-full rounded-2xl border border-stone bg-white px-4 py-3" placeholder="Required when rejecting or asking for more information." />
+          </label>
+          <Button type="submit" size="sm">Save decision</Button>
+        </form>
+      ) : null}
+      {item.status === "rejected" ? (
+        <form
+          className="mt-4 space-y-3"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            await onSave({
+              action: "reviewReturn",
+              id: item.id,
+              decision: "reopen",
+              note: String(data.get("note") ?? ""),
+              subject: item.order_id,
+            });
+          }}
+        >
+          <label className="block text-sm">
+            Note for the customer
+            <textarea name="note" className="mt-2 min-h-20 w-full rounded-2xl border border-stone bg-white px-4 py-3" placeholder="Optional. Leave blank to keep the rejection reason." />
+          </label>
+          <Button type="submit" size="sm">Reopen and activate</Button>
+        </form>
+      ) : null}
+      {customer ? (
+        <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => onOpenCustomer(customer.id)}>
+          Open customer
+        </Button>
+      ) : (
+        <p className="mt-3 text-sm text-muted">Guest checkout. No customer account is tied to this email.</p>
+      )}
+    </li>
   );
 }
 
@@ -616,6 +1050,7 @@ function CustomerRecord({
             id: customer.id,
             name: String(data.get("name") ?? ""),
             note: String(data.get("note") ?? ""),
+            subject: customer.name,
           });
         }}
       >
@@ -723,6 +1158,7 @@ function MessageCard({
             id: message.id,
             reply: String(data.get("reply") ?? ""),
             status: String(data.get("status") ?? "replied"),
+            subject: message.email,
           });
         }}
       >
@@ -739,7 +1175,7 @@ function MessageCard({
         </label>
         <Button type="submit" size="sm">Save reply</Button>
       </form>
-      <ResourceDelete table="contact_messages" id={message.id} removed={Boolean(message.deleted_at)} onDone={onReload} />
+      <ResourceDelete table="contact_messages" id={message.id} removed={Boolean(message.deleted_at)} onDone={onReload} withDialog />
     </li>
   );
 }
@@ -759,21 +1195,9 @@ function OrderCard({
   onReload: () => void;
   onOpenCustomer: (id: string) => void;
 }) {
-  const [sending, setSending] = useState(false);
-  const [confirmSend, setConfirmSend] = useState(false);
-  const [mailNote, setMailNote] = useState("");
   const paid = order.payment_status === "paid";
   const receiptHref = `/api/portal/support/receipt?order=${encodeURIComponent(order.id)}`;
   const invoiceHref = `/api/portal/support/invoice?order=${encodeURIComponent(order.id)}`;
-
-  async function resend() {
-    setMailNote("");
-    setSending(true);
-    const message = await post({ action: "resend", order: order.id });
-    setSending(false);
-    setConfirmSend(false);
-    setMailNote(message || `Confirmation sent to ${order.email}.`);
-  }
 
   return (
     <article className="rounded-3xl border border-stone bg-white p-4">
@@ -790,28 +1214,14 @@ function OrderCard({
         </p>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <Button type="button" size="sm" disabled={!paid} onClick={() => setConfirmSend(true)}>
+        <Button
+          type="button"
+          size="sm"
+          disabled={!paid}
+          onClick={() => void onSave({ action: "resend", order: order.id, email: order.email, subject: order.id })}
+        >
           Resend confirmation
         </Button>
-        <Dialog.Root open={confirmSend} onOpenChange={(open) => { if (!sending) setConfirmSend(open); }}>
-          <Dialog.Portal>
-            <Dialog.Overlay className="fixed inset-0 z-50 bg-ink/70" />
-            <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-white p-6 text-ink">
-              <Dialog.Title className="font-display text-xl">Resend confirmation</Dialog.Title>
-              <Dialog.Description className="mt-2 text-sm text-muted">
-                Send the order confirmation for {order.id} to {order.email}? The email includes the receipt, and the Stripe invoice is attached.
-              </Dialog.Description>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Dialog.Close className={buttonClassName("secondary", "sm")} disabled={sending}>
-                  Cancel
-                </Dialog.Close>
-                <Button type="button" size="sm" disabled={sending} onClick={() => void resend()}>
-                  {sending ? "Sending" : "Send confirmation"}
-                </Button>
-              </div>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
         <a className={buttonClassName("secondary", "sm")} href={receiptHref} target="_blank" rel="noopener noreferrer">
           View receipt
         </a>
@@ -830,7 +1240,6 @@ function OrderCard({
         ) : null}
       </div>
       {paid ? null : <p className="mt-2 text-sm text-muted">The receipt can be viewed now. The Stripe invoice and confirmation email are available after the order is paid.</p>}
-      {mailNote ? <p className="mt-2 text-sm" role="status">{mailNote}</p> : null}
       <ul className="mt-2 text-sm text-muted">
         {(order.order_items ?? []).map((item) => (
           <li key={item.id ?? item.product_id}>
@@ -853,29 +1262,12 @@ function OrderCard({
         {order.shipments[0]?.tracking_number ? ` · ${order.shipments[0].tracking_number}` : ""}
       </p>
       <p className="text-sm text-muted">Carrier, tracking, and delivery status are updated in Inventory fulfillment.</p>
-      {order.returns.map((item) => (
-        <form
-          key={item.id}
-          className="mt-3 flex flex-wrap items-end gap-3"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            const data = new FormData(event.currentTarget);
-            await onSave({ action: "return", id: item.id, status: String(data.get("status")) });
-          }}
-        >
-          <label className="text-sm">
-            Return: {item.reason}
-            <select name="status" className="mt-2 h-12 rounded-2xl border border-stone bg-white px-4" defaultValue={item.status}>
-              <option value="requested">Requested</option>
-              <option value="approved">Approved</option>
-              <option value="received">Received</option>
-              <option value="refunded">Refunded</option>
-              <option value="closed">Closed</option>
-            </select>
-          </label>
-          <Button type="submit" size="sm">Update return</Button>
-          <ResourceDelete table="returns" id={item.id} removed={Boolean(item.deleted_at)} onDone={onReload} />
-        </form>
+      {order.returns.filter((item) => !item.deleted_at).map((item) => (
+        <p key={item.id} className="mt-3 text-sm text-muted">
+          Return {item.resolution === "exchange" ? "exchange" : "refund"} · {label(item.status)}: {item.reason}
+          {item.decision_note ? ` · ${item.decision_note}` : ""}
+          {" "}Review and decide in Returns. Fulfillment receives an approved return.
+        </p>
       ))}
       {(order.warranty_registrations ?? []).filter((item) => !item.deleted_at).map((registration) => (
         <p key={registration.id} className="mt-3 text-sm text-muted">
@@ -896,6 +1288,7 @@ function OrderCard({
               order: order.id,
               productId: String(data.get("productId") ?? ""),
               serial: String(data.get("serial") ?? ""),
+              subject: order.id,
             });
           }}
         >
@@ -927,6 +1320,7 @@ function OrderCard({
               productId: String(data.get("productId") ?? ""),
               serial: String(data.get("serial") ?? ""),
               message: String(data.get("message") ?? ""),
+              subject: order.id,
             });
           }}
         >
@@ -956,9 +1350,10 @@ function OrderCard({
           id={registration.id}
           removed={Boolean(registration.deleted_at)}
           onDone={onReload}
+          withDialog
         />
       ))}
-      <ResourceDelete table="orders" id={order.id} removed={Boolean(order.deleted_at)} onDone={onReload} />
+      <ResourceDelete table="orders" id={order.id} removed={Boolean(order.deleted_at)} onDone={onReload} withDialog />
     </article>
   );
 }
@@ -978,40 +1373,86 @@ function ClaimCard({
   onReload: () => void;
   onOpenCustomer: (id: string) => void;
 }) {
+  const waiting = claim.status === "open" || claim.status === "reviewing" || claim.status === "needs_info";
+  const title = claim.serial || claim.order_id || "Warranty claim";
   return (
     <li className="rounded-3xl border border-stone bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-bold">{claim.order_id}</p>
+          <p className="font-bold">{title}</p>
           <p className="break-all text-sm text-muted">{claim.name || "Customer"}{claim.email ? ` · ${claim.email}` : ""}</p>
         </div>
-        <p className="text-sm text-muted">{label(claim.status)}{claim.created_at ? ` · ${when(claim.created_at)}` : ""}</p>
+        <p className="text-sm font-bold">{label(claim.status)}</p>
       </div>
+      {claim.product_id ? <p className="mt-2 text-sm text-muted">Product {claim.product_id}</p> : null}
+      {claim.order_id && claim.order_id !== claim.serial ? <p className="mt-1 text-sm text-muted">Order {claim.order_id}</p> : null}
       <p className="mt-2 text-sm">{claim.message}</p>
-      {claim.serial ? <p className="mt-1 text-sm text-muted">Serial {claim.serial}</p> : null}
+      {claim.serial && claim.serial !== title ? <p className="mt-1 text-sm text-muted">Serial {claim.serial}</p> : null}
+      {claim.decision_note ? <p className="mt-2 text-sm">Note to customer: {claim.decision_note}</p> : null}
+      {claim.customer_reply ? <p className="mt-2 text-sm">Customer reply: {claim.customer_reply}</p> : null}
+      {claim.created_at ? <p className="mt-2 text-sm text-muted">Opened {when(claim.created_at)}</p> : null}
+      {claim.status === "approved" && !claim.replacement_order_id ? <p className="mt-2 text-sm text-muted">Approved. Create a replacement order. It ships like a new order.</p> : null}
+      {claim.replacement_order_id && claim.status !== "replaced" ? <p className="mt-2 text-sm text-muted">Replacement order {claim.replacement_order_id} is in fulfillment. Close this claim when you are finished.</p> : null}
+      {claim.status === "replaced" ? <p className="mt-2 text-sm text-muted">Closed. Replacement order {claim.replacement_order_id || "created"} ships like a new order.</p> : null}
+      {claim.status === "closed" ? <p className="mt-2 text-sm text-muted">Closed.</p> : null}
+      {waiting ? (
+        <form
+          className="mt-4 space-y-3"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            const data = new FormData(event.currentTarget);
+            await onSave({
+              action: "reviewClaim",
+              id: claim.id,
+              decision: String(data.get("decision") ?? ""),
+              note: String(data.get("note") ?? ""),
+              subject: claim.serial || claim.order_id,
+            });
+          }}
+        >
+          <label className="block text-sm">
+            Decision
+            <select name="decision" className="mt-2 h-12 w-full rounded-2xl border border-stone bg-white px-4" defaultValue={claim.status === "needs_info" ? "reject" : "approve"}>
+              {claim.status !== "needs_info" ? <option value="approve">Approve repair or replacement</option> : null}
+              <option value="reject">Close with a reason</option>
+              {claim.status !== "needs_info" ? <option value="needs_info">Request more information</option> : null}
+            </select>
+          </label>
+          <label className="block text-sm">
+            Reason for the customer
+            <textarea name="note" className="mt-2 min-h-20 w-full rounded-2xl border border-stone bg-white px-4 py-3" placeholder="Required when closing or asking for more information." />
+          </label>
+          <Button type="submit" size="sm">Save decision</Button>
+        </form>
+      ) : null}
+      {claim.status === "approved" && !claim.replacement_order_id ? (
+        <form
+          className="mt-4"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            await onSave({ action: "createWarrantyOrder", id: claim.id, subject: claim.serial || claim.order_id });
+          }}
+        >
+          <Button type="submit" size="sm">Create replacement order</Button>
+        </form>
+      ) : null}
+      {claim.replacement_order_id && claim.status !== "replaced" && claim.status !== "closed" ? (
+        <form
+          className="mt-4"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            await onSave({ action: "closeClaim", id: claim.id, subject: claim.serial || claim.order_id });
+          }}
+        >
+          <Button type="submit" size="sm">Close this claim</Button>
+        </form>
+      ) : null}
       {showLink && customer ? (
         <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => onOpenCustomer(customer.id)}>
           Open customer
         </Button>
       ) : null}
-      <form
-        className="mt-3 flex flex-wrap items-end gap-3"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          const data = new FormData(event.currentTarget);
-          await onSave({ action: "claim", id: claim.id, status: String(data.get("status")) });
-        }}
-      >
-        <select name="status" className="h-12 rounded-2xl border border-stone bg-white px-4" defaultValue={claim.status}>
-          <option value="open">Open</option>
-          <option value="reviewing">Reviewing</option>
-          <option value="approved">Approved</option>
-          <option value="replaced">Replaced</option>
-          <option value="closed">Closed</option>
-        </select>
-        <Button type="submit" size="sm">Update claim</Button>
-      </form>
-      <ResourceDelete table="warranty_claims" id={claim.id} removed={Boolean(claim.deleted_at)} onDone={onReload} />
+      <ResourceDelete table="warranty_claims" id={claim.id} removed={Boolean(claim.deleted_at)} onDone={onReload} withDialog />
     </li>
   );
 }

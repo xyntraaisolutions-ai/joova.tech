@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClassName } from "@/components/ui/button";
+import { LastUpdated } from "@/components/content/last-updated";
 import { Container } from "@/components/ui/container";
 import { loadContentBundle } from "@/lib/content/load";
 
@@ -24,13 +25,14 @@ export default async function AboutPage() {
   return (
     <Container className="py-10 md:py-16">
       <article className="mx-auto w-full max-w-[40rem]">
-      <h1 className="font-display" style={{ fontSize: "var(--text-h1)" }}>
+      <h1 className="font-display font-extrabold" style={{ fontSize: "var(--text-h1)" }}>
         About Joova
       </h1>
+      <LastUpdated value={about.updatedOn} />
       <p className="mt-3 font-display text-2xl font-semibold">
         Smarter Tech | Bigger Tomorrow
       </p>
-      <div className="mt-6 space-y-4 text-lg hyphens-auto text-justify">
+      <div className="mt-6 space-y-4 text-lg">
         <p>
           {about.idea}
         </p>

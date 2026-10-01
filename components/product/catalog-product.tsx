@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState, type TouchEvent } from "react";
+import { pageCopy } from "@/content/page-copy";
 import { AddToCart } from "@/components/product/add-to-cart";
 import { RequestItemButton } from "@/components/shop/shop-card-actions";
 import { Badge } from "@/components/ui/badge";
@@ -86,6 +87,8 @@ export function CatalogProductView({
   const shared = product.sharedPictures ?? (options.length ? [] : product.pictures.filter((picture) => picture.src));
   const [picks, setPicks] = useState(() => picksFrom(options.find((option) => option.id === product.defaultVariantId) ?? options[0]));
   const [pictureIndex, setPictureIndex] = useState(0);
+  const swipeStart = useRef<number | null>(null);
+  const wellness = /\b(band|ring|watch)\b/i.test(product.name) && !/strap/i.test(product.name);
   const lead = options.find((option) => matches(option, picks)) ?? options[0];
   const named = shared.filter((item) => {
     const alt = item.alt.toLowerCase();
@@ -137,10 +140,29 @@ export function CatalogProductView({
     setPictureIndex(0);
   }
 
+  function onSwipeStart(event: TouchEvent<HTMLDivElement>) {
+    swipeStart.current = event.changedTouches[0]?.clientX ?? null;
+  }
+
+  function onSwipeEnd(event: TouchEvent<HTMLDivElement>) {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (start == null || pictures.length < 2) return;
+    const delta = (event.changedTouches[0]?.clientX ?? start) - start;
+    if (Math.abs(delta) < 40) return;
+    const next = delta < 0 ? pictureIndex + 1 : pictureIndex - 1;
+    if (next < 0 || next >= pictures.length) return;
+    showPicture(next);
+  }
+
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-12">
       <div>
-        <div className="stage rounded-[24px] p-4 sm:p-8">
+        <div
+          className="stage rounded-[24px] p-4 sm:p-8"
+          onTouchStart={onSwipeStart}
+          onTouchEnd={onSwipeEnd}
+        >
           {picture.src ? (
             <Image
               src={picture.src}
@@ -206,7 +228,7 @@ export function CatalogProductView({
           {product.name}
         </h1>
         {product.model ? <p className="mt-2 text-muted">{product.model}</p> : null}
-        {product.lead ? <p className="mt-3 font-display text-3xl font-semibold">{product.lead}</p> : null}
+        {product.lead ? <p className="mt-3 text-lg text-muted">{product.lead}</p> : null}
         <p className="mt-4 font-display text-3xl font-semibold">{product.unpriced || product.price <= 0 ? "Price not set" : product.priceLabel}</p>
         {product.compareAtLabel || product.compareAt ? <p className="mt-1 text-muted line-through">{product.compareAtLabel ?? formatUsd(product.compareAt ?? 0)}</p> : null}
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -215,6 +237,7 @@ export function CatalogProductView({
         </div>
         {typeof product.availableCount === "number" ? <p className="mt-2 text-sm text-muted">{product.availableCount} available</p> : null}
         {product.summary ? <p className="mt-6 text-muted">{product.summary}</p> : null}
+        {wellness ? <p className="mt-4 text-sm text-muted">{pageCopy.terms.wellness}</p> : null}
         {optionAxes.map((axis) => {
           const choices = valuesFor(options, axis, picks);
           if (choices.length === 0) return null;
@@ -251,6 +274,8 @@ export function CatalogProductView({
             sku={product.sku}
             selection={selection}
             warrantyNote={product.warrantyNote}
+            coverage={product.coverage}
+            availableCount={product.availableCount}
           />
         ) : product.availability === "out_of_stock" ? null : (
           <p className="mt-6 text-muted">Price not set.</p>

@@ -40,7 +40,7 @@ export function Footer() {
               {slogan}
             </p>
           </div>
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-10 sm:gap-16">
+          <nav aria-label="Footer" className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-12">
             {groups.map((group) => (
               <div key={group.title}>
                 <p className="text-xs font-bold uppercase tracking-[2.5px] text-stone">{group.title}</p>

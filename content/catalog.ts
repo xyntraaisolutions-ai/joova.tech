@@ -1,3 +1,4 @@
+import type { ProductCoverage } from "@/lib/catalog/coverage";
 import {
   BUDS_PRICE,
   GLASSES_PRICE,
@@ -86,6 +87,7 @@ export type CatalogProduct = {
   availableCount?: number;
   colors?: { name: string; image?: string }[];
   warrantyNote?: string;
+  coverage?: ProductCoverage;
 };
 
 export const catalogCategories = [

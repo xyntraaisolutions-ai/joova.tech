@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClassName } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { LastUpdated } from "@/components/content/last-updated";
 import { loadContentBundle } from "@/lib/content/load";
 import { ReturnRequest } from "@/components/returns/return-request";
 
@@ -18,10 +19,10 @@ export default async function ReturnsPage() {
   const returns = pageCopy.returns;
   return (
     <Container className="max-w-3xl py-10 md:py-16">
-      <p className="text-sm text-muted">Effective date: draft — lawyer review pending</p>
-      <h1 className="font-display mt-3" style={{ fontSize: "var(--text-h1)" }}>
+      <h1 className="font-display font-extrabold" style={{ fontSize: "var(--text-h1)" }}>
         {policies.returnsTitle}
       </h1>
+      <LastUpdated value={returns.updatedOn} />
       <div className="mt-8 space-y-6 text-muted">
         <p className="text-lg text-ink">{policies.returnsSummary}</p>
         <p>
@@ -31,47 +32,39 @@ export default async function ReturnsPage() {
           {returns.exchange}
         </p>
         <section>
-          <h2 className="font-display text-2xl text-ink">How to start a return</h2>
+          <h2 className="font-display text-2xl text-ink">{returns.headingHow}</h2>
           <ol className="mt-3 list-decimal space-y-2 pl-5">
             <li>
-              Sign in to your{" "}
-              <Link className="font-medium text-ink underline" href="/account">
-                Joova Customer Account
-              </Link>{" "}
-              and start the return from your purchase history. You can also
-              email{" "}
+              {returns.stepAccount} {returns.stepAlso}{" "}
               <a className="font-medium text-ink underline" href={`mailto:${support.email}`}>
                 {support.email}
               </a>{" "}
-              or use the{" "}
+              {returns.stepForm}{" "}
               <Link className="font-medium text-ink underline" href="/contact">
-                contact form
+                {returns.contactLink}
               </Link>
-              . Include your order number.
+              .{` ${returns.stepOrder}`}
             </li>
             <li>{returns.stepReply}</li>
-            <li>
-              {returns.stepShip}
-            </li>
+            <li>{returns.stepShip}</li>
           </ol>
           <Link href="/account" className={`${buttonClassName("primary")} mt-6 w-full sm:w-fit`}>
-            Open your Joova Customer Account
+            {returns.accountCta}
           </Link>
         </section>
         <section>
-          <h2 className="font-display text-2xl text-ink">What the account is for</h2>
+          <h2 className="font-display text-2xl text-ink">{returns.headingAccount}</h2>
           <p className="mt-3">{policies.accountSummary}</p>
           <ul className="mt-3 list-disc space-y-2 pl-5">
-            <li>Purchase history</li>
-            <li>Order tracking</li>
-            <li>Returns</li>
-            <li>Replacements</li>
+            {returns.accountItems.split("\n").map((item) => item.trim()).filter(Boolean).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </section>
         <p>
-          {returns.notWarranty} See the{" "}
+          {returns.notWarranty} {returns.warrantyLead}{" "}
           <Link className="font-medium text-ink underline" href="/warranty">
-            warranty policy
+            {returns.warrantyLink}
           </Link>
           .
         </p>

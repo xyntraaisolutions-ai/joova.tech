@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+import { coverageList } from "@/lib/catalog/coverage";
 import { purchaseText } from "@/lib/content/variants";
 import type { PaidOrder } from "@/lib/mail/order";
 import { taxPercentLabel } from "@/lib/tax/avalara";
@@ -30,7 +31,12 @@ function orderDate(value?: string) {
   return new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "America/Chicago" }).format(date);
 }
 
-export function receiptPdf(order: PaidOrder, logo?: Buffer | null, brand = "Joova"): Promise<Buffer> {
+export function receiptPdf(
+  order: PaidOrder,
+  logo?: Buffer | null,
+  brand = "Joova",
+  options?: { heading?: string; note?: string },
+): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 48 });
     const chunks: Buffer[] = [];
@@ -59,7 +65,7 @@ export function receiptPdf(order: PaidOrder, logo?: Buffer | null, brand = "Joov
     doc.moveDown(0.6);
     doc.fontSize(10).fillColor("#6b7280").text("Joova Tech LLC · Grapevine, Texas");
     doc.moveDown(1.1);
-    doc.fontSize(22).fillColor("#0c121c").text("Receipt");
+    doc.fontSize(22).fillColor("#0c121c").text(options?.heading ?? "Receipt");
     doc.moveDown(0.2);
     doc.fontSize(16).text(order.orderId);
     doc.moveDown(0.8);
@@ -93,7 +99,12 @@ export function receiptPdf(order: PaidOrder, logo?: Buffer | null, brand = "Joov
       y += nameHeight + 2;
       if (detail) {
         doc.fontSize(9).fillColor("#6b7280").text(detail, 48, y, { width: 340 });
-        y += doc.heightOfString(detail, { width: 340 }) + 10;
+        y += doc.heightOfString(detail, { width: 340 }) + 2;
+      }
+      const coverage = coverageList(item.coverage).join("\n");
+      if (coverage) {
+        doc.fontSize(9).fillColor("#6b7280").text(coverage, 48, y, { width: 340 });
+        y += doc.heightOfString(coverage, { width: 340 }) + 10;
       } else {
         y += 10;
       }
@@ -117,10 +128,10 @@ export function receiptPdf(order: PaidOrder, logo?: Buffer | null, brand = "Joov
       y += strong ? 22 : 18;
     }
 
-    const note =
-      order.paid === false
+    const note = options?.note
+      ?? (order.paid === false
         ? `Payment is not complete. Order ${order.orderId} · ${order.email}`
-        : `Paid with Stripe. Joova does not store your card number. Order ${order.orderId} · ${order.email}`;
+        : `Paid with Stripe. Joova does not store your card number. Order ${order.orderId} · ${order.email}`);
     doc.fontSize(9).fillColor("#6b7280").text(note, 48, y + 12, { width: 516 });
     doc.moveDown(2);
     doc.fontSize(9).fillColor("#6b7280").text("Joova Tech LLC · Grapevine, Texas · support@joova.tech");

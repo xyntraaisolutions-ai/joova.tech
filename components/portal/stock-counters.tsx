@@ -12,7 +12,7 @@ const metrics = [
   { id: "shipping", label: "In shipping", detail: "Units marked shipped." },
   { id: "delivery", label: "Out for delivery", detail: "Units marked out for delivery." },
   { id: "delivered", label: "Delivered", detail: "Units marked delivered." },
-  { id: "returns", label: "Returns", detail: "Units on returns that were approved, received, or refunded." },
+  { id: "returns", label: "Returns", detail: "Units on returns that were approved, received, refunded, or closed." },
   { id: "warranty_sent", label: "Warranty replacements", detail: "Claims marked replaced." },
 ] as const;
 

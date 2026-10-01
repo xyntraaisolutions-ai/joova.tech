@@ -4,12 +4,14 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/components/layout/cart-provider";
+import { useSiteContent } from "@/components/layout/site-content";
 import { PaymentNote } from "@/components/shop/payment-note";
-import { purchaseText } from "@/lib/content/variants";
+import { CartCoverageNote, CartLine, EmptyCartPicks } from "@/components/shop/cart-line";
 import { formatUsd } from "@/lib/utils";
 
 export function CartDrawer() {
   const { items, open, setOpen, updateQuantity, removeItem, subtotal } = useCart();
+  const { policies } = useSiteContent();
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -24,43 +26,10 @@ export function CartDrawer() {
           </div>
           <div className="flex-1 space-y-4 overflow-auto">
             {items.length === 0 ? (
-              <p className="text-muted">Your cart is empty.</p>
+              <EmptyCartPicks />
             ) : (
               items.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-stone p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{item.name}</p>
-                      {purchaseText(item.selection, item.color) ? (
-                        <p className="text-sm text-muted">{purchaseText(item.selection, item.color)}</p>
-                      ) : null}
-                      <p className="mt-1">{formatUsd(item.price)}</p>
-                    </div>
-                    <button
-                      className="inline-flex min-h-11 items-center text-sm text-ink underline"
-                      onClick={() => removeItem(item.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className="mt-3 flex items-center gap-3">
-                    <button
-                      className="size-11 rounded-full border border-stone"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      aria-label={`Decrease ${item.name}`}
-                    >
-                      −
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      className="size-11 rounded-full border border-stone"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      aria-label={`Increase ${item.name}`}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+                <CartLine key={item.id} item={item} onRemove={() => removeItem(item.id)} onQuantity={(quantity) => updateQuantity(item.id, quantity)} />
               ))
             )}
           </div>
@@ -69,7 +38,7 @@ export function CartDrawer() {
               <span>Subtotal</span>
               <span>{formatUsd(subtotal)}</span>
             </p>
-            <p className="mb-3 text-sm text-muted">Free US shipping. Delivered in 7 to 10 days.</p>
+            {items.length > 0 ? <div className="mb-3"><CartCoverageNote /></div> : <p className="mb-3 text-sm text-muted">{policies.shipping}</p>}
             <div className="mb-4"><PaymentNote /></div>
             {items.length > 0 ? (
               <Link
