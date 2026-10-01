@@ -7,7 +7,8 @@ import { blockIds, staticBundle } from "@/lib/content/static";
 import type { ContentBundle } from "@/lib/content/types";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import type { CatalogProduct } from "@/content/catalog";
+import type { CatalogProduct, Deal } from "@/content/catalog";
+import type { NavItem } from "@/content/nav";
 import type { BlogPost } from "@/content/blog";
 
 type Row = Record<string, unknown>;
@@ -260,7 +261,7 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
       watch: priceOf("watch", base.prices.watch),
     };
 
-    const offerFromProduct = (product: CatalogProduct, id: string, badge: string, title?: string, detail?: string) => ({
+    const offerFromProduct = (product: CatalogProduct, id: string, badge: string, title?: string, detail?: string): Deal => ({
       id,
       title: title || product.name,
       badge,
@@ -270,7 +271,7 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
       compareAtLabel: product.compareAtLabel ?? (market.code === "US" && product.compareAt ? formatMoney(product.compareAt, "USD") : null),
       image: product.image.src ? product.image : null,
     });
-    const dealList = kept((dealRows.data ?? []) as Row[]).flatMap((deal) => {
+    const dealList = kept((dealRows.data ?? []) as Row[]).flatMap((deal): Deal[] => {
       const href = String(deal.href);
       const product = shopCatalog.find((item) => item.href === href);
       const category = catalogCategories.find((item) => item.href === href);
@@ -332,9 +333,9 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
         ? base.navItems
         : kept((nav.data ?? []) as Row[])
             .filter((item) => item.published !== false)
-            .map((item) => ({
+            .map((item): NavItem => ({
               id: String(item.id),
-              area: item.area === "footer" ? "footer" as const : "header" as const,
+              area: item.area === "footer" ? "footer" : "header",
               parentId: item.parent_id ? String(item.parent_id) : null,
               kind: item.kind === "products" ? "products" : item.kind === "menu" ? "menu" : "link",
               label: String(item.label),
