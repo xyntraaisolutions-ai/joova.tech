@@ -2,6 +2,7 @@ import { cache } from "react";
 import { catalog, catalogCategories, type CatalogProduct } from "@/content/catalog";
 import { productCoverage } from "@/lib/catalog/coverage";
 import { SITE_URL } from "@/content/site";
+import { applyStory } from "@/lib/content/product-story";
 import { arrangeProductMedia } from "@/lib/content/variants";
 import { applyCountryPrice, defaultMarket, resolveMarket, type Market } from "@/lib/geo/market";
 import { formatUsd } from "@/lib/utils";
@@ -35,7 +36,7 @@ function mapProduct(row: Row, images: Row[], variants: Row[], stock?: { availabi
     const value = row[key];
     return typeof value === "string" && value.length > 0 ? value : spare;
   };
-  return {
+  const mapped: CatalogProduct = {
     id: String(row.id),
     name: text("name", fallback?.name ?? ""),
     menuLabel: text("menu_label", fallback?.menuLabel ?? ""),
@@ -75,14 +76,16 @@ function mapProduct(row: Row, images: Row[], variants: Row[], stock?: { availabi
         })
       : undefined,
   };
+  return applyStory(mapped, commerce.details);
 }
 
 function staticPage(href: string): ProductPage | null {
   const product = catalog.find((item) => item.href.split("#")[0] === href);
   if (!product) return null;
+  const filled = applyStory(product, undefined);
   const categoryLabel = catalogCategories.find((category) => category.id === product.category)?.label ?? "Shop";
-  const related = catalog.filter((item) => item.id !== product.id && (item.category === product.category || item.alsoIn?.includes(product.category))).slice(0, 4);
-  return { product, categoryLabel, related, siteUrl: SITE_URL };
+  const related = catalog.filter((item) => item.id !== filled.id && (item.category === filled.category || item.alsoIn?.includes(filled.category))).slice(0, 4).map((item) => applyStory(item, undefined));
+  return { product: filled, categoryLabel, related, siteUrl: SITE_URL };
 }
 
 async function pageFromRow(supabase: Awaited<ReturnType<typeof createClient>>, row: Row): Promise<ProductPage> {

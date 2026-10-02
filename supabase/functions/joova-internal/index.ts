@@ -73,6 +73,8 @@ Deno.serve(async (request) => {
     text?: string;
     html?: string;
     attachments?: unknown;
+    reply_to?: string;
+    id?: string;
   };
   try {
     body = await request.json();
@@ -91,6 +93,38 @@ Deno.serve(async (request) => {
     if (password.length < 1 || password.length > 100) return Response.json({ superAdmin: true, passwordOk: false });
     const passwordOk = await passwordMatchesHash(email, password);
     return Response.json({ superAdmin: true, passwordOk });
+  }
+
+  if (body.action === "email-copy") {
+    const id = String(body.id ?? "");
+    const allowed = new Set([
+      "password_reset",
+      "order_confirmation",
+      "warranty_replacement",
+      "exchange_order",
+      "shipment",
+      "review_request",
+      "refund",
+      "back_in_stock",
+      "low_stock",
+      "staff_order",
+      "stock_request",
+    ]);
+    if (!allowed.has(id) || !serviceKey) return Response.json({ error: "invalid" }, { status: 400 });
+    const headers = { Authorization: `Bearer ${serviceKey}`, apikey: serviceKey };
+    const root = (Deno.env.get("SUPABASE_URL") ?? "").replace(/\/$/, "");
+    const [templateResponse, settingsResponse, logoResponse] = await Promise.all([
+      fetch(`${root}/rest/v1/email_templates?id=eq.${id}&select=subject,heading,body,button_label,footer`, { headers }),
+      fetch(`${root}/rest/v1/site_settings?id=eq.1&select=email,site_url,brand`, { headers }),
+      fetch(`${root}/rest/v1/brand_logos?active=eq.true&select=url,width,height&limit=1`, { headers }),
+    ]);
+    const templates = templateResponse.ok ? await templateResponse.json() : [];
+    const settingsRows = settingsResponse.ok ? await settingsResponse.json() : [];
+    const logos = logoResponse.ok ? await logoResponse.json() : [];
+    const template = Array.isArray(templates) ? templates[0] ?? null : null;
+    const settings = Array.isArray(settingsRows) ? settingsRows[0] ?? null : null;
+    const logo = Array.isArray(logos) ? logos[0] ?? null : null;
+    return Response.json({ template, settings, logo });
   }
 
   if (!(await callerIsService(token, serviceKey))) return Response.json({ error: "not allowed" }, { status: 401 });
@@ -124,7 +158,7 @@ Deno.serve(async (request) => {
     body: JSON.stringify({
       from: fromAddress,
       to: [to],
-      reply_to: replyTo,
+      reply_to: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(body.reply_to ?? "").trim()) ? String(body.reply_to).trim() : replyTo,
       subject,
       text,
       html,

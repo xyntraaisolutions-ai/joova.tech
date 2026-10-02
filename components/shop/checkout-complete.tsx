@@ -28,6 +28,7 @@ export function CheckoutComplete() {
       setStatus(body);
       if (body?.paymentStatus === "paid") {
         sessionStorage.removeItem("joova-checkout");
+        sessionStorage.removeItem("joova-checkout-draft");
         clear();
         if (body.emailSent) {
           setWaiting(false);

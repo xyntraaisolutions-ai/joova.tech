@@ -34,7 +34,7 @@ export async function GET(request: Request) {
   if (orders.error) return NextResponse.json({ error: "Sales could not be loaded." }, { status: 400 });
   const refunds = await supabase
     .from("returns")
-    .select("order_id, orders(subtotal, tax_amount, shipping_amount, discount_amount)")
+    .select("order_id, orders!returns_order_id_fkey(subtotal, tax_amount, shipping_amount, discount_amount)")
     .or("status.eq.refunded,and(status.eq.closed,resolution.eq.refund)")
     .is("deleted_at", null)
     .gte("refunded_at", chicagoStamp(from, "00:00:00"))

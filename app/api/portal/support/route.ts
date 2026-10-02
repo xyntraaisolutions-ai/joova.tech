@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendReplacementOrderEmail, sendReviewRequestEmail } from "@/lib/mail/notices";
+import { linkedOrderId } from "@/lib/orders/origin";
 import { resendOrderConfirmation, sendShipmentEmail, type PaidOrder } from "@/lib/mail/order";
 import { requirePortalApi, rpcFailed } from "@/lib/portal/api";
 import { refundReturn } from "@/lib/portal/refund";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 
 const orderSelect =
-  "id, email, user_id, status, payment_status, subtotal, tax_percent, tax_amount, shipping_amount, shipping_name, discount_amount, promo_code, shipping, created_at, deleted_at, checkout_session_id, stripe_invoice_id, order_items(id, product_id, name, quantity, price, color, selection, coverage), shipments(id, carrier, tracking_number, status, delivered_at), returns(id, status, reason, decision_note, resolution, deleted_at), warranty_registrations(id, product_id, serial, coverage_ends_at, deleted_at)";
+  "id, email, user_id, status, payment_status, subtotal, tax_percent, tax_amount, shipping_amount, shipping_name, discount_amount, promo_code, shipping, created_at, deleted_at, checkout_session_id, stripe_invoice_id, order_kind, order_items(id, product_id, name, quantity, price, color, selection, coverage), shipments(id, carrier, tracking_number, status, delivered_at), returns!returns_order_id_fkey(id, status, reason, decision_note, resolution, deleted_at), warranty_registrations(id, product_id, serial, coverage_ends_at, deleted_at), warranty_claims!orders_source_claim_id_fkey(order_id), source_return:returns!orders_source_return_id_fkey(order_id)";
 
 const customerSelect = "id, name, email, active, support_note, created_at, deleted_at";
 const messageSelect = "id, name, email, message, status, reply, kind, created_at, deleted_at";
 const claimSelect = "id, user_id, name, email, order_id, product_id, serial, message, status, decision_note, customer_reply, registration_id, replacement_order_id, created_at, reviewed_at, deleted_at";
 const returnSelect =
-  "id, order_id, email, user_id, reason, resolution, status, decision_note, customer_reply, replacement_carrier, replacement_tracking, replacement_order_id, refund_receipt_path, refund_invoice_path, requested_at, reviewed_at, received_at, closed_at, reopened_at, deleted_at, orders(id, email, payment_status, subtotal, shipping, order_items(name, quantity, color, selection), shipments(status, carrier, tracking_number, delivered_at))";
+  "id, order_id, email, user_id, reason, resolution, status, decision_note, customer_reply, replacement_carrier, replacement_tracking, replacement_order_id, refund_receipt_path, refund_invoice_path, requested_at, reviewed_at, received_at, closed_at, reopened_at, deleted_at, orders!returns_order_id_fkey(id, email, payment_status, subtotal, shipping, order_items(name, quantity, color, selection), shipments(status, carrier, tracking_number, delivered_at))";
 
 function paidOrder(row: {
   id: string;
@@ -542,7 +543,14 @@ export async function POST(request: Request) {
     const kind = body.action === "createExchange" ? "exchange" : "warranty";
     let notice = "";
     if (createdBody?.email && createdBody.orderId && !createdBody.already) {
-      const mailed = await sendReplacementOrderEmail({ email: createdBody.email, orderId: createdBody.orderId, kind });
+      const linked = await session.supabase
+        .from("orders")
+        .select(kind === "warranty" ? "warranty_claims!orders_source_claim_id_fkey(order_id)" : "source_return:returns!orders_source_return_id_fkey(order_id)")
+        .eq("id", createdBody.orderId)
+        .maybeSingle();
+      const linkedRow = linked.data as { warranty_claims?: { order_id?: string } | { order_id?: string }[] | null; source_return?: { order_id?: string } | { order_id?: string }[] | null } | null;
+      const sourceOrderId = linkedOrderId(kind === "warranty" ? linkedRow?.warranty_claims : linkedRow?.source_return);
+      const mailed = await sendReplacementOrderEmail({ email: createdBody.email, orderId: createdBody.orderId, kind, sourceOrderId });
       if (!mailed) notice = `${createdBody.orderId} is in fulfillment. The customer email could not be sent.`;
     }
     return NextResponse.json({ ok: true, notice: notice || undefined, orderId: createdBody?.orderId });

@@ -5,8 +5,10 @@ import { SizeWeightFields } from "@/components/portal/box-size";
 import { PortalMenu, PortalPanel } from "@/components/portal/portal-menu";
 import { LowStockSetup } from "@/components/portal/low-stock";
 import { StockCounters } from "@/components/portal/stock-counters";
+import { ProductDetailsTab } from "@/components/portal/product-details-tab";
 import { ProductMedia } from "@/components/portal/product-media";
 import { ProductVariants, draftLabel, saveVariantMedia, type DraftVariant } from "@/components/portal/product-variants";
+import { detailsFromCommerce, padGlances, storySuggestions } from "@/lib/content/product-story";
 import { optionAxis, optionAvailable, optionName } from "@/lib/content/variants";
 import { ResourceDelete } from "@/components/portal/resource-delete";
 import { ShippingTypeFields, shippingChoices } from "@/components/portal/shipping-options";
@@ -34,6 +36,11 @@ type Product = {
   warranty_days: number | null;
   status: string;
   summary: string;
+  kicker?: string;
+  lead?: string;
+  detail?: string;
+  note?: string;
+  signals?: { label?: string; text?: string }[];
   sku: string | null;
   commerce?: Record<string, unknown>;
   deleted_at?: string | null;
@@ -88,6 +95,16 @@ const blank = {
   warrantyNote: "1 year from the purchase date. Register within 30 days for 1 extra year.",
   status: "Hidden",
   summary: "",
+  kicker: "",
+  lead: "",
+  detail: "",
+  note: "",
+  signals: padGlances([]),
+  specifications: [] as { label: string; value: string }[],
+  inTheBox: "",
+  compatibility: "",
+  care: "",
+  app: "",
   sku: "",
   onHand: "100",
   reserved: "0",
@@ -128,6 +145,7 @@ const blank = {
 
 const productTabs = [
   { id: "product", label: "Product" },
+  { id: "details", label: "Product Details" },
   { id: "variants", label: "Variants" },
   { id: "price", label: "Price" },
   { id: "stock", label: "Stock" },
@@ -225,7 +243,7 @@ function clientProductIssues(form: typeof blank, products: Product[], selected: 
   required("menuLabel", "Menu label", "product", form.menuLabel);
   required("href", "Page path", "product", form.href);
   required("status", "Status label", "product", form.status);
-  required("summary", "Summary", "product", form.summary);
+  required("summary", "Highlighted summary", "details", form.summary);
   if (!form.price.trim() || Number.isNaN(Number(form.price)) || Number(form.price) < 0) {
     issues.push({ field: "price", name: "Price", detail: "Enter 0 if the price is not set yet, or a selling price.", tab: "price" });
   }
@@ -406,6 +424,8 @@ export function InventoryDesk({ initialProduct = "" }: { initialProduct?: string
     if (!product) return;
     const units = productUnits(id, stock);
     const commerce = product.commerce ?? {};
+    const suggested = storySuggestions(product.name, commerceText(commerce, "model"));
+    const savedDetails = detailsFromCommerce(commerce);
     setForm({
       id: product.id,
       name: product.name,
@@ -425,6 +445,16 @@ export function InventoryDesk({ initialProduct = "" }: { initialProduct?: string
       warrantyNote: commerceText(commerce, "warrantyNote"),
       status: product.published && product.status.trim().toLowerCase() === "hidden" ? "Available" : product.status,
       summary: product.summary,
+      kicker: product.kicker || suggested?.kicker || "",
+      lead: product.lead || suggested?.lead || "",
+      detail: product.detail || suggested?.overview || "",
+      note: product.note || suggested?.note || "",
+      signals: padGlances(Array.isArray(product.signals) && product.signals.length ? product.signals : suggested?.signals ?? []),
+      specifications: savedDetails.specifications?.length ? savedDetails.specifications : suggested?.specifications ?? [],
+      inTheBox: savedDetails.inTheBox || (suggested?.inTheBox ?? []).join("\n"),
+      compatibility: savedDetails.compatibility || suggested?.compatibility || "",
+      care: savedDetails.care || suggested?.care || "",
+      app: savedDetails.app || suggested?.app || "",
       sku: product.sku ?? "",
       onHand: String(units?.on_hand ?? 0),
       reserved: String(units?.reserved ?? 0),
@@ -667,6 +697,11 @@ export function InventoryDesk({ initialProduct = "" }: { initialProduct?: string
               warrantyDays: form.warrantyDays ? Number(form.warrantyDays) : null,
               status: form.status,
               summary: form.summary,
+              kicker: form.kicker,
+              lead: form.lead,
+              detail: form.detail,
+              note: form.note,
+              signals: form.signals.filter((signal) => signal.label.trim() && signal.text.trim()),
               sku: form.sku,
               onHand: Number(form.onHand),
               reserved: Number(form.reserved),
@@ -723,6 +758,13 @@ export function InventoryDesk({ initialProduct = "" }: { initialProduct?: string
                 tags: form.tags.split(",").map((item) => item.trim()).filter(Boolean),
                 warrantyNote: form.warrantyNote,
                 googleCategory: form.googleCategory,
+                details: {
+                  specifications: form.specifications.filter((row) => row.label.trim() && row.value.trim()),
+                  inTheBox: form.inTheBox,
+                  compatibility: form.compatibility,
+                  care: form.care,
+                  app: form.app,
+                },
                 showAvailable: form.showAvailable,
               },
               shippingCustom,
@@ -841,10 +883,6 @@ export function InventoryDesk({ initialProduct = "" }: { initialProduct?: string
           Status label
           <Input className="mt-2" data-field="status" value={form.status} onChange={(event) => set("status", event.target.value)} required />
         </label>
-        <label className="text-sm md:col-span-2">
-          Summary
-          <textarea className="mt-2 min-h-24 w-full rounded-2xl border border-stone bg-white px-4 py-3" data-field="summary" value={form.summary} onChange={(event) => set("summary", event.target.value)} required />
-        </label>
         <div className="flex flex-wrap gap-4 text-sm md:col-span-2">
           <label>
             <input type="checkbox" checked={Boolean(selected) && form.published} disabled={!selected} onChange={(event) => set("published", event.target.checked)} /> Active
@@ -893,6 +931,32 @@ export function InventoryDesk({ initialProduct = "" }: { initialProduct?: string
           </div>
         </div>
         </div>
+        </div>
+        <div hidden={formTab !== "details"}>
+          <ProductDetailsTab
+            summary={form.summary}
+            lead={form.lead}
+            kicker={form.kicker}
+            detail={form.detail}
+            note={form.note}
+            signals={form.signals}
+            specifications={form.specifications}
+            inTheBox={form.inTheBox}
+            compatibility={form.compatibility}
+            care={form.care}
+            app={form.app}
+            onSummary={(value) => set("summary", value)}
+            onLead={(value) => set("lead", value)}
+            onKicker={(value) => set("kicker", value)}
+            onDetail={(value) => set("detail", value)}
+            onNote={(value) => set("note", value)}
+            onSignals={(value) => set("signals", value)}
+            onSpecifications={(value) => set("specifications", value)}
+            onInTheBox={(value) => set("inTheBox", value)}
+            onCompatibility={(value) => set("compatibility", value)}
+            onCare={(value) => set("care", value)}
+            onApp={(value) => set("app", value)}
+          />
         </div>
         <div hidden={formTab !== "variants"}>
           <ProductVariants productName={form.name} productSku={form.sku} productId={form.id} previousId={selected} drafts={drafts} onChange={setDrafts} />

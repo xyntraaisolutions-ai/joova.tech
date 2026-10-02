@@ -3,6 +3,7 @@ import { arrangeProductMedia } from "@/lib/content/variants";
 import { productsInCategory } from "@/lib/content/helpers";
 import { applyCountryPrice, defaultMarket, resolveMarket, type Market } from "@/lib/geo/market";
 import { productCoverage } from "@/lib/catalog/coverage";
+import { applyStory } from "@/lib/content/product-story";
 import { formatMoney, formatUsd } from "@/lib/utils";
 import { blockIds, staticBundle } from "@/lib/content/static";
 import type { ContentBundle } from "@/lib/content/types";
@@ -10,7 +11,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { CatalogProduct, Deal } from "@/content/catalog";
 import type { NavItem } from "@/content/nav";
-import type { BlogPost } from "@/content/blog";
+import { mapBlogPost } from "@/lib/content/blog-map";
 
 type Row = Record<string, unknown>;
 
@@ -111,6 +112,7 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
       strapSummary: text(policy, "strap_summary", base.policies.strapSummary),
       dockSummary: text(policy, "dock_summary", base.policies.dockSummary),
       shipping: text(policy, "shipping", base.policies.shipping),
+      outsideUsNotice: text(policy, "outside_us_notice", base.policies.outsideUsNotice),
       returnsSummary: text(policy, "returns_summary", base.policies.returnsSummary),
       warrantyRegistration: text(policy, "warranty_registration", base.policies.warrantyRegistration),
       accountSummary: text(policy, "account_summary", base.policies.accountSummary),
@@ -142,7 +144,7 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
             : undefined;
           const availability = stockRow?.availability === "out_of_stock" ? "out_of_stock" : "in_stock";
           const availableCount = availability === "in_stock" && typeof stockRow?.available === "number" ? stockRow.available : undefined;
-          return {
+          return applyStory({
             id: String(product.id),
             name,
             menuLabel: text(product, "menu_label", fallback?.menuLabel ?? ""),
@@ -184,7 +186,7 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
               freeShipping: commerce.freeShipping,
               returnDays: commerce.returnDays,
             }),
-          };
+          }, commerce.details);
         });
 
     const categoryRows = kept((categories.data ?? []) as Row[]).filter((category) => category.active !== false);
@@ -223,26 +225,8 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
     const blockRows = kept((blocks.data ?? []) as Row[]);
     const postRows = kept((posts.data ?? []) as Row[]);
     const sectionRows = kept((sections.data ?? []) as Row[]);
-    const blogList: BlogPost[] = postRows.length
-      ? postRows.map((post) => ({
-          slug: String(post.slug),
-          productId: post.product_id as BlogPost["productId"],
-          title: String(post.title),
-          description: String(post.description),
-          excerpt: String(post.excerpt),
-          published: String(post.published_label),
-          publishedIso: String(post.published_iso),
-          readingMinutes: Number(post.reading_minutes),
-          points: (post.points as string[]) ?? [],
-          relatedSlug: String(post.related_slug),
-          sections: sectionRows
-            .filter((section) => section.post_slug === post.slug)
-            .map((section) => ({
-              id: String(section.section_id),
-              heading: String(section.heading),
-              paragraphs: (section.paragraphs as string[]) ?? [],
-            })),
-        }))
+    const blogList = postRows.length
+      ? postRows.map((post) => mapBlogPost(post, sectionRows))
       : base.blogPosts;
 
     const pageRows = kept((pages.data ?? []) as Row[]);

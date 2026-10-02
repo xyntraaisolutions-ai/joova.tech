@@ -1,8 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { orderEmailDefaults, passwordEmailFrom, renderOrderEmail, type OrderReceipt } from "@/lib/mail/template";
-import { escapeHtml } from "@/lib/mail/template";
 import { loadBrandMark, publicLogoUrl } from "@/lib/brand/logo";
 import { invoicePdfFilename } from "@/lib/mail/receipt-pdf";
+import { sendNoticeEmail } from "@/lib/mail/notice";
 import { sendTransactionalEmail } from "@/lib/mail/send";
 import { ensureOrderInvoice, stripeInvoiceFile } from "@/lib/stripe/invoice";
 import { taxPercentLabel } from "@/lib/tax/avalara";
@@ -174,10 +174,6 @@ async function loadOrderEmail() {
   };
 }
 
-function page(title: string, body: string) {
-  return `<div style="font-family:Arial,sans-serif;color:#111;line-height:1.5"><h1 style="font-size:22px">${escapeHtml(title)}</h1>${body}</div>`;
-}
-
 export async function sendPaidOrderEmails(order: PaidOrder) {
   if (!order.email) return false;
   const loaded = await loadOrderEmail();
@@ -193,11 +189,11 @@ export async function sendPaidOrderEmails(order: PaidOrder) {
     attachments,
   });
   if (!customer) return false;
-  const staff = await sendTransactionalEmail({
+  const staff = await sendNoticeEmail({
+    id: "staff_order",
     to: loaded.supportEmail,
-    subject: `New paid order ${order.orderId}`,
-    text: [`Paid order ${order.orderId}`, order.email, money(chargedTotal(order)), name].join("\n"),
-    html: page(`New paid order ${order.orderId}`, `<p>${escapeHtml(order.email)} · ${escapeHtml(money(chargedTotal(order)))}</p>`),
+    values: { order_id: order.orderId, email: order.email, name, total: money(chargedTotal(order)) },
+    buttonLink: `${(loaded.siteUrl || "https://joova.tech").replace(/\/$/, "")}/portal/support`,
   });
   if (!staff) console.error("order-mail", "staff copy failed", order.orderId);
   return true;
@@ -206,16 +202,14 @@ export async function sendPaidOrderEmails(order: PaidOrder) {
 export async function sendShipmentEmail(input: { email: string; orderId: string; carrier: string; tracking: string }) {
   const loaded = await loadOrderEmail();
   const siteUrl = loaded.siteUrl || "https://joova.tech";
-  const track = `${siteUrl}/track`;
-  const text = [
-    `Order ${input.orderId} has shipped.`,
-    input.carrier ? `Carrier: ${input.carrier}` : "",
-    `Tracking number: ${input.tracking}`,
-    `Look it up: ${track}`,
-  ].filter(Boolean).join("\n");
-  const html = page(
-    `Order ${input.orderId} has shipped`,
-    `<p>${input.carrier ? `${escapeHtml(input.carrier)}<br>` : ""}Tracking number: ${escapeHtml(input.tracking)}</p><p><a href="${escapeHtml(track)}">Track this order</a></p>`,
-  );
-  return sendTransactionalEmail({ to: input.email, subject: `Your Joova order ${input.orderId} has shipped`, text, html });
+  return sendNoticeEmail({
+    id: "shipment",
+    to: input.email,
+    values: {
+      order_id: input.orderId,
+      carrier: input.carrier || "Carrier",
+      tracking: input.tracking,
+    },
+    buttonLink: `${siteUrl}/track`,
+  });
 }

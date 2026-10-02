@@ -7,6 +7,7 @@ import { PromoCodes } from "@/components/portal/promo-codes";
 import { SalesReport } from "@/components/portal/sales-report";
 import { SalesTax } from "@/components/portal/sales-tax";
 import { SellCountries } from "@/components/portal/sell-countries";
+import { NoticeEmailForm } from "@/components/portal/notice-email-form";
 import { OrderEmailForm } from "@/components/portal/order-email-form";
 import { PasswordEmailForm } from "@/components/portal/password-email-form";
 import { PortalMenu, PortalPanel } from "@/components/portal/portal-menu";
@@ -69,6 +70,7 @@ export function AdminDesk() {
           items: [
             { id: "email", label: "Password reset" },
             { id: "order-email", label: "Order confirmation" },
+            { id: "notice-email", label: "Other emails" },
           ],
         },
         { id: "audit", label: `Audit (${auditTotal})`, items: [{ id: "audit", label: "Audit" }] },
@@ -168,6 +170,14 @@ export function AdminDesk() {
         <h2 className="font-display text-2xl">Order confirmation email</h2>
         <p className="mt-2 text-sm text-muted">Sent to the customer after Stripe marks the order paid. It includes the receipt and invoice for that order.</p>
         <OrderEmailForm onError={setError} />
+      </section>
+      </PortalPanel>
+
+      <PortalPanel id="notice-email">
+      <section className="rounded-3xl bg-white p-4">
+        <h2 className="font-display text-2xl">Other emails</h2>
+        <p className="mt-2 text-sm text-muted">Warranty replacements, exchanges, shipping, reviews, refunds, stock notices, and the staff copy of a paid order. Each one uses the same designed card as the order confirmation.</p>
+        <NoticeEmailForm onError={setError} />
       </section>
       </PortalPanel>
 
@@ -315,6 +325,7 @@ function PlatformForm({ onError }: { onError: (message: string) => void }) {
           warrantyRegistration: policies.warranty_registration,
           accountSummary: policies.account_summary,
           heroLine: policies.hero_line,
+          outsideUsNotice: policies.outside_us_notice,
         };
         const first = await fetch("/api/portal/content", {
           method: "POST",

@@ -41,7 +41,7 @@ async function contentCounts(supabase: Awaited<ReturnType<typeof requirePortalPa
     devices = listed.count ?? 0;
   }
   return {
-    blog: posts.count ?? 0,
+    blogs: posts.count ?? 0,
     videos: videos.count ?? 0,
     help: help.count ?? 0,
     blocks: blocks.count ?? 0,

@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/layout/auth-provider";
 import { useCart, type CartItem } from "@/components/layout/cart-provider";
 import { PaymentNote } from "@/components/shop/payment-note";
+import { useSiteContent } from "@/components/layout/site-content";
 import { US_STATES } from "@/components/shop/us-states";
+import { countries } from "@/lib/geo/countries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CoverageLines, useProductCoverage } from "@/components/shop/coverage-lines";
@@ -17,7 +19,54 @@ import { formatUsd } from "@/lib/utils";
 type ShipChoice = { code: string; name: string; price: number; minDays: number; maxDays: number };
 type SavedAddress = { id: string; name: string; line1: string; line2: string; city: string; region: string; postal: string };
 
+const shipCountries = [
+  ...countries.filter((country) => country.code === "US"),
+  ...countries.filter((country) => country.code !== "US").sort((left, right) => left.name.localeCompare(right.name)),
+];
+
+function outsideNotice(template: string, countryName: string) {
+  const sentence = template.trim() || "Joova delivers in the United States today. We may start delivering to {{country}} soon. Thank you for visiting.";
+  return sentence.replaceAll("{{country}}", countryName);
+}
+
 const HOLD_KEY = "joova-checkout";
+const DRAFT_KEY = "joova-checkout-draft";
+
+type CheckoutDraft = {
+  guestEmail: string;
+  name: string;
+  line1: string;
+  line2: string;
+  city: string;
+  region: string;
+  postal: string;
+  country: string;
+  shipCode: string;
+  promoCode: string;
+};
+
+function readDraft(): CheckoutDraft | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const draft = JSON.parse(raw) as Partial<CheckoutDraft>;
+    if (!draft || typeof draft !== "object") return null;
+    return {
+      guestEmail: typeof draft.guestEmail === "string" ? draft.guestEmail : "",
+      name: typeof draft.name === "string" ? draft.name : "",
+      line1: typeof draft.line1 === "string" ? draft.line1 : "",
+      line2: typeof draft.line2 === "string" ? draft.line2 : "",
+      city: typeof draft.city === "string" ? draft.city : "",
+      region: typeof draft.region === "string" ? draft.region : "",
+      postal: typeof draft.postal === "string" ? draft.postal : "",
+      country: typeof draft.country === "string" ? draft.country : "US",
+      shipCode: typeof draft.shipCode === "string" ? draft.shipCode : "",
+      promoCode: typeof draft.promoCode === "string" ? draft.promoCode : "",
+    };
+  } catch {
+    return null;
+  }
+}
 
 function OrderLine({ item }: { item: CartItem }) {
   const coverage = useProductCoverage(item.productId, item.name);
@@ -34,6 +83,7 @@ function OrderLine({ item }: { item: CartItem }) {
 export function CheckoutReview() {
   const { items, subtotal } = useCart();
   const { user, ready } = useAuth();
+  const { market, policies } = useSiteContent();
   const params = useSearchParams();
   const [guestEmail, setGuestEmail] = useState("");
   const [name, setName] = useState("");
@@ -42,6 +92,7 @@ export function CheckoutReview() {
   const [city, setCity] = useState("");
   const [region, setRegion] = useState("TX");
   const [postal, setPostal] = useState("");
+  const [country, setCountry] = useState("US");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [pending, setPending] = useState(false);
@@ -55,7 +106,33 @@ export function CheckoutReview() {
   const [promoCode, setPromoCode] = useState("");
   const [discount, setDiscount] = useState(0);
   const [promoError, setPromoError] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "applied">("idle");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const draftKept = useRef(false);
+
+  useEffect(() => {
+    const draft = readDraft();
+    if (!draft) return;
+    draftKept.current = true;
+    if (draft.guestEmail) setGuestEmail(draft.guestEmail);
+    if (draft.name) setName(draft.name);
+    if (draft.line1) setLine1(draft.line1);
+    if (draft.line2) setLine2(draft.line2);
+    if (draft.city) setCity(draft.city);
+    if (draft.region) setRegion(draft.region);
+    if (draft.postal) setPostal(draft.postal);
+    if (draft.country && shipCountries.some((item) => item.code === draft.country)) setCountry(draft.country);
+    if (draft.shipCode) setShipCode(draft.shipCode);
+    if (draft.promoCode) setPromoCode(draft.promoCode);
+  }, []);
+
+  useEffect(() => {
+    if (readDraft()?.country) return;
+    if (market.code !== "US" && shipCountries.some((item) => item.code === market.code)) {
+      setCountry(market.code);
+      setRegion("");
+    }
+  }, [market.code]);
 
   useEffect(() => {
     if (user?.name) setName((current) => current || user.name);
@@ -71,6 +148,7 @@ export function CheckoutReview() {
       .then((body: { addresses?: SavedAddress[] }) => {
         const addresses = body.addresses ?? [];
         setSavedAddresses(addresses);
+        if (draftKept.current) return;
         const chosen = addresses[0];
         if (!chosen) return;
         setName((current) => current || chosen.name);
@@ -104,7 +182,7 @@ export function CheckoutReview() {
 
   useEffect(() => {
     const zip = postal.trim().slice(0, 5);
-    if (!/^[0-9]{5}$/.test(zip) || items.length === 0) {
+    if (country !== "US" || !/^[0-9]{5}$/.test(zip) || items.length === 0) {
       setTax(null);
       setTaxError("");
       setTaxNote("");
@@ -146,7 +224,7 @@ export function CheckoutReview() {
       });
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [items, postal, region]);
+  }, [country, items, postal, region]);
 
   useEffect(() => {
     const productIds = items.map((item) => item.productId || item.id);
@@ -154,9 +232,9 @@ export function CheckoutReview() {
     void fetch("/api/shipping/quote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productIds, promoCode, subtotal }),
+      body: JSON.stringify({ productIds }),
     }).then(async (response) => {
-      const body = (await response.json().catch(() => null)) as { options?: ShipChoice[]; error?: string; discount?: number; promoError?: string } | null;
+      const body = (await response.json().catch(() => null)) as { options?: ShipChoice[]; error?: string } | null;
       if (!response.ok || !body?.options?.length) {
         setShipChoices([]);
         setShipCode("");
@@ -164,17 +242,70 @@ export function CheckoutReview() {
         return;
       }
       setShipError("");
-      setDiscount(body.discount ?? 0);
-      setPromoError(promoCode.trim() ? body.promoError ?? "" : "");
       setShipChoices(body.options);
       setShipCode((current) => body.options?.some((option) => option.code === current) ? current : body.options?.[0]?.code ?? "");
     }).catch(() => {
       setShipChoices([]);
       setShipError("Shipping options could not be loaded.");
     });
-  }, [items, promoCode, subtotal]);
+  }, [items]);
+
+  useEffect(() => {
+    const code = promoCode.trim();
+    if (!code) {
+      setDiscount(0);
+      setPromoError("");
+      setPromoStatus("idle");
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setPromoStatus("checking");
+      void fetch("/api/promo/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal }),
+        signal: controller.signal,
+      }).then(async (response) => {
+        if (controller.signal.aborted) return;
+        const body = (await response.json().catch(() => null)) as { ok?: boolean; discount?: number; reason?: string; error?: string } | null;
+        if (controller.signal.aborted) return;
+        if (!response.ok || !body) {
+          setDiscount(0);
+          setPromoStatus("idle");
+          setPromoError(body?.error ?? "That promo code could not be checked. Remove it, or enter another.");
+          return;
+        }
+        if (body.ok) {
+          setDiscount(Number(body.discount ?? 0));
+          setPromoError("");
+          setPromoStatus("applied");
+          return;
+        }
+        setDiscount(0);
+        setPromoStatus("idle");
+        setPromoError(
+          body.reason === "expired"
+            ? "That promo code has expired. Remove it, or enter another."
+            : body.reason === "not_yet"
+              ? "That promo code is not available yet. Remove it, or enter another."
+              : "That promo code is not valid. Remove it, or enter another.",
+        );
+      }).catch((cause: unknown) => {
+        if (cause instanceof DOMException && cause.name === "AbortError") return;
+        setDiscount(0);
+        setPromoStatus("idle");
+        setPromoError("That promo code could not be checked. Remove it, or enter another.");
+      });
+    }, 450);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [promoCode, subtotal]);
 
   async function pay() {
+    if (country !== "US") return;
     setError("");
     setPending(true);
     const response = await fetch("/api/checkout", {
@@ -183,7 +314,7 @@ export function CheckoutReview() {
       body: JSON.stringify({
         items,
         guestEmail: user ? undefined : guestEmail,
-        shipping: { name, line1, line2, city, region, postal },
+        shipping: { name, line1, line2, city, region, postal, country },
         shippingOption: shipCode,
         promoCode,
       }),
@@ -195,6 +326,8 @@ export function CheckoutReview() {
       return;
     }
     sessionStorage.setItem(HOLD_KEY, JSON.stringify({ orderId: body.orderId, token: body.token }));
+    const draft: CheckoutDraft = { guestEmail, name, line1, line2, city, region, postal, country, shipCode, promoCode };
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     window.location.assign(body.url);
   }
 
@@ -241,7 +374,31 @@ export function CheckoutReview() {
         </section>
         <section className="rounded-3xl border border-stone bg-white p-5">
           <h2 className="font-display text-2xl">Ship to</h2>
-          <p className="mt-2 text-sm text-muted">United States delivery. Choose a shipping option before you pay.</p>
+          <p className="mt-2 text-sm text-muted">
+            {country === "US" ? "United States delivery. Choose a shipping option before you pay." : "Tell us where to send it."}
+          </p>
+          <label className="mt-4 block text-sm">
+            Country
+            <select
+              className="mt-2 h-12 w-full rounded-2xl border border-stone bg-white px-4"
+              required
+              autoComplete="country"
+              value={country}
+              onChange={(event) => {
+                const code = event.target.value;
+                setCountry(code);
+                if (code !== "US" && US_STATES.some(([state]) => state === region)) setRegion("");
+                if (code === "US" && !US_STATES.some(([state]) => state === region)) setRegion("TX");
+              }}
+            >
+              {shipCountries.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
+            </select>
+          </label>
+          {country !== "US" ? (
+            <p className="mt-4 rounded-3xl border border-stone bg-paper p-4 text-sm" role="status">
+              {outsideNotice(policies.outsideUsNotice, shipCountries.find((item) => item.code === country)?.name ?? "your area")}
+            </p>
+          ) : null}
           {savedAddresses.length ? (
             <label className="mt-4 block text-sm">
               Saved address
@@ -272,13 +429,17 @@ export function CheckoutReview() {
             <label className="text-sm">Apartment, suite <span className="text-muted">(optional)</span><Input className="mt-2" autoComplete="address-line2" value={line2} onChange={(event) => setLine2(event.target.value)} /></label>
             <label className="text-sm">City<Input className="mt-2" required autoComplete="address-level2" value={city} onChange={(event) => setCity(event.target.value)} /></label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm">
-                State
-                <select className="mt-2 h-12 w-full rounded-2xl border border-stone bg-white px-4" required autoComplete="address-level1" value={region} onChange={(event) => setRegion(event.target.value)}>
-                  {US_STATES.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
-                </select>
-              </label>
-              <label className="text-sm">ZIP code<Input className="mt-2" required autoComplete="postal-code" inputMode="numeric" value={postal} onChange={(event) => setPostal(event.target.value)} /></label>
+              {country === "US" ? (
+                <label className="text-sm">
+                  State
+                  <select className="mt-2 h-12 w-full rounded-2xl border border-stone bg-white px-4" required autoComplete="address-level1" value={region} onChange={(event) => setRegion(event.target.value)}>
+                    {US_STATES.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+                  </select>
+                </label>
+              ) : (
+                <label className="text-sm">State or province<Input className="mt-2" autoComplete="address-level1" value={region} onChange={(event) => setRegion(event.target.value)} /></label>
+              )}
+              <label className="text-sm">{country === "US" ? "ZIP code" : "Postal code"}<Input className="mt-2" required={country === "US"} autoComplete="postal-code" inputMode={country === "US" ? "numeric" : "text"} value={postal} onChange={(event) => setPostal(event.target.value)} /></label>
             </div>
           </div>
         </section>
@@ -310,12 +471,43 @@ export function CheckoutReview() {
           ))}
           {shipError ? <p className="text-sm" role="alert">{shipError}</p> : null}
         </fieldset>
-        {discount > 0 ? <p className="mt-2 flex justify-between text-sm"><span>Discount</span><span>−{formatUsd(discount)}</span></p> : null}
-        {promoError ? <p className="mt-1 text-sm" role="alert">{promoError}</p> : null}
         <label className="mt-4 block text-sm">
           Promo code <span className="text-muted">(optional)</span>
-          <Input className="mt-2" value={promoCode} onChange={(event) => setPromoCode(event.target.value)} autoCapitalize="characters" />
+          <Input
+            className="mt-2 uppercase"
+            value={promoCode}
+            autoCapitalize="characters"
+            autoComplete="off"
+            aria-invalid={Boolean(promoError)}
+            onChange={(event) => {
+              const value = event.target.value.toUpperCase();
+              setPromoCode(value);
+              setDiscount(0);
+              setPromoError("");
+              setPromoStatus(value.trim() ? "checking" : "idle");
+            }}
+          />
         </label>
+        {promoStatus === "checking" ? <p className="mt-1 text-sm text-muted">Checking that code.</p> : null}
+        {promoStatus === "applied" && !promoError ? <p className="mt-1 text-sm">{discount > 0 ? `${formatUsd(discount)} off.` : "Applied."}</p> : null}
+        {promoError ? (
+          <p className="mt-1 text-sm" role="alert">
+            {promoError}{" "}
+            <button
+              type="button"
+              className="font-bold underline"
+              onClick={() => {
+                setPromoCode("");
+                setDiscount(0);
+                setPromoError("");
+                setPromoStatus("idle");
+              }}
+            >
+              Remove
+            </button>
+          </p>
+        ) : null}
+        {discount > 0 ? <p className="mt-2 flex justify-between text-sm"><span>Discount</span><span>−{formatUsd(discount)}</span></p> : null}
         <p className="mt-4 flex justify-between text-sm"><span>Subtotal</span><span>{formatUsd(subtotal)}</span></p>
         <p className="mt-1 flex justify-between text-sm"><span>Shipping</span><span>{ship ? (ship.price > 0 ? formatUsd(ship.price) : "Free") : "—"}</span></p>
         <p className="mt-1 flex justify-between text-sm">
@@ -327,12 +519,12 @@ export function CheckoutReview() {
         {tax && tax.tax === 0 ? <p className="mt-1 text-sm text-muted">No sales tax for this ZIP code.</p> : null}
         {taxNote ? <p className="mt-1 text-sm text-muted">{taxNote}</p> : null}
         {taxError ? <p className="mt-1 text-sm" role="alert">{taxError}</p> : null}
-        {!tax && !taxError && !taxPending && !taxNote ? <p className="mt-1 text-sm text-muted">Enter a ZIP code to calculate sales tax.</p> : null}
+        {country === "US" && !tax && !taxError && !taxPending && !taxNote ? <p className="mt-1 text-sm text-muted">Enter a ZIP code to calculate sales tax.</p> : null}
         <p className="mt-2 flex justify-between font-bold"><span>Total</span><span>{formatUsd(orderTotal)}</span></p>
         <p className="mt-2 text-sm text-muted">{ship ? shippingWindow(ship) : "Choose shipping to see the delivery window."} <Link className="font-bold text-ink underline" href="/cart">Edit cart</Link></p>
         <div className="mt-4"><PaymentNote /></div>
         {error ? <p className="mt-3 text-sm" role="alert">{error}</p> : null}
-        <Button className="mt-4 w-full" type="submit" disabled={pending || taxPending || !tax || !ship || Boolean(promoError)}>{pending ? "Opening secure payment" : "Pay now"}</Button>
+        <Button className="mt-4 w-full" type="submit" disabled={country !== "US" || pending || taxPending || !tax || !ship || promoStatus === "checking" || Boolean(promoError)}>{pending ? "Opening secure payment" : "Pay now"}</Button>
       </aside>
       <div className="h-0 md:hidden">
         <div
@@ -341,7 +533,7 @@ export function CheckoutReview() {
         >
           <div className="mx-auto flex max-w-[1280px] items-center gap-3">
             <p className="min-w-0 flex-1 font-bold">{formatUsd(orderTotal)}</p>
-            <Button type="submit" disabled={pending || taxPending || !tax || !ship || Boolean(promoError)}>
+            <Button type="submit" disabled={country !== "US" || pending || taxPending || !tax || !ship || promoStatus === "checking" || Boolean(promoError)}>
               {pending ? "Opening" : "Pay now"}
             </Button>
           </div>

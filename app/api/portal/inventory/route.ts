@@ -80,6 +80,16 @@ const commerceSchema = z.object({
   warrantyNote: z.string().trim().max(300),
   googleCategory: z.string().trim().max(120),
   showAvailable: z.boolean().default(false),
+  details: z.object({
+    specifications: z.array(z.object({
+      label: z.string().trim().max(80),
+      value: z.string().trim().max(240),
+    })).max(16).default([]),
+    inTheBox: z.string().trim().max(2000).default(""),
+    compatibility: z.string().trim().max(2000).default(""),
+    care: z.string().trim().max(2000).default(""),
+    app: z.string().trim().max(2000).default(""),
+  }).default({ specifications: [], inTheBox: "", compatibility: "", care: "", app: "" }),
 });
 
 const mediaSchema = z.discriminatedUnion("kind", [
@@ -275,7 +285,15 @@ const productSchema = z.object({
   warrantyYears: z.number().int().min(1).max(30).nullable(),
   warrantyDays: z.number().int().min(1).max(3650).nullable(),
   status: z.string().trim().min(1).max(40),
-  summary: z.string().trim().min(1).max(500),
+  summary: z.string().trim().min(1).max(1200),
+  kicker: z.string().trim().max(80).default(""),
+  lead: z.string().trim().max(160).default(""),
+  detail: z.string().trim().max(4000).default(""),
+  note: z.string().trim().max(500).default(""),
+  signals: z.array(z.object({
+    label: z.string().trim().min(1).max(40),
+    text: z.string().trim().min(1).max(80),
+  })).max(4).default([]),
   sku: z.string().trim().min(1).max(40),
   onHand: z.number().int().min(0).max(100000),
   reserved: z.number().int().min(0).max(100000),
@@ -300,7 +318,10 @@ const productFieldGuide = {
   href: { name: "Page path", tab: "product" },
   categoryId: { name: "Category", tab: "product" },
   status: { name: "Status label", tab: "product" },
-  summary: { name: "Summary", tab: "product" },
+  summary: { name: "Highlighted summary", tab: "details" },
+  lead: { name: "Highlight line", tab: "details" },
+  detail: { name: "Overview", tab: "details" },
+  note: { name: "Important note", tab: "details" },
   "commerce.model": { name: "Model", tab: "product" },
   price: { name: "Price", tab: "price" },
   salePrice: { name: "Sale price", tab: "price" },
@@ -700,6 +721,11 @@ export async function POST(request: Request) {
     commerce,
     status,
     summary: item.summary,
+    kicker: item.kicker,
+    lead: item.lead,
+    detail: item.detail,
+    note: item.note,
+    signals: item.signals,
     sku: item.sku,
     sort,
   });

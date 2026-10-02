@@ -34,6 +34,7 @@ export type ContentBundle = {
     strapSummary: string;
     dockSummary: string;
     shipping: string;
+    outsideUsNotice: string;
     returnsSummary: string;
     warrantyRegistration: string;
     accountSummary: string;
