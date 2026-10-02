@@ -14,3 +14,6 @@ verify_jwt = true
 
 [functions.write-blog]
 verify_jwt = true
+
+[functions.staff-notify]
+verify_jwt = true

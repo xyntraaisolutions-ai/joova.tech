@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { alertStaff } from "@/lib/mail/staff-alert";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -48,6 +49,10 @@ export async function POST(request: NextRequest) {
   });
   if (error) {
     return NextResponse.json({ ok: false, error: "The return could not be started." }, { status: 500 });
+  }
+  const body = data as { ok?: boolean } | null;
+  if (body?.ok) {
+    await alertStaff({ kind: "return", orderId: parsed.data.order, email: parsed.data.email });
   }
   return NextResponse.json(data);
 }

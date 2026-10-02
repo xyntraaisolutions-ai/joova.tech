@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 import { orderEmailDefaults, passwordEmailFrom, renderOrderEmail, type OrderReceipt } from "@/lib/mail/template";
 import { loadBrandMark, publicLogoUrl } from "@/lib/brand/logo";
 import { invoicePdfFilename } from "@/lib/mail/receipt-pdf";
@@ -174,6 +174,22 @@ async function loadOrderEmail() {
   };
 }
 
+async function orderAlertEmails(fallback: string) {
+  const backup = fallback.includes("@") ? [fallback] : [];
+  if (!isServiceRoleConfigured()) return backup;
+  const listed = await createAdminClient()
+    .from("notification_recipients")
+    .select("email")
+    .eq("kind", "order")
+    .eq("email_enabled", true)
+    .is("deleted_at", null);
+  const emails = (listed.data ?? [])
+    .map((row) => String(row.email ?? "").trim().toLowerCase())
+    .filter((email) => email.includes("@"));
+  const unique = [...new Set(emails)];
+  return unique.length ? unique : backup;
+}
+
 export async function sendPaidOrderEmails(order: PaidOrder) {
   if (!order.email) return false;
   const loaded = await loadOrderEmail();
@@ -189,12 +205,17 @@ export async function sendPaidOrderEmails(order: PaidOrder) {
     attachments,
   });
   if (!customer) return false;
-  const staff = await sendNoticeEmail({
-    id: "staff_order",
-    to: loaded.supportEmail,
-    values: { order_id: order.orderId, email: order.email, name, total: money(chargedTotal(order)) },
-    buttonLink: `${(loaded.siteUrl || "https://joova.tech").replace(/\/$/, "")}/portal/support`,
-  });
+  const targets = await orderAlertEmails(loaded.supportEmail);
+  let staff = false;
+  for (const to of targets) {
+    const sent = await sendNoticeEmail({
+      id: "staff_order",
+      to,
+      values: { order_id: order.orderId, email: order.email, name, total: money(chargedTotal(order)) },
+      buttonLink: `${(loaded.siteUrl || "https://joova.tech").replace(/\/$/, "")}/portal/support`,
+    });
+    staff = staff || sent;
+  }
   if (!staff) console.error("order-mail", "staff copy failed", order.orderId);
   return true;
 }

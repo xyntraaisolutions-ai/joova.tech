@@ -108,6 +108,8 @@ Deno.serve(async (request) => {
       "back_in_stock",
       "low_stock",
       "staff_order",
+      "staff_return",
+      "staff_warranty",
       "stock_request",
     ]);
     if (!allowed.has(id) || !serviceKey) return Response.json({ error: "invalid" }, { status: 400 });

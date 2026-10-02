@@ -7,6 +7,7 @@ import { PromoCodes } from "@/components/portal/promo-codes";
 import { SalesReport } from "@/components/portal/sales-report";
 import { SalesTax } from "@/components/portal/sales-tax";
 import { SellCountries } from "@/components/portal/sell-countries";
+import { NotificationList } from "@/components/portal/notification-list";
 import { NoticeEmailForm } from "@/components/portal/notice-email-form";
 import { OrderEmailForm } from "@/components/portal/order-email-form";
 import { PasswordEmailForm } from "@/components/portal/password-email-form";
@@ -62,6 +63,15 @@ export function AdminDesk() {
             { id: "taxes", label: "Taxes" },
             { id: "report", label: "Sales and tax" },
             { id: "promos", label: "Promo codes" },
+          ],
+        },
+        {
+          id: "notifications",
+          label: "Notifications",
+          items: [
+            { id: "notify-order", label: "Order" },
+            { id: "notify-return", label: "Return" },
+            { id: "notify-warranty", label: "Warranty" },
           ],
         },
         {
@@ -163,6 +173,16 @@ export function AdminDesk() {
       <section className="rounded-3xl bg-white p-4">
         <PromoCodes onError={setError} />
       </section>
+      </PortalPanel>
+
+      <PortalPanel id="notify-order">
+        <NotificationList kind="order" onError={setError} />
+      </PortalPanel>
+      <PortalPanel id="notify-return">
+        <NotificationList kind="return" onError={setError} />
+      </PortalPanel>
+      <PortalPanel id="notify-warranty">
+        <NotificationList kind="warranty" onError={setError} />
       </PortalPanel>
 
       <PortalPanel id="order-email">

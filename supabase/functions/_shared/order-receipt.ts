@@ -347,6 +347,15 @@ const staffDefaults = {
   footer: "Joova Tech LLC · Grapevine, Texas · {{support_email}}",
 };
 
+async function orderAlertEmails(fallback: string) {
+  const rows = await restGet("notification_recipients?kind=eq.order&email_enabled=eq.true&deleted_at=is.null&select=email");
+  const emails = Array.isArray(rows)
+    ? rows.map((row) => text((row as { email?: unknown }).email).toLowerCase()).filter((email) => email.includes("@"))
+    : [];
+  const unique = [...new Set(emails)];
+  return unique.length ? unique : [fallback].filter((email) => email.includes("@"));
+}
+
 async function staffOrderEmail(copy: Awaited<ReturnType<typeof loadCopy>>, values: Record<string, string>) {
   const rows = await restGet("email_templates?id=eq.staff_order&select=subject,heading,body,button_label,footer");
   const template = Array.isArray(rows) ? rows[0] as Record<string, unknown> | undefined : undefined;
@@ -411,12 +420,17 @@ export async function deliverConfirmation(sessionId: string, invoiceId = "") {
     support_email: copy.supportEmail,
     site_name: copy.brand,
   });
-  const staff = await sendMail({
-    to: rendered.supportEmail,
-    subject: staffMail.subject,
-    text: staffMail.text,
-    html: staffMail.html,
-  });
+  const targets = await orderAlertEmails(rendered.supportEmail);
+  let staff = false;
+  for (const to of targets) {
+    const sent = await sendMail({
+      to,
+      subject: staffMail.subject,
+      text: staffMail.text,
+      html: staffMail.html,
+    });
+    staff = staff || sent;
+  }
   if (!staff) console.log("order-receipt", "staff copy failed", order.orderId);
   return { emailSent: true };
 }
