@@ -83,14 +83,18 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,color-mix(in_srgb,var(--joova-coral)_28%,transparent),transparent_55%)]"
       />
       <div className="relative mx-auto grid max-w-[1280px] items-center gap-6 px-5 py-6 sm:px-8 md:grid-cols-2 md:gap-12 md:py-16">
-        <div className="stage min-w-0 rounded-[28px] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8 md:order-2">
+        <div className="stage flex min-w-0 flex-col items-center rounded-[28px] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8 md:order-2">
           <ImageSlideshow
             key={highlight.id}
             slides={heroSlides(highlight)}
             priority={highlight.id === "band"}
             paused={paused}
-            imageClassName="h-[min(28vh,240px)] w-auto md:h-[min(52vh,480px)]"
+            className="w-full"
+            imageClassName="h-[min(28vh,240px)] w-auto md:h-[min(40vh,360px)]"
           />
+          <Link href={highlight.href} className={buttonClassName("primary", "lg", "mt-4 w-full sm:w-auto")}>
+            See Details
+          </Link>
         </div>
         <div className="min-w-0 md:order-1">
           {highlight.kicker ? (
@@ -109,8 +113,8 @@ export function Hero() {
             {highlight.name}
           </h1>
           <p className="mt-3 font-display text-3xl font-semibold text-paper">{highlight.priceLabel}</p>
-          <p className="mt-4 max-w-xl text-lg text-paper/85">{highlight.lead}</p>
-          <p className="mt-3 hidden max-w-xl text-paper/75 md:block">{highlight.detail}</p>
+          {highlight.lead ? <p className="mt-4 max-w-xl text-lg text-paper/85">{highlight.lead}</p> : null}
+          {highlight.summary ? <p className="mt-3 line-clamp-4 max-w-xl text-paper/75 md:line-clamp-none">{highlight.summary}</p> : null}
           <div
             className="mt-4 flex gap-2"
             role="tablist"
@@ -131,11 +135,6 @@ export function Hero() {
                 {item.menuLabel}
               </button>
             ))}
-          </div>
-          <div className="mt-4">
-            <Link href={highlight.href} className={buttonClassName("primary", "lg", "w-full sm:w-auto")}>
-              See Details
-            </Link>
           </div>
           <div className="-mx-5 mt-4 flex max-w-full snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
             {highlight.signals.map((signal) => (

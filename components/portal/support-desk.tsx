@@ -2,6 +2,8 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
+import { OrderOrigin } from "@/components/orders/order-origin";
+import { CouponDesk } from "@/components/portal/coupon-desk";
 import { ResourceDelete } from "@/components/portal/resource-delete";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +43,8 @@ type Order = {
   payment_status?: string;
   subtotal?: number;
   tax_amount?: number | null;
+  discount_amount?: number | null;
+  promo_code?: string | null;
   created_at?: string;
   deleted_at?: string | null;
   order_items: {
@@ -54,6 +58,9 @@ type Order = {
   shipments: { carrier: string | null; tracking_number: string | null; status: string }[];
   returns: { id: string; status: string; reason: string; decision_note?: string; resolution?: string; deleted_at?: string | null }[];
   warranty_registrations?: { id: string; product_id: string; serial?: string | null; coverage_ends_at?: string | null; deleted_at?: string | null }[];
+  order_kind?: string | null;
+  warranty_claims?: { order_id?: string } | { order_id?: string }[] | null;
+  source_return?: { order_id?: string } | { order_id?: string }[] | null;
 };
 type Claim = {
   id: string;
@@ -90,7 +97,7 @@ function orderTotal(counts?: Record<string, number>) {
 const firstPages: ListPages = { customers: 1, messages: 1, requests: 1, orders: 1, returns: 1, claims: 1 };
 const firstAccountPages: AccountPages = { orders: 1, messages: 1, claims: 1 };
 const emptyPage = { rows: [], total: 0, page: 1, pages: 1, open: 0 };
-type Section = "customers" | "messages" | "requests" | "orders" | "returns" | "claims";
+type Section = "customers" | "messages" | "requests" | "orders" | "returns" | "claims" | "coupons";
 
 type ReturnOrder = {
   id: string;
@@ -480,6 +487,7 @@ export function SupportDesk() {
     { id: "orders", label: `Orders (${orderTotal(orderCounts)})` },
     { id: "returns", label: `Returns (${openReturns})` },
     { id: "claims", label: `Warranty (${claims.total})` },
+    { id: "coupons", label: "Coupons" },
   ];
 
   return (
@@ -735,6 +743,8 @@ export function SupportDesk() {
           <Pager page={claims.page} pages={claims.pages} total={claims.total} pageSize={pageSize} onPage={(page) => turn("claims", page)} />
         </section>
       ) : null}
+
+      {section === "coupons" ? <CouponDesk onError={setError} /> : null}
     </div>
   );
 }
@@ -1204,6 +1214,7 @@ function OrderCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-bold">{order.id}</p>
+          <OrderOrigin order={order} />
           <p className="break-all text-sm text-muted">{order.email}</p>
         </div>
         <p className="text-sm text-muted">
@@ -1249,6 +1260,12 @@ function OrderCard({
           </li>
         ))}
       </ul>
+      {order.promo_code ? (
+        <p className="mt-2 text-sm">
+          Promo {order.promo_code}
+          {Number(order.discount_amount ?? 0) > 0 ? ` · ${formatUsd(Number(order.discount_amount))} off` : ""}
+        </p>
+      ) : null}
       {showLink && customer ? (
         <Button type="button" size="sm" variant="secondary" className="mt-3" onClick={() => onOpenCustomer(customer.id)}>
           Open customer

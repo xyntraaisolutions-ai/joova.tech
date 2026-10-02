@@ -6,7 +6,7 @@ export type BlogSection = {
 
 export type BlogPost = {
   slug: string;
-  productId: "band" | "ring";
+  productId: string;
   title: string;
   description: string;
   excerpt: string;
@@ -16,6 +16,8 @@ export type BlogPost = {
   points: readonly string[];
   sections: readonly BlogSection[];
   relatedSlug: string;
+  bannerUrl?: string;
+  bannerAlt?: string;
 };
 
 export const blogPosts: readonly BlogPost[] = [

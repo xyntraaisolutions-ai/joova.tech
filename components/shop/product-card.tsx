@@ -44,7 +44,7 @@ export function ProductCard({ product, actions = false }: { product: CatalogProd
           ) : null}
         </p>
         <p className="mt-1 text-sm text-muted">{policies.returnsTitle}</p>
-        <p className="mt-3 flex-1 text-muted">{product.summary}</p>
+        <p className="mt-3 line-clamp-3 flex-1 text-muted">{product.summary}</p>
         {actions ? (
           <ShopCardActions product={product} />
         ) : (

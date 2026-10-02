@@ -6,7 +6,7 @@ export async function GET() {
   const gate = await requirePortalApi(["content", "admin"]);
   if ("error" in gate && gate.error) return gate.error;
   const { session } = gate;
-  const [settings, policies, pages, posts, sections, videos, help, social, channels, links, nav, blocks, reviews, payments, stores] =
+  const [settings, policies, pages, posts, sections, videos, help, social, channels, links, nav, blocks, reviews, payments, stores, products] =
     await Promise.all([
       session.supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
       session.supabase.from("policies").select("*").eq("id", 1).maybeSingle(),
@@ -23,6 +23,7 @@ export async function GET() {
       session.supabase.from("reviews").select("id, product_id, author, body, verified, published, created_at, deleted_at").order("created_at", { ascending: false }),
       session.supabase.from("payment_methods").select("id, label, offered, deleted_at").order("sort"),
       session.supabase.from("store_links").select("id, label, href, enabled, sort, deleted_at").order("sort"),
+      session.supabase.from("products").select("id, name, menu_label").eq("published", true).order("sort"),
     ]);
   return NextResponse.json({
     settings: settings.data,
@@ -40,6 +41,7 @@ export async function GET() {
     reviews: reviews.data ?? [],
     payments: payments.data ?? [],
     stores: stores.data ?? [],
+    products: products.data ?? [],
   });
 }
 
@@ -105,6 +107,7 @@ const saveSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("policies"),
     shipping: z.string().trim().min(1).max(500),
+    outsideUsNotice: z.string().trim().min(1).max(500),
     returnsSummary: z.string().trim().min(1).max(800),
     warrantyRegistration: z.string().trim().min(1).max(800),
     accountSummary: z.string().trim().min(1).max(800),
@@ -197,6 +200,8 @@ const saveSchema = z.discriminatedUnion("kind", [
     excerpt: z.string().trim().min(1).max(400),
     description: z.string().trim().min(1).max(300),
     published: z.boolean(),
+    points: z.string().trim().max(2000).optional(),
+    bannerAlt: z.string().trim().max(180).optional(),
   }),
 ]);
 
@@ -330,6 +335,7 @@ export async function POST(request: Request) {
     entityId = "policies";
     const result = await session.supabase.from("policies").update({
       shipping: body.shipping,
+      outside_us_notice: body.outsideUsNotice,
       returns_summary: body.returnsSummary,
       warranty_registration: body.warrantyRegistration,
       account_summary: body.accountSummary,
@@ -434,11 +440,14 @@ export async function POST(request: Request) {
     error = result.error;
   } else {
     entityId = body.slug;
+    const points = body.points?.split(/\n+/).map((point) => point.trim()).filter(Boolean);
     const result = await session.supabase.from("blog_posts").update({
       title: body.title,
       excerpt: body.excerpt,
       description: body.description,
       published: body.published,
+      ...(points ? { points } : {}),
+      ...(body.bannerAlt !== undefined ? { banner_alt: body.bannerAlt } : {}),
     }).eq("slug", body.slug);
     error = result.error;
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { BlogDesk } from "@/components/portal/blog-desk";
 import { ResourceDelete } from "@/components/portal/resource-delete";
 import { WarrantyDesk } from "@/components/portal/warranty-desk";
 import { noticeBackgrounds, noticeFontColors } from "@/content/site";
@@ -112,6 +113,7 @@ export function ContentDesk({ section }: { section: string }) {
             setError(await save({
               kind: "policies",
               shipping: String(form.get("shipping") ?? ""),
+              outsideUsNotice: String(form.get("outsideUsNotice") ?? ""),
               returnsSummary: String(form.get("returnsSummary") ?? ""),
               warrantyRegistration: String(form.get("warrantyRegistration") ?? ""),
               accountSummary: String(form.get("accountSummary") ?? ""),
@@ -125,6 +127,12 @@ export function ContentDesk({ section }: { section: string }) {
           }}
         >
           <Area name="shipping" label="Shipping" defaultValue={policies.shipping} />
+          <Area
+            name="outsideUsNotice"
+            label="Outside the United States"
+            defaultValue={policies.outside_us_notice}
+            hint="Shown at checkout when the ship-to country is not the United States. {{country}} is replaced with that country name."
+          />
           <Area name="returnsSummary" label="Returns" defaultValue={policies.returns_summary} />
           <Area name="warrantyRegistration" label="Warranty registration" defaultValue={policies.warranty_registration} />
           <Area name="accountSummary" label="Account summary" defaultValue={policies.account_summary} />
@@ -186,60 +194,8 @@ export function ContentDesk({ section }: { section: string }) {
         </Section>
       ) : null}
 
-      <Section id="blog" active={section}>
-        <h2 className="font-display text-2xl">Blog</h2>
-        <ul className="mt-4 space-y-3">
-          {(data.posts ?? []).map((post) => (
-            <li key={post.slug} className="rounded-3xl bg-white p-4">
-              <form
-                className="grid gap-3"
-                onSubmit={async (event) => {
-                  event.preventDefault();
-                  const form = new FormData(event.currentTarget);
-                  setError(await save({
-                    kind: "blog",
-                    slug: post.slug,
-                    title: String(form.get("title") ?? ""),
-                    excerpt: String(form.get("excerpt") ?? ""),
-                    description: String(form.get("description") ?? ""),
-                    published: form.get("published") === "on",
-                  }));
-                }}
-              >
-                <Field name="title" label={post.slug} defaultValue={post.title} />
-                <Area name="excerpt" label="Excerpt" defaultValue={post.excerpt} />
-                <Area name="description" label="Description" defaultValue={post.description} />
-                <label className="text-sm"><input type="checkbox" name="published" defaultChecked={post.published} /> Published</label>
-                <Button type="submit" size="sm">Save post</Button>
-              </form>
-              <ResourceDelete table="blog_posts" id={post.slug} removed={Boolean(post.deleted_at)} onDone={() => void load()} />
-              <ul className="mt-4 space-y-3">
-                {(data.sections ?? []).filter((section) => section.post_slug === post.slug).map((section) => (
-                  <li key={section.id}>
-                    <form
-                      className="grid gap-3"
-                      onSubmit={async (event) => {
-                        event.preventDefault();
-                        const form = new FormData(event.currentTarget);
-                        setError(await save({
-                          kind: "section",
-                          id: section.id,
-                          heading: String(form.get("heading") ?? ""),
-                          paragraphs: String(form.get("paragraphs") ?? ""),
-                        }));
-                      }}
-                    >
-                      <Field name="heading" label="Section heading" defaultValue={section.heading} />
-                      <Area name="paragraphs" label="Paragraphs, separated by a blank line" defaultValue={(section.paragraphs ?? []).join("\n\n")} />
-                      <Button type="submit" size="sm">Save section</Button>
-                    </form>
-                    <ResourceDelete table="blog_sections" id={section.id} removed={Boolean(section.deleted_at)} onDone={() => void load()} />
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
+      <Section id="blogs" active={section}>
+        <BlogDesk />
       </Section>
 
       <Section id="videos" active={section}>
@@ -1040,10 +996,11 @@ function Field({ name, label, defaultValue, optional = false }: { name: string; 
   );
 }
 
-function Area({ name, label, defaultValue }: { name: string; label: string; defaultValue?: string }) {
+function Area({ name, label, defaultValue, hint }: { name: string; label: string; defaultValue?: string; hint?: string }) {
   return (
     <label className="block text-sm">
       {label}
+      {hint ? <span className="mt-1 block text-muted">{hint}</span> : null}
       <textarea name={name} defaultValue={defaultValue ?? ""} className="mt-2 min-h-24 w-full rounded-2xl border border-stone bg-white px-4 py-3" required />
     </label>
   );

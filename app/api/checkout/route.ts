@@ -39,6 +39,7 @@ const bodySchema = z.object({
     city: z.string().trim().min(1).max(80),
     region: z.string().trim().length(2),
     postal: z.string().trim().min(5).max(10),
+    country: z.string().trim().length(2).optional(),
   }),
   shippingOption: z.string().trim().min(1).max(40),
   promoCode: z.string().trim().max(40).optional(),
@@ -48,6 +49,9 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Check the email, ship-to address, and cart." }, { status: 400 });
+  }
+  if ((parsed.data.shipping.country ?? "US").toUpperCase() !== "US") {
+    return NextResponse.json({ error: "Joova delivers in the United States today." }, { status: 400 });
   }
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ error: "Payment is not ready yet." }, { status: 503 });

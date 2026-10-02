@@ -60,8 +60,9 @@ export function AuthPanel({
       return <p className="text-muted">Opening the portal.</p>;
     }
     return (
-      <div className="mx-auto max-w-3xl">
-        <h1 className="font-display" style={{ fontSize: "var(--text-h1)" }}>
+      <div className="mx-auto max-w-4xl">
+        <p className="text-sm font-bold tracking-[0.14em] text-muted uppercase">Customer account</p>
+        <h1 className="mt-3 font-display" style={{ fontSize: "var(--text-h1)" }}>
           Account
         </h1>
         <AccountHome name={user.name} email={user.email} orderId={params.get("order")?.trim() ?? ""} onLogout={() => void logout()} />

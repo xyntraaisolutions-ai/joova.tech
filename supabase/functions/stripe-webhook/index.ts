@@ -1,3 +1,5 @@
+import { deliverConfirmation } from "./_shared/order-receipt.ts";
+
 const fromAddress = "Joova Customer Support <support@joova.tech>";
 const replyTo = "support@joova.tech";
 const defaultSupport = "support@joova.tech";
@@ -328,6 +330,33 @@ async function sendMail(input: { to: string; subject: string; text: string; html
   return true;
 }
 
+async function loadPaidOrder(sessionId: string) {
+  const orders = await restGet(
+    `orders?checkout_session_id=eq.${encodeURIComponent(sessionId)}&select=id,email,subtotal,tax_percent,tax_amount,shipping_amount,shipping_name,discount_amount,promo_code,shipping,payment_status`,
+  );
+  const row = Array.isArray(orders) ? orders[0] as Record<string, unknown> | undefined : undefined;
+  if (!row || text(row.payment_status) !== "paid") return null;
+  const orderId = text(row.id);
+  const items = await restGet(
+    `order_items?order_id=eq.${encodeURIComponent(orderId)}&select=name,quantity,price,color,selection,coverage&order=name`,
+  );
+  return {
+    ok: true,
+    already: true,
+    orderId,
+    email: text(row.email),
+    subtotal: row.subtotal,
+    taxPercent: row.tax_percent,
+    taxAmount: row.tax_amount,
+    shipping: row.shipping,
+    shippingAmount: row.shipping_amount,
+    shippingName: row.shipping_name,
+    discountAmount: row.discount_amount,
+    promoCode: row.promo_code,
+    items: Array.isArray(items) ? items : [],
+  };
+}
+
 Deno.serve(async (request) => {
   if (request.method !== "POST") return Response.json({ error: "method" }, { status: 405 });
   const raw = await request.text();
@@ -364,30 +393,9 @@ Deno.serve(async (request) => {
   if (!paid.ok || order?.ok !== true) {
     return Response.json({ error: text(order?.error) || "The payment could not be recorded." }, { status: 400 });
   }
-  if (order.already === true) return Response.json({ ok: true });
-
-  const orderId = text(order.orderId);
-  const claimed = await rpc("claim_order_email", { p_order: orderId });
-  if (claimed.data !== true) return Response.json({ ok: true });
-
-  const copy = await loadCopy();
-  const rendered = receiptEmail(order, copy);
-  const invoiceId = stripeId(session.invoice);
-  const attachments = invoiceId ? await invoiceAttachment(invoiceId, orderId) : undefined;
-  if (invoiceId && !attachments) console.log("stripe-webhook", "invoice missing", orderId);
-  const customer = rendered.email
-    ? await sendMail({ to: rendered.email, subject: rendered.subject, text: rendered.text, html: rendered.html, attachments })
-    : false;
-  if (!customer) {
-    await rpc("clear_order_email", { p_order: orderId });
+  const mailed = await deliverConfirmation(sessionId, stripeId(session.invoice));
+  if (!mailed.emailSent) {
     return Response.json({ error: "The confirmation email could not be sent." }, { status: 500 });
   }
-  const staff = await sendMail({
-    to: rendered.supportEmail,
-    subject: `New paid order ${orderId}`,
-    text: [`Paid order ${orderId}`, rendered.email, rendered.total, rendered.name].join("\n"),
-    html: `<div style="font-family:Arial,sans-serif;color:#111;line-height:1.5"><h1 style="font-size:22px">New paid order ${escapeHtml(orderId)}</h1><p>${escapeHtml(rendered.email)} · ${escapeHtml(rendered.total)}</p></div>`,
-  });
-  if (!staff) console.log("stripe-webhook", "staff copy failed", orderId);
   return Response.json({ ok: true });
 });

@@ -30,11 +30,11 @@ const groups = [
       { id: "page:warranty", label: "Warranty page" },
     ],
   },
+  { id: "blogs", label: "Blogs", items: [{ id: "blogs", label: "Blogs" }] },
   {
     id: "library",
     label: "Library",
     items: [
-      { id: "blog", label: "Blog" },
       { id: "videos", label: "Videos" },
       { id: "help", label: "Help" },
     ],
@@ -62,7 +62,8 @@ const groups = [
 function groupCount(id: string, counts: ContentCounts) {
   const parts: Record<string, string[]> = {
     menus: ["header", "footer"],
-    library: ["blog", "videos", "help"],
+    blogs: ["blogs"],
+    library: ["videos", "help"],
     warranty: ["warranty"],
     media: ["media"],
     channels: ["support-menu", "support-channels"],
@@ -75,6 +76,9 @@ function groupCount(id: string, counts: ContentCounts) {
 }
 
 export function contentSection(tab: string | undefined, section: string | undefined) {
+  if (tab === "blogs" || tab === "blog" || section === "blogs" || section === "blog") {
+    return { tab: "blogs", section: "blogs" };
+  }
   const group = groups.find((entry) => entry.id === tab) ?? groups[0];
   const active = group.items.some((item) => item.id === section) ? section! : group.items[0].id;
   return { tab: group.id, section: active };

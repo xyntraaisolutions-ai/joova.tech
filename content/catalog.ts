@@ -88,6 +88,13 @@ export type CatalogProduct = {
   colors?: { name: string; image?: string }[];
   warrantyNote?: string;
   coverage?: ProductCoverage;
+  story?: {
+    specifications: { label: string; value: string }[];
+    inTheBox: string[];
+    compatibility: string;
+    care: string;
+    app: string;
+  };
 };
 
 export const catalogCategories = [

@@ -6,9 +6,9 @@ import { requirePortalApi, rpcFailed } from "@/lib/portal/api";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 
 const orderSelect =
-  "id, email, status, payment_status, subtotal, created_at, stock_committed_at, shipping, order_items(id, product_id, name, quantity, price, color, selection), shipments(id, carrier, tracking_number, status, shipped_at, delivered_at)";
+  "id, email, status, payment_status, subtotal, created_at, stock_committed_at, shipping, order_kind, order_items(id, product_id, name, quantity, price, color, selection), shipments(id, carrier, tracking_number, status, shipped_at, delivered_at), warranty_claims!orders_source_claim_id_fkey(order_id), source_return:returns!orders_source_return_id_fkey(order_id)";
 const returnSelect =
-  "id, order_id, email, reason, resolution, status, decision_note, customer_reply, requested_at, reviewed_at, received_at, orders(id, email, subtotal, shipping, order_items(name, quantity, color, selection))";
+  "id, order_id, email, reason, resolution, status, decision_note, customer_reply, requested_at, reviewed_at, received_at, orders!returns_order_id_fkey(id, email, subtotal, shipping, order_items(name, quantity, color, selection))";
 
 const stages = {
   open: ["pending_payment", "preparing"],

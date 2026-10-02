@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { CatalogProductView } from "@/components/product/catalog-product";
+import { ProductAbout } from "@/components/product/product-about";
 import { ProductCard } from "@/components/shop/product-card";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import type { ProductPage } from "@/lib/content/product-page";
 
 export function ProductPageView({ product, categoryLabel, related, siteUrl }: ProductPage) {
-  const paragraphs = product.detail.split(/\n\n+/).map((paragraph) => paragraph.trim()).filter(Boolean);
   const canBuy = product.price > 0 && !product.unpriced && product.availability !== "out_of_stock";
   const image = product.image.src ? `${siteUrl}${product.image.src}` : undefined;
   const jsonLd = {
@@ -53,16 +53,13 @@ export function ProductPageView({ product, categoryLabel, related, siteUrl }: Pr
           </Container>
         </Section>
       ) : null}
-      {paragraphs.length || product.note ? (
+      {product.detail || product.note || product.story ? (
         <Section>
           <Container className="max-w-3xl">
             <h2 className="font-display font-extrabold" style={{ fontSize: "var(--text-h2)" }}>About this product</h2>
-            <div className="mt-6 space-y-4">
-              {paragraphs.map((paragraph) => (
-                <p key={paragraph.slice(0, 48)} className="text-muted">{paragraph}</p>
-              ))}
+            <div className="mt-6">
+              <ProductAbout overview={product.detail} note={product.note} story={product.story} />
             </div>
-            {product.note ? <p className="mt-6 rounded-3xl border border-stone bg-white p-6 font-medium">{product.note}</p> : null}
           </Container>
         </Section>
       ) : null}

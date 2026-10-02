@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProfileIdentity, ProfilePanel } from "@/components/account/profile-panel";
 import { SavedAddresses } from "@/components/account/saved-addresses";
+import { useAuth } from "@/components/layout/auth-provider";
+import { useSiteContent } from "@/components/layout/site-content";
+import { OrderOrigin } from "@/components/orders/order-origin";
 import { TrackLookup } from "@/components/track/track-lookup";
 import { purchaseText } from "@/lib/content/variants";
-import { orderStatusLabel } from "@/lib/orders/status";
 import { cn, formatUsd } from "@/lib/utils";
 
 type DeviceClaim = {
@@ -50,6 +53,180 @@ const claimLabel: Record<string, string> = {
 
 function claimIsOpen(status?: string) {
   return Boolean(status) && status !== "closed" && status !== "replaced";
+}
+
+function todayInput() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function claimMessage(input: { happened: string; started: string; tried: string; ask: "repair" | "replace"; serial: string }) {
+  return [
+    `What happened: ${input.happened.trim()}`,
+    input.started ? `Started: ${input.started}` : "",
+    input.tried.trim() ? `Already tried: ${input.tried.trim()}` : "",
+    `Asking for: ${input.ask === "replace" ? "Replace" : "Repair"}`,
+    input.serial ? `Serial: ${input.serial}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function WarrantyClaimForm({
+  device,
+  pending,
+  onPending,
+  onMessage,
+  onSent,
+}: {
+  device: Device;
+  pending: boolean;
+  onPending: (id: string) => void;
+  onMessage: (value: string, ok?: boolean) => void;
+  onSent: () => void;
+}) {
+  const { pageCopy } = useSiteContent();
+  const warranty = pageCopy.warranty;
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<"details" | "confirm">("details");
+  const [happened, setHappened] = useState("");
+  const [started, setStarted] = useState("");
+  const [tried, setTried] = useState("");
+  const [ask, setAsk] = useState<"repair" | "replace">("repair");
+  const [agreed, setAgreed] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  if (!open) {
+    return (
+      <Button className="mt-3" type="button" size="sm" variant="secondary" onClick={() => setOpen(true)}>
+        Start warranty claim
+      </Button>
+    );
+  }
+
+  async function submit() {
+    onPending(device.id);
+    const response = await fetch("/api/warranty", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        registrationId: device.id,
+        message: claimMessage({ happened, started, tried, ask, serial: device.serial }),
+      }),
+    });
+    const data = (await response.json()) as { ok?: boolean; already?: boolean; error?: string };
+    onPending("");
+    onMessage(
+      data.ok
+        ? data.already
+          ? "This device already has an open claim."
+          : "Warranty claim sent. Support reviews it and may ask for more information."
+        : data.error ?? "The claim could not be sent.",
+      data.ok,
+    );
+    if (data.ok) onSent();
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="rounded-2xl bg-stone/40 p-4 text-sm">
+        <p className="font-bold">Warranty policy</p>
+        <p className="mt-2">{warranty.intro}</p>
+        <p className="mt-2"><span className="font-bold">Covered. </span>{warranty.covered}</p>
+        <p className="mt-2"><span className="font-bold">Not covered. </span>{warranty.notCovered}</p>
+        <p className="mt-2"><span className="font-bold">What we do. </span>{warranty.remedy}</p>
+        <p className="mt-2 text-muted">{warranty.footerNote}</p>
+        <p className="mt-2">
+          <Link className="font-bold text-ink underline" href="/warranty">Read the full warranty</Link>
+        </p>
+      </div>
+      {step === "confirm" ? (
+        <div className="space-y-3 text-sm">
+          <p className="font-bold">Confirm this claim</p>
+          <p>Support reviews the claim. A covered product is repaired or replaced. This is not a return.</p>
+          <dl className="space-y-2">
+            <div><dt className="font-bold">Device</dt><dd>{device.name || device.model}{device.serial ? ` · ${device.serial}` : ""}</dd></div>
+            {device.coverageEnds ? <div><dt className="font-bold">Coverage through</dt><dd>{device.coverageEnds}</dd></div> : null}
+            <div><dt className="font-bold">What happened</dt><dd>{happened.trim()}</dd></div>
+            {started ? <div><dt className="font-bold">Started</dt><dd>{started}</dd></div> : null}
+            {tried.trim() ? <div><dt className="font-bold">Already tried</dt><dd>{tried.trim()}</dd></div> : null}
+            <div><dt className="font-bold">Asking for</dt><dd>{ask === "replace" ? "Replace" : "Repair"}</dd></div>
+          </dl>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="secondary" disabled={pending} onClick={() => setStep("details")}>Edit details</Button>
+            <Button type="button" size="sm" disabled={pending} onClick={() => void submit()}>{pending ? "Sending" : "Submit claim"}</Button>
+          </div>
+        </div>
+      ) : (
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (happened.trim().length < 10) {
+              setFormError("Describe what happened in a little more detail.");
+              return;
+            }
+            if (started && started > todayInput()) {
+              setFormError("The start date cannot be in the future.");
+              return;
+            }
+            if (!agreed) {
+              setFormError("Confirm that you have read the warranty policy.");
+              return;
+            }
+            setFormError("");
+            setStep("confirm");
+          }}
+        >
+          <label className="block text-sm">
+            What happened
+            <textarea
+              required
+              minLength={10}
+              maxLength={2000}
+              value={happened}
+              onChange={(event) => setHappened(event.target.value)}
+              className="mt-2 min-h-24 w-full rounded-2xl border border-stone bg-white px-4 py-3 text-[17px]"
+            />
+          </label>
+          <label className="block text-sm">
+            When it started <span className="text-muted">(optional)</span>
+            <Input className="mt-2" type="date" max={todayInput()} value={started} onChange={(event) => setStarted(event.target.value)} />
+          </label>
+          <label className="block text-sm">
+            What you already tried <span className="text-muted">(optional)</span>
+            <textarea
+              maxLength={1000}
+              value={tried}
+              onChange={(event) => setTried(event.target.value)}
+              className="mt-2 min-h-20 w-full rounded-2xl border border-stone bg-white px-4 py-3 text-[17px]"
+            />
+          </label>
+          <fieldset>
+            <legend className="text-sm">What are you asking for?</legend>
+            <p className="mt-1 text-sm text-muted">Support chooses a repair or a replacement when the claim is covered.</p>
+            <label className="mt-2 flex items-start gap-3 text-sm">
+              <input className="mt-1" type="radio" name={`ask-${device.id}`} checked={ask === "repair"} onChange={() => setAsk("repair")} />
+              <span>Repair</span>
+            </label>
+            <label className="mt-2 flex items-start gap-3 text-sm">
+              <input className="mt-1" type="radio" name={`ask-${device.id}`} checked={ask === "replace"} onChange={() => setAsk("replace")} />
+              <span>Replace</span>
+            </label>
+          </fieldset>
+          <label className="flex items-start gap-3 text-sm">
+            <input className="mt-1" type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} required />
+            <span>I have read the warranty policy. This is a warranty claim, not a return.</span>
+          </label>
+          {formError ? <p className="text-sm" role="alert">{formError}</p> : null}
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit" size="sm">Review claim</Button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
 }
 
 function MyDevices({ onMessage }: { email: string; name: string; onMessage: (value: string, ok?: boolean) => void }) {
@@ -133,36 +310,13 @@ function MyDevices({ onMessage }: { email: string; name: string; onMessage: (val
                   </form>
                 ) : null}
                 {!active && !ended ? (
-                  <form
-                    className="mt-3 space-y-2"
-                    onSubmit={async (event) => {
-                      event.preventDefault();
-                      const form = new FormData(event.currentTarget);
-                      setPending(device.id);
-                      const response = await fetch("/api/warranty", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          registrationId: device.id,
-                          message: String(form.get("message") ?? ""),
-                        }),
-                      });
-                      const data = (await response.json()) as { ok?: boolean; already?: boolean; error?: string };
-                      setPending("");
-                      onMessage(data.ok
-                        ? data.already
-                          ? "This device already has an open claim."
-                          : "Warranty claim sent. Support replies within 6 to 24 hours."
-                        : data.error ?? "The claim could not be sent.", data.ok);
-                      if (data.ok) loadDevices();
-                    }}
-                  >
-                    <label className="block text-sm">
-                      What happened
-                      <textarea name="message" required minLength={3} className="mt-2 min-h-20 w-full rounded-2xl border border-stone bg-white px-4 py-3 text-[17px]" />
-                    </label>
-                    <Button type="submit" size="sm" variant="secondary" disabled={pending === device.id}>Start warranty claim</Button>
-                  </form>
+                  <WarrantyClaimForm
+                    device={device}
+                    pending={pending === device.id}
+                    onPending={setPending}
+                    onMessage={onMessage}
+                    onSent={loadDevices}
+                  />
                 ) : null}
                 {ended && !claim ? <p className="mt-3 text-sm text-muted">Coverage has ended, so a new claim cannot be started.</p> : null}
               </li>
@@ -367,17 +521,64 @@ const accountTabs = [
 
 type AccountTab = (typeof accountTabs)[number]["id"];
 
+const progressSteps = ["Ordered", "Preparing", "Shipped", "On the way", "Delivered"] as const;
+
+function progressIndex(status?: string, paymentStatus?: string) {
+  if (paymentStatus !== "paid") return 0;
+  if (status === "shipped") return 2;
+  if (status === "out_for_delivery") return 3;
+  if (status === "delivered") return 4;
+  return 1;
+}
+
+function OrderProgress({ status, paymentStatus }: { status?: string; paymentStatus?: string }) {
+  if (status === "cancelled") {
+    return (
+      <p className="mb-3">
+        <span className="inline-flex rounded-full bg-stone px-2.5 py-1 text-xs font-bold">Cancelled</span>
+      </p>
+    );
+  }
+  const current = progressIndex(status, paymentStatus);
+  return (
+    <ol className="mb-3 flex flex-wrap gap-1.5" aria-label={`Order progress, ${progressSteps[current]}`}>
+      {progressSteps.map((label, index) => {
+        const state = index < current ? "done" : index === current ? "current" : "upcoming";
+        return (
+          <li key={label}>
+            <span
+              aria-current={state === "current" ? "step" : undefined}
+              className={cn(
+                "inline-flex rounded-full px-2.5 py-1 text-xs font-bold",
+                state === "done" && "bg-ink text-paper",
+                state === "current" && "bg-coral text-ink",
+                state === "upcoming" && "bg-stone/60 text-muted",
+              )}
+            >
+              {label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
 type Order = {
   id: string;
   status?: string;
   paymentStatus?: string;
   subtotal: number;
+  discountAmount?: number;
+  promoCode?: string | null;
   createdAt: string;
   items: { id: string; productId?: string; name: string; quantity: number; color?: string; selection?: { color?: string; type?: string; size?: string; custom?: string; sku?: string }; coverage?: string[] }[];
   shipments: { status?: string; tracking_number?: string | null; carrier?: string | null; delivered_at?: string | null }[];
   returns: { id?: string; status?: string; resolution?: string; decision_note?: string; customer_reply?: string; replacement_carrier?: string; replacement_tracking?: string; replacement_order_id?: string | null; requested_at?: string }[];
   registrations: { product_id: string; coverage_ends_at?: string | null }[];
   claims: { id: string; status: string; message: string }[];
+  orderKind?: string;
+  sourceOrderId?: string;
 };
 
 export function AccountHome({
@@ -391,9 +592,14 @@ export function AccountHome({
   onLogout: () => void;
   orderId?: string;
 }) {
+  const { rename } = useAuth();
   const [displayName, setDisplayName] = useState(name);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersReady, setOrdersReady] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
+  const [statusTab, setStatusTab] = useState(0);
+  const [orderPage, setOrderPage] = useState(1);
+  const openedStatus = useRef(false);
   const [message, setMessage] = useState("");
   const [messageAlert, setMessageAlert] = useState(false);
   function note(text: string, ok = true) {
@@ -404,10 +610,21 @@ export function AccountHome({
 
   async function reloadOrders() {
     const response = await fetch("/api/orders");
-    const body = (await response.json()) as { orders?: Order[] };
+    const body = (await response.json()) as { orders?: Order[]; pageSize?: number; error?: string };
+    if (!response.ok) {
+      setOrders([]);
+      setOrdersReady(true);
+      note(body.error ?? "Orders could not be loaded.", false);
+      return;
+    }
+    setPageSize(body.pageSize && body.pageSize > 0 ? body.pageSize : 10);
     setOrders(body.orders ?? []);
     setOrdersReady(true);
   }
+
+  useEffect(() => {
+    setDisplayName(name);
+  }, [name]);
 
   useEffect(() => {
     void reloadOrders();
@@ -418,9 +635,21 @@ export function AccountHome({
   }, [orderId]);
 
   useEffect(() => {
+    if (!ordersReady || openedStatus.current) return;
+    openedStatus.current = true;
+    const target = (orderId && orders.find((order) => order.id === orderId)) || orders.find((order) => order.status !== "cancelled");
+    if (!target || target.status === "cancelled") return;
+    const index = progressIndex(target.status, target.paymentStatus);
+    setStatusTab(index);
+    const group = orders.filter((order) => order.status !== "cancelled" && progressIndex(order.status, order.paymentStatus) === index);
+    const place = group.findIndex((order) => order.id === target.id);
+    if (place >= 0) setOrderPage(Math.floor(place / pageSize) + 1);
+  }, [ordersReady, orders, orderId, pageSize]);
+
+  useEffect(() => {
     if (tab !== "orders" || !orderId || orders.length === 0) return;
     document.getElementById(`order-${orderId}`)?.scrollIntoView({ block: "start" });
-  }, [orderId, orders, tab]);
+  }, [orderId, orders, tab, statusTab, orderPage]);
 
   function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
@@ -433,17 +662,18 @@ export function AccountHome({
     document.getElementById(`account-tab-${id}`)?.focus();
   }
 
+  const returnCount = orders.filter((order) => (order.returns ?? []).length > 0).length;
+  const activeOrders = orders.filter((order) => order.status !== "cancelled");
+  const statusCounts = progressSteps.map((_, index) => activeOrders.filter((order) => progressIndex(order.status, order.paymentStatus) === index).length);
+  const statusOrders = activeOrders.filter((order) => progressIndex(order.status, order.paymentStatus) === statusTab);
+  const orderPages = Math.max(1, Math.ceil(statusOrders.length / pageSize));
+  const visiblePage = Math.min(orderPage, orderPages);
+  const visibleOrders = statusOrders.slice((visiblePage - 1) * pageSize, visiblePage * pageSize);
+
   return (
-    <div className="mt-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-lg">
-          Signed in as {displayName}. <span className="text-muted">{email}</span>
-        </p>
-        <Button type="button" size="sm" variant="secondary" onClick={onLogout}>
-          Sign out
-        </Button>
-      </div>
-      <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Account">
+    <div className="mt-8 space-y-6">
+      <ProfileIdentity name={displayName} email={email} onLogout={onLogout} />
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Account">
         {accountTabs.map((item, index) => (
           <button
             key={item.id}
@@ -464,45 +694,26 @@ export function AccountHome({
           </button>
         ))}
       </div>
-      {message ? <p className={messageAlert ? "mt-4 text-sm text-band-red" : "mt-4 text-sm"} role={messageAlert ? "alert" : "status"}>{message}</p> : null}
+      {message ? <p className={messageAlert ? "text-sm text-band-red" : "text-sm"} role={messageAlert ? "alert" : "status"}>{message}</p> : null}
       <div
         id={`account-panel-${tab}`}
         role="tabpanel"
         aria-labelledby={`account-tab-${tab}`}
-        className="mt-6"
       >
       {tab === "profile" ? (
-        <section id="profile" className="space-y-4">
-          <h2 className="font-display text-2xl">Profile</h2>
-          <p className="text-muted">Your cart and product pages work the same way while you are signed in.</p>
-          <form
-            className="grid max-w-md gap-3"
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const form = new FormData(event.currentTarget);
-              const response = await fetch("/api/account/profile", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: String(form.get("name") ?? "") }),
-              });
-              const data = (await response.json()) as { error?: string; name?: string };
-              if (!response.ok) {
-                note(data.error ?? "The name could not be saved.", false);
-                return;
-              }
-              setDisplayName(data.name ?? displayName);
-              note("Name saved.");
-            }}
-          >
-            <label className="block text-sm">
-              Name
-              <Input className="mt-2" name="name" defaultValue={displayName} required />
-            </label>
-            <Button type="submit" className="w-full sm:w-fit" size="sm" variant="secondary">
-              Save name
-            </Button>
-          </form>
-        </section>
+        <ProfilePanel
+          name={displayName}
+          email={email}
+          ordersReady={ordersReady}
+          orderCount={orders.length}
+          returnCount={returnCount}
+          onSaved={(next) => {
+            setDisplayName(next);
+            rename(next);
+          }}
+          onOpen={setTab}
+          onMessage={note}
+        />
       ) : null}
       {tab === "returns" ? (
         <Returns orders={orders} ordersReady={ordersReady} email={email} onMessage={note} onReload={() => void reloadOrders()} />
@@ -512,6 +723,26 @@ export function AccountHome({
       {tab === "orders" ? (
       <section id="orders" className="scroll-mt-24 space-y-4">
       <h2 className="font-display text-2xl">Purchase history</h2>
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Order status">
+        {progressSteps.map((label, index) => (
+          <button
+            key={label}
+            type="button"
+            role="tab"
+            aria-selected={statusTab === index}
+            className={cn(
+              "min-h-11 rounded-full px-4 text-sm font-bold",
+              statusTab === index ? "bg-ink text-paper" : "border border-stone",
+            )}
+            onClick={() => {
+              setStatusTab(index);
+              setOrderPage(1);
+            }}
+          >
+            {label} ({statusCounts[index]})
+          </button>
+        ))}
+      </div>
       {ordersReady && orderId && !orders.some((order) => order.id === orderId) ? (
         <div className="rounded-3xl bg-white p-4">
           <p>Order {orderId} is not on this account.</p>
@@ -519,19 +750,28 @@ export function AccountHome({
           <TrackLookup initialOrder={orderId} />
         </div>
       ) : null}
-      {orders.length === 0 ? (
-        orderId ? null : <p className="text-muted">No saved orders yet.</p>
-      ) : (
+      {!ordersReady ? <p className="text-muted">Loading orders.</p> : null}
+      {ordersReady && statusOrders.length === 0 ? (
+        <p className="text-muted">Nothing in {progressSteps[statusTab]} yet.</p>
+      ) : null}
+      {visibleOrders.length > 0 ? (
         <ul className="space-y-4">
-          {[...orders].sort((left, right) => (left.id === orderId ? -1 : right.id === orderId ? 1 : 0)).map((order) => {
+          {visibleOrders.map((order) => {
             const shipment = order.shipments?.[0];
             const focused = order.id === orderId;
             return (
               <li id={`order-${order.id}`} key={order.id} className={`scroll-mt-24 rounded-3xl bg-white p-4 ${focused ? "ring-2 ring-ink" : ""}`}>
-                {focused ? <p className="text-sm font-bold">This order</p> : null}
+                {focused ? <p className="mb-2 text-sm font-bold">This order</p> : null}
+                <OrderProgress status={order.status} paymentStatus={order.paymentStatus} />
+                <OrderOrigin order={order} href={(id) => `/account?order=${encodeURIComponent(id)}`} />
                 <p className="font-bold">{order.id}</p>
                 <p className="text-sm text-muted">{formatUsd(order.subtotal)}</p>
-                <p className="mt-2 text-sm">Status: {orderStatusLabel(order.status, order.paymentStatus)}</p>
+                {order.promoCode ? (
+                  <p className="text-sm">
+                    Promo {order.promoCode}
+                    {order.discountAmount ? ` · ${formatUsd(order.discountAmount)} off` : ""}
+                  </p>
+                ) : null}
                 {shipment?.tracking_number ? (
                   <p className="text-sm">
                     Tracking: {shipment.carrier ? `${shipment.carrier} ` : ""}
@@ -607,9 +847,36 @@ export function AccountHome({
             );
           })}
         </ul>
-      )}
+      ) : null}
+      <ListPager page={visiblePage} pages={orderPages} total={statusOrders.length} pageSize={pageSize} onPage={setOrderPage} />
       </section>
       ) : null}
+      </div>
+    </div>
+  );
+}
+
+function ListPager({
+  page,
+  pages,
+  total,
+  pageSize,
+  onPage,
+}: {
+  page: number;
+  pages: number;
+  total: number;
+  pageSize: number;
+  onPage: (page: number) => void;
+}) {
+  if (total === 0) return null;
+  return (
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+      <p className="text-muted">{total} entries · {pageSize} per page</p>
+      <div className="flex items-center gap-2">
+        <Button type="button" size="sm" variant="secondary" disabled={page <= 1} onClick={() => onPage(page - 1)}>Previous</Button>
+        <span>Page {page} of {pages}</span>
+        <Button type="button" size="sm" variant="secondary" disabled={page >= pages} onClick={() => onPage(page + 1)}>Next</Button>
       </div>
     </div>
   );

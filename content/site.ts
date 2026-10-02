@@ -48,6 +48,8 @@ export const policies = {
   dockSummary:
     "Joova devices are covered for 1 year from the purchase date. Register within 30 days and we add 1 extra year, free.",
   shipping: "Eligible products ship free in the United States from US warehouses and arrive in 7 to 10 days.",
+  outsideUsNotice:
+    "Joova delivers in the United States today. We may start delivering to {{country}} soon. Thank you for visiting.",
   returnsSummary:
     "Eligible products have 30 days from delivery to start a free return in the United States. Choose a refund or an exchange for a similar item. A refund is issued after we receive the item and appears on the original payment method in 5 to 10 business days. We cover return shipping. This is the only free return window.",
   warrantyRegistration:

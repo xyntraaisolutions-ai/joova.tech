@@ -94,6 +94,16 @@ upload_function() {
     form+=(-F "file=@${file};filename=${relative};type=application/typescript")
   done < <(find "$function_dir" -type f ! -name '.DS_Store' -print0)
 
+  # The deploy API stores uploaded files under source/. An import of
+  # ./_shared/file.ts then resolves to source/_shared/file.ts.
+  if grep -R -q -E '\./_shared/' "$function_dir" --include='*.ts'; then
+    local shared_root="$functions_dir/_shared"
+    while IFS= read -r -d '' file; do
+      relative="_shared/${file#"$shared_root"/}"
+      form+=(-F "file=@${file};filename=${relative};type=application/typescript")
+    done < <(find "$shared_root" -type f ! -name '.DS_Store' -print0)
+  fi
+
   http_status="$(
     curl --silent --show-error --output "$response_file" --write-out '%{http_code}' \
       --request POST \

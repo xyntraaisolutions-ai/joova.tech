@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { previewPromo } from "@/lib/promo/preview";
 import { quoteCartShipping } from "@/lib/shipping/quote";
-import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,19 +11,19 @@ const bodySchema = z.object({
   subtotal: z.number().min(0).max(100000).optional(),
 });
 
-async function previewPromo(code: string, subtotal: number) {
-  if (!code.trim() || !isServiceRoleConfigured()) return { discount: 0 };
-  const admin = createAdminClient();
-  const found = await admin.from("promo_codes").select("kind, amount, starts_on, ends_on, max_uses, used_count, enabled").eq("code", code.trim().toUpperCase()).maybeSingle();
-  const row = found.data;
-  if (!row || !row.enabled) return { discount: 0, promoError: "That promo code is not available." };
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(new Date());
-  if ((row.starts_on && today < row.starts_on) || (row.ends_on && today > row.ends_on) || (row.max_uses !== null && row.used_count >= row.max_uses)) {
-    return { discount: 0, promoError: "That promo code is not available." };
+async function quotedPromo(supabase: Awaited<ReturnType<typeof createClient>>, code: string, subtotal: number) {
+  if (!code.trim()) return { discount: 0 };
+  const preview = await previewPromo(supabase, code, subtotal);
+  if ("error" in preview) return { discount: 0, promoError: preview.error };
+  if (!preview.ok) {
+    const promoError = preview.reason === "expired"
+      ? "That promo code has expired."
+      : preview.reason === "not_yet"
+        ? "That promo code is not available yet."
+        : "That promo code is not valid.";
+    return { discount: 0, promoError };
   }
-  const amount = Number(row.amount);
-  const discount = row.kind === "percent" ? Math.round(subtotal * amount) / 100 : Math.min(amount, subtotal);
-  return { discount: Math.round(Math.min(discount, subtotal) * 100) / 100 };
+  return { discount: preview.discount };
 }
 
 export async function POST(request: Request) {
@@ -33,6 +33,6 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const quoted = await quoteCartShipping(supabase, parsed.data.productIds);
   if ("error" in quoted) return NextResponse.json({ error: quoted.error }, { status: 400 });
-  const promo = await previewPromo(parsed.data.promoCode ?? "", parsed.data.subtotal ?? 0);
+  const promo = await quotedPromo(supabase, parsed.data.promoCode ?? "", parsed.data.subtotal ?? 0);
   return NextResponse.json({ options: quoted.options, ...promo });
 }

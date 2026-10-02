@@ -1,3 +1,5 @@
+import { deliverConfirmation } from "./_shared/order-receipt.ts";
+
 const shippingCodes = ["free", "standard", "expedited"] as const;
 
 type ShippingCode = (typeof shippingCodes)[number];
@@ -74,11 +76,20 @@ function allowedOrigin(value: string) {
     const host = url.hostname;
     if (url.protocol === "http:" && (host === "localhost" || host === "127.0.0.1")) return url.origin;
     if (url.protocol !== "https:") return "";
-    if (host === "joova.tech" || host === "www.joova.tech" || host.endsWith(".netlify.app")) return url.origin;
+    if (host === "joova.tech" || host.endsWith(".joova.tech") || host.endsWith(".netlify.app")) return url.origin;
     return "";
   } catch {
     return "";
   }
+}
+
+function confirmationOrigin(value: string) {
+  const origin = allowedOrigin(value);
+  if (!origin) return "";
+  const host = new URL(origin).hostname;
+  if (!host.endsWith(".netlify.app")) return origin;
+  if (host.includes("joova-tech-test")) return "https://test.joova.tech";
+  return "https://joova.tech";
 }
 
 async function restGet<T>(path: string): Promise<T | null> {
@@ -265,9 +276,10 @@ async function start(body: {
   const token = text(body.token);
   const shippingOption = text(body.shippingOption);
   const origin = allowedOrigin(text(body.origin));
+  const confirmOn = confirmationOrigin(text(body.origin));
   if (!/^JO-[A-Z0-9]{8}$/.test(orderId) || !/^[0-9a-f-]{36}$/i.test(token)) return fail("The cart could not be checked out.");
   if (!isShippingCode(shippingOption)) return fail("Choose a shipping option.");
-  if (!origin) return fail("Payment could not be started. Nothing was charged.");
+  if (!origin || !confirmOn) return fail("Payment could not be started. Nothing was charged.");
 
   const orders = await restGet<OrderRow[]>(
     `orders?id=eq.${encodeURIComponent(orderId)}&checkout_token=eq.${encodeURIComponent(token)}&status=eq.pending_payment&payment_status=eq.unpaid&select=id,email,status,payment_status,shipping`,
@@ -317,7 +329,7 @@ async function start(body: {
   form.set("invoice_creation[invoice_data][description]", `Joova order ${orderId}`);
   form.set("invoice_creation[invoice_data][metadata][orderId]", orderId);
   form.set("invoice_creation[invoice_data][footer]", "Joova Tech LLC · Grapevine, Texas");
-  form.set("success_url", `${origin}/checkout/complete?session_id={CHECKOUT_SESSION_ID}`);
+  form.set("success_url", `${confirmOn}/checkout/complete?session_id={CHECKOUT_SESSION_ID}`);
   form.set("cancel_url", `${origin}/checkout?cancelled=1`);
   form.set("branding_settings[display_name]", "Joova");
   form.set("branding_settings[background_color]", "#F4F4F2");
@@ -390,7 +402,7 @@ async function confirm(sessionId: string) {
   const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`, {
     headers: { Authorization: `Bearer ${stripeKey()}`, "Stripe-Version": "2026-08-26.dahlia" },
   });
-  const session = await response.json().catch(() => null) as { id?: string; payment_status?: string; payment_intent?: string | { id?: string } } | null;
+  const session = await response.json().catch(() => null) as { id?: string; payment_status?: string; payment_intent?: string | { id?: string }; invoice?: string | { id?: string } } | null;
   if (!response.ok || !session || session.id !== sessionId) return Response.json({ found: false });
   const orders = await restGet<OrderRow[]>(
     `orders?checkout_session_id=eq.${encodeURIComponent(sessionId)}&select=id,email,payment_status,confirmation_sent_at,status,shipping`,
@@ -401,6 +413,8 @@ async function confirm(sessionId: string) {
     const payment = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? "";
     await rpc("mark_order_paid", { p_session: sessionId, p_payment: payment });
   }
+  const invoice = typeof session.invoice === "string" ? session.invoice : session.invoice?.id ?? "";
+  if (session.payment_status === "paid") await deliverConfirmation(sessionId, invoice);
   const again = await restGet<OrderRow[]>(
     `orders?checkout_session_id=eq.${encodeURIComponent(sessionId)}&select=id,email,payment_status,confirmation_sent_at,status,shipping`,
   );

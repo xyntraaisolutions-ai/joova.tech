@@ -1,9 +1,12 @@
+import { sendNoticeEmail } from "@/lib/mail/notice";
+import { passwordEmailFrom } from "@/lib/mail/template";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
-import { escapeHtml, passwordEmailFrom } from "@/lib/mail/template";
-import { sendTransactionalEmail } from "@/lib/mail/send";
 
-function page(title: string, body: string) {
-  return `<div style="font-family:Arial,sans-serif;color:#111;line-height:1.5"><h1 style="font-size:22px">${escapeHtml(title)}</h1>${body}</div>`;
+async function siteRoot() {
+  if (!isServiceRoleConfigured()) return "https://joova.tech";
+  const admin = createAdminClient();
+  const settings = await admin.from("site_settings").select("site_url").eq("id", 1).maybeSingle();
+  return (settings.data?.site_url || "https://joova.tech").replace(/\/$/, "");
 }
 
 async function supportAddress() {
@@ -14,60 +17,42 @@ async function supportAddress() {
 }
 
 export async function sendLowStockEmail(input: { productName: string; sku: string; available: number; to?: string }) {
-  const to = input.to || await supportAddress();
-  const subject = `Low stock: ${input.productName}`;
-  const text = [
-    `${input.productName} is down to ${input.available} available.`,
-    input.sku ? `SKU: ${input.sku}` : "",
-    "Available is on hand minus reserved.",
-  ].filter(Boolean).join("\n");
-  return sendTransactionalEmail({
-    to,
-    subject,
-    text,
-    html: page(subject, `<p>${escapeHtml(input.productName)} is down to ${input.available} available.${input.sku ? `<br>SKU ${escapeHtml(input.sku)}` : ""}</p>`),
+  const root = await siteRoot();
+  return sendNoticeEmail({
+    id: "low_stock",
+    to: input.to || await supportAddress(),
+    values: { product: input.productName, sku: input.sku || "—", available: String(input.available) },
+    buttonLink: `${root}/portal/inventory`,
   });
 }
 
 export async function sendBackInStockEmail(input: { email: string; name: string; productName: string; href: string }) {
-  const link = input.href.startsWith("http") ? input.href : `https://joova.tech${input.href.startsWith("/") ? input.href : `/${input.href}`}`;
-  const subject = `${input.productName} is available again`;
-  const text = [`Hi ${input.name},`, "", `${input.productName} is back in stock.`, link].join("\n");
-  return sendTransactionalEmail({
+  const root = await siteRoot();
+  const link = input.href.startsWith("http") ? input.href : `${root}${input.href.startsWith("/") ? input.href : `/${input.href}`}`;
+  return sendNoticeEmail({
+    id: "back_in_stock",
     to: input.email,
-    subject,
-    text,
-    html: page(subject, `<p>Hi ${escapeHtml(input.name)},</p><p>${escapeHtml(input.productName)} is back in stock.</p><p><a href="${escapeHtml(link)}">View this item</a></p>`),
+    values: { name: input.name, product: input.productName },
+    buttonLink: link,
   });
 }
 
-export async function sendReplacementOrderEmail(input: { email: string; orderId: string; kind: "exchange" | "warranty" }) {
-  const label = input.kind === "warranty" ? "Warranty replacement" : "Exchange order";
-  const subject = `${label} ${input.orderId}`;
-  const text = [
-    `${label} ${input.orderId} is being prepared.`,
-    "It ships the same way as a new order. We will email you when it ships.",
-  ].join("\n");
-  return sendTransactionalEmail({
+export async function sendReplacementOrderEmail(input: { email: string; orderId: string; kind: "exchange" | "warranty"; sourceOrderId?: string }) {
+  const root = await siteRoot();
+  return sendNoticeEmail({
+    id: input.kind === "warranty" ? "warranty_replacement" : "exchange_order",
     to: input.email,
-    subject,
-    text,
-    html: page(subject, `<p>${escapeHtml(label)} ${escapeHtml(input.orderId)} is being prepared.</p><p>It ships the same way as a new order. We will email you when it ships.</p>`),
+    values: { order_id: input.orderId, source_order: input.sourceOrderId || "your original order" },
+    buttonLink: `${root}/account?order=${encodeURIComponent(input.orderId)}`,
   });
 }
 
 export async function sendReviewRequestEmail(input: { email: string; orderId: string }) {
-  const link = `https://joova.tech/reviews?order=${encodeURIComponent(input.orderId)}`;
-  const subject = `How was order ${input.orderId}?`;
-  const text = [
-    `Order ${input.orderId} was delivered.`,
-    "If you would like to share a review, send it from the reviews page. We publish a review after we read it.",
-    link,
-  ].join("\n");
-  return sendTransactionalEmail({
+  const root = await siteRoot();
+  return sendNoticeEmail({
+    id: "review_request",
     to: input.email,
-    subject,
-    text,
-    html: page(subject, `<p>Order ${escapeHtml(input.orderId)} was delivered.</p><p>If you would like to share a review, send it from the reviews page. We publish a review after we read it.</p><p><a href="${escapeHtml(link)}">Write a review</a></p>`),
+    values: { order_id: input.orderId },
+    buttonLink: `${root}/reviews?order=${encodeURIComponent(input.orderId)}`,
   });
 }

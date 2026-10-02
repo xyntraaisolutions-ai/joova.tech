@@ -45,6 +45,94 @@ export type OrderReceipt = {
   note: string;
 };
 
+const sharedFooter = "Joova Tech LLC · Grapevine, Texas · {{support_email}}";
+
+export const noticeEmailDefaults = {
+  warranty_replacement: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "Warranty replacement {{order_id}}",
+    heading: "Your replacement is being prepared",
+    body: "Warranty replacement {{order_id}} is being prepared.\n\nIt is for your original order {{source_order}}. It ships the same way as a new order. We will email you when it ships.",
+    buttonLabel: "Track this order",
+    footer: sharedFooter,
+  },
+  exchange_order: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "Exchange order {{order_id}}",
+    heading: "Your exchange is being prepared",
+    body: "Exchange order {{order_id}} is being prepared.\n\nIt replaces your original order {{source_order}}. It ships the same way as a new order. We will email you when it ships.",
+    buttonLabel: "Track this order",
+    footer: sharedFooter,
+  },
+  shipment: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "Your Joova order {{order_id}} has shipped",
+    heading: "Your order has shipped",
+    body: "Order {{order_id}} has shipped.\n\n{{carrier}}\nTracking number: {{tracking}}",
+    buttonLabel: "Track this order",
+    footer: sharedFooter,
+  },
+  review_request: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "How was order {{order_id}}?",
+    heading: "How was your order?",
+    body: "Order {{order_id}} was delivered.\n\nIf you would like to share a review, send it from the reviews page. We publish a review after we read it.",
+    buttonLabel: "Write a review",
+    footer: sharedFooter,
+  },
+  refund: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "Refund for {{order_id}}",
+    heading: "Your refund was sent",
+    body: "The refund for order {{order_id}} has been sent.\n\nIt returns to the original payment method and appears 5 to 10 business days after we received the item. The refund receipt is attached.",
+    buttonLabel: "Track this order",
+    footer: sharedFooter,
+  },
+  back_in_stock: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "{{product}} is available again",
+    heading: "{{product}} is back",
+    body: "Hi {{name}},\n\n{{product}} is back in stock.",
+    buttonLabel: "View this item",
+    footer: sharedFooter,
+  },
+  low_stock: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "Low stock: {{product}}",
+    heading: "Low stock",
+    body: "{{product}} is down to {{available}} available.\n\nSKU {{sku}}. Available is on hand minus reserved.",
+    buttonLabel: "Open inventory",
+    footer: sharedFooter,
+  },
+  staff_order: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "New paid order {{order_id}}",
+    heading: "New paid order",
+    body: "{{name}} paid {{total}} for {{order_id}}.\n\n{{email}}",
+    buttonLabel: "Open support",
+    footer: sharedFooter,
+  },
+  stock_request: {
+    fromName: passwordEmailFrom.name,
+    fromEmail: passwordEmailFrom.email,
+    subject: "Customer request: {{product}}",
+    heading: "Customer request",
+    body: "{{name}} requested an out-of-stock item.\n\n{{product}}\nSKU {{sku}}\n\nReply to {{email}}\n\n{{note}}",
+    buttonLabel: "Reply",
+    footer: sharedFooter,
+  },
+} as const satisfies Record<string, PasswordEmailTemplate>;
+
+export type NoticeEmailId = keyof typeof noticeEmailDefaults;
+
 export const passwordEmailDefaults: PasswordEmailTemplate = {
   fromName: passwordEmailFrom.name,
   fromEmail: passwordEmailFrom.email,
@@ -100,6 +188,15 @@ export function renderPasswordEmail(
     .map((part) => `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;color:#0c121c;">${escapeHtml(part).replaceAll("\n", "<br>")}</p>`)
     .join("");
   const logoMarkup = emailLogoMarkup(logo, values.site_name);
+  const link = values.reset_link.trim();
+  const button = link
+    ? `<tr>
+            <td style="padding-top:8px;">
+              <a href="${escapeHtml(link)}" style="display:inline-block;background:#ff5a05;color:#0c121c;font-weight:700;text-decoration:none;border-radius:999px;padding:14px 22px;">${escapeHtml(filled.buttonLabel)}</a>
+            </td>
+          </tr>
+          <tr><td style="padding-top:20px;font-size:13px;line-height:1.5;color:#6b7280;">Or copy this link into your browser:<br><a href="${escapeHtml(link)}" style="color:#0c121c;">${escapeHtml(link)}</a></td></tr>`
+    : "";
   const html = `<!doctype html>
 <html>
 <body style="margin:0;background:#f4f4f2;font-family:Arial,Helvetica,sans-serif;color:#0c121c;">
@@ -110,12 +207,7 @@ export function renderPasswordEmail(
           <tr><td>${logoMarkup}</td></tr>
           <tr><td style="padding-top:28px;font-size:28px;font-weight:700;letter-spacing:-0.02em;">${escapeHtml(filled.heading)}</td></tr>
           <tr><td style="padding-top:16px;">${paragraphs}</td></tr>
-          <tr>
-            <td style="padding-top:8px;">
-              <a href="${escapeHtml(values.reset_link)}" style="display:inline-block;background:#ff5a05;color:#0c121c;font-weight:700;text-decoration:none;border-radius:999px;padding:14px 22px;">${escapeHtml(filled.buttonLabel)}</a>
-            </td>
-          </tr>
-          <tr><td style="padding-top:20px;font-size:13px;line-height:1.5;color:#6b7280;">Or copy this link into your browser:<br><a href="${escapeHtml(values.reset_link)}" style="color:#0c121c;">${escapeHtml(values.reset_link)}</a></td></tr>
+          ${button}
           <tr><td style="padding-top:28px;font-size:13px;line-height:1.5;color:#6b7280;">${escapeHtml(filled.footer)}</td></tr>
         </table>
       </td>
@@ -123,7 +215,7 @@ export function renderPasswordEmail(
   </table>
 </body>
 </html>`;
-  const text = [filled.heading, "", filled.body, "", `${filled.buttonLabel}: ${values.reset_link}`, "", filled.footer].join("\n");
+  const text = [filled.heading, "", filled.body, link ? `${filled.buttonLabel}: ${link}` : "", filled.footer].filter((line) => line !== "").join("\n");
   return { subject: filled.subject, html, text, fromName: filled.fromName };
 }
 

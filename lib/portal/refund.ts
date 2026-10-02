@@ -2,8 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { stripeClient } from "@/lib/stripe/server";
 import { readAvailable, syncAvailability } from "@/lib/portal/availability";
 import { receiptPdf } from "@/lib/mail/receipt-pdf";
-import { sendTransactionalEmail } from "@/lib/mail/send";
-import { escapeHtml } from "@/lib/mail/template";
+import { sendNoticeEmail } from "@/lib/mail/notice";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
 import type { PaidOrder } from "@/lib/mail/order";
 
@@ -155,18 +154,21 @@ async function storeRefundDocuments(supabase: SupabaseClient, returnId: string, 
 async function sendRefundEmail(input: { email: string; orderId: string; receipt: Buffer | null; invoice: Buffer | null }) {
   const email = input.email.trim().toLowerCase();
   if (!email.includes("@")) return false;
-  const subject = `Refund for ${input.orderId}`;
-  const text = [
-    `The refund for order ${input.orderId} has been sent.`,
-    "It returns to the original payment method.",
-    "It appears 5 to 10 business days after we received the item.",
-    "The refund receipt is attached.",
-    input.invoice ? "The refund invoice is attached." : "",
-  ].filter(Boolean).join("\n");
-  const html = `<div style="font-family:Arial,sans-serif;color:#111;line-height:1.5"><h1 style="font-size:22px">${escapeHtml(subject)}</h1><p>The refund for order ${escapeHtml(input.orderId)} has been sent. It returns to the original payment method and appears 5 to 10 business days after we received the item.</p><p>The refund receipt is attached.${input.invoice ? " The refund invoice is attached." : ""}</p></div>`;
+  let siteUrl = "https://joova.tech";
+  if (isServiceRoleConfigured()) {
+    const admin = createAdminClient();
+    const settings = await admin.from("site_settings").select("site_url").eq("id", 1).maybeSingle();
+    siteUrl = (settings.data?.site_url || siteUrl).replace(/\/$/, "");
+  }
   const attachments = [
     ...(input.receipt ? [{ filename: `joova-refund-receipt-${input.orderId}.pdf`, content: input.receipt.toString("base64") }] : []),
     ...(input.invoice ? [{ filename: `joova-refund-invoice-${input.orderId}.pdf`, content: input.invoice.toString("base64") }] : []),
   ];
-  return sendTransactionalEmail({ to: email, subject, text, html, attachments });
+  return sendNoticeEmail({
+    id: "refund",
+    to: email,
+    values: { order_id: input.orderId },
+    buttonLink: `${siteUrl}/account?order=${encodeURIComponent(input.orderId)}`,
+    attachments,
+  });
 }

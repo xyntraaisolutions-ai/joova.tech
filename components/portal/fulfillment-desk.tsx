@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OrderOrigin } from "@/components/orders/order-origin";
 import { CarrierRates } from "@/components/portal/carrier-rates";
 import { SerialUnits } from "@/components/portal/serial-units";
 import { ShippingOptions } from "@/components/portal/shipping-options";
@@ -59,6 +60,9 @@ type Order = {
   shipping?: { name?: string; line1?: string; line2?: string; city?: string; region?: string; postal?: string; country?: string } | null;
   order_items: Item[];
   shipments: Shipment[];
+  order_kind?: string | null;
+  warranty_claims?: { order_id?: string } | { order_id?: string }[] | null;
+  source_return?: { order_id?: string } | { order_id?: string }[] | null;
 };
 
 const steps = ["pending_payment", "preparing", "shipped", "out_for_delivery", "delivered"] as const;
@@ -397,6 +401,7 @@ function OrderFulfillment({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-bold">{order.id}</p>
+          <OrderOrigin order={order} />
           <p className="break-all text-sm text-muted">{order.email}</p>
         </div>
         <p className="text-sm text-muted">

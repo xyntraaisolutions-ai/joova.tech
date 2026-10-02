@@ -2,15 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requirePortalApi } from "@/lib/portal/api";
 import { createAdminClient, isServiceRoleConfigured } from "@/lib/supabase/admin";
-import { orderEmailDefaults, passwordEmailDefaults, passwordEmailFrom, type PasswordEmailTemplate } from "@/lib/mail/template";
+import { noticeEmailDefaults, orderEmailDefaults, passwordEmailDefaults, passwordEmailFrom, type NoticeEmailId, type PasswordEmailTemplate } from "@/lib/mail/template";
 import { resendConfigured } from "@/lib/mail/send";
 
-const templateIds = ["password_reset", "order_confirmation"] as const;
-type TemplateId = (typeof templateIds)[number];
+const templateIds = ["password_reset", "order_confirmation", ...Object.keys(noticeEmailDefaults)] as [string, ...string[]];
+type TemplateId = "password_reset" | "order_confirmation" | NoticeEmailId;
 
 const defaults: Record<TemplateId, PasswordEmailTemplate> = {
   password_reset: passwordEmailDefaults,
   order_confirmation: orderEmailDefaults,
+  ...noticeEmailDefaults,
 };
 
 const saveSchema = z.object({
@@ -23,7 +24,8 @@ const saveSchema = z.object({
 });
 
 function templateId(value: string | null): TemplateId {
-  return value === "order_confirmation" ? "order_confirmation" : "password_reset";
+  if (value && (templateIds as readonly string[]).includes(value)) return value as TemplateId;
+  return "password_reset";
 }
 
 export async function GET(request: Request) {
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
   });
   if (result.error) return NextResponse.json({ error: "The email template could not be saved." }, { status: 400 });
   await session.supabase.rpc("record_audit", {
-    p_action: id === "order_confirmation" ? "save_order_email" : "save_password_email",
+    p_action: id === "order_confirmation" ? "save_order_email" : id === "password_reset" ? "save_password_email" : "save_email",
     p_entity: "email_templates",
     p_entity_id: id,
     p_detail: { from: passwordEmailFrom.email, subject: body.subject },

@@ -31,6 +31,7 @@ async function callMailFunction(body: Record<string, unknown>): Promise<Function
     text: body.text,
     html: body.html,
     ...(Array.isArray(body.attachments) ? { attachments: body.attachments } : {}),
+    ...(typeof body.reply_to === "string" && body.reply_to.includes("@") ? { reply_to: body.reply_to } : {}),
   });
   if (!internal.missingFunction && body.probe !== true) {
     if (internal.ok === true) return { ok: true };
@@ -172,6 +173,7 @@ export async function sendTransactionalEmail(input: {
   subject: string;
   text: string;
   html: string;
+  replyTo?: string;
   attachments?: { filename: string; content: string }[];
 }) {
   const mailed = await callMailFunction({
@@ -179,6 +181,7 @@ export async function sendTransactionalEmail(input: {
     subject: input.subject,
     text: input.text,
     html: input.html,
+    ...(input.replyTo?.includes("@") ? { reply_to: input.replyTo } : {}),
     ...(input.attachments?.length ? { attachments: input.attachments } : {}),
   });
   if (mailed.ok) return true;
@@ -196,7 +199,7 @@ export async function sendTransactionalEmail(input: {
       body: JSON.stringify({
         from: `${passwordEmailFrom.name} <${passwordEmailFrom.email}>`,
         to: [input.to],
-        reply_to: passwordEmailFrom.email,
+        reply_to: input.replyTo?.includes("@") ? input.replyTo : passwordEmailFrom.email,
         subject: input.subject,
         text: input.text,
         html: input.html,

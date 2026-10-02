@@ -2,7 +2,7 @@ export function orderStatusLabel(status?: string | null, paymentStatus?: string 
   if (paymentStatus && paymentStatus !== "paid") return "Waiting for payment";
   switch (status) {
     case "pending_payment":
-      return "Waiting for payment";
+      return paymentStatus === "paid" ? "Preparing" : "Waiting for payment";
     case "shipped":
       return "Shipped";
     case "out_for_delivery":
