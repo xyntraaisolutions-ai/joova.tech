@@ -14,6 +14,8 @@ const labels: Record<NoticeEmailId, string> = {
   back_in_stock: "Back in stock",
   low_stock: "Low stock",
   staff_order: "New paid order",
+  staff_return: "Return request",
+  staff_warranty: "Warranty claim",
   stock_request: "Stock request",
 };
 

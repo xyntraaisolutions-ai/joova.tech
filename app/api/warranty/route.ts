@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { alertStaff } from "@/lib/mail/staff-alert";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,9 +40,12 @@ export async function POST(request: NextRequest) {
           p_registration: device.success ? device.data.registrationId : "",
           p_message: device.success ? device.data.message : "",
         });
-    const body = result.data as { ok?: boolean; error?: string; already?: boolean } | null;
+    const body = result.data as { ok?: boolean; error?: string; already?: boolean; id?: string } | null;
     if (result.error || !body?.ok) {
       return NextResponse.json({ ok: false, saved: false, error: body?.error ?? "The claim could not be started." }, { status: 400 });
+    }
+    if (!reply.success && body.already !== true && body.id) {
+      await alertStaff({ kind: "warranty", id: body.id, orderId: "" });
     }
     return NextResponse.json({ ok: true, saved: true, already: body.already === true });
   }
@@ -63,5 +67,6 @@ export async function POST(request: NextRequest) {
   if (error || !data || data.ok !== true) {
     return NextResponse.json({ saved: false, error: data?.error ?? "The claim could not be started." }, { status: 400 });
   }
+  await alertStaff({ kind: "warranty", orderId: parsed.data.order, email: parsed.data.email });
   return NextResponse.json({ saved: true });
 }
