@@ -3,12 +3,14 @@
 import { BandPhoto } from "@/components/media/band-photo";
 import { ProductTurntable } from "@/components/media/product-turntable";
 import { useEffect, useRef, useState } from "react";
-import { bandImageSize, bandVariants, dayStory } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
+import { bandImageSize } from "@/content/site";
 import { PhoneMockup } from "@/components/media/phone-mockup";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 
 export function DayStory() {
+  const { bandVariants, dayStory } = useSiteContent();
   const [active, setActive] = useState(0);
   const refs = useRef<(HTMLElement | null)[]>([]);
 

@@ -1,32 +1,33 @@
 import { Hero } from "@/components/home/hero";
 import { Storefront } from "@/components/home/storefront";
-import { SITE_URL, company, siteDescription } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      name: "Joova",
-      url: SITE_URL,
-      description: siteDescription,
-      legalName: company.legalName,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Grapevine",
-        addressRegion: "TX",
-        addressCountry: "US",
+export default async function HomePage() {
+  const { siteUrl, company, siteDescription } = await loadContentBundle();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "Joova",
+        url: siteUrl,
+        description: siteDescription,
+        legalName: company.legalName,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Grapevine",
+          addressRegion: "TX",
+          addressCountry: "US",
+        },
       },
-    },
-    {
-      "@type": "WebSite",
-      name: "Joova",
-      url: SITE_URL,
-    },
-  ],
-};
+      {
+        "@type": "WebSite",
+        name: "Joova",
+        url: siteUrl,
+      },
+    ],
+  };
 
-export default function HomePage() {
   return (
     <>
       <script

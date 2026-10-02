@@ -1,27 +1,27 @@
 import Link from "next/link";
-import { catalog, catalogCategories, productsInCategory } from "@/content/catalog";
-import { policies } from "@/content/site";
 import { DealList } from "@/components/shop/deal-list";
+import { productsInCategory } from "@/lib/content/helpers";
+import { loadContentBundle } from "@/lib/content/load";
 import { ProductCard } from "@/components/shop/product-card";
 import { Container } from "@/components/ui/container";
 
-const assurances = [
-  { title: "Free US shipping", copy: policies.shipping },
-  { title: policies.returnsTitle, copy: policies.returnsSummary },
-  { title: "US-based support", copy: "Every message gets a reply within 6 to 24 hours." },
-] as const;
-
-export function Storefront() {
+export async function Storefront() {
+  const { catalog, catalogCategories, policies, deals } = await loadContentBundle();
+  const assurances = [
+    { title: "Free US shipping", copy: policies.shipping },
+    { title: policies.returnsTitle, copy: policies.returnsSummary },
+    { title: "US-based support", copy: "Every message gets a reply within 6 to 24 hours." },
+  ];
   return (
     <>
       <section className="border-t border-stone" aria-label="Shop by category">
         <Container className="py-6 md:py-10">
-          <div className="-mx-5 flex gap-3 overflow-x-auto px-5 pb-1 snap-x snap-mandatory [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
             {catalogCategories.map((category) => (
               <Link
                 key={category.id}
                 href={category.href}
-                className="min-w-[15.5rem] snap-start rounded-3xl border border-stone bg-white px-5 py-4 hover:border-ink/30 sm:min-w-0"
+                className="w-[min(15.5rem,78%)] shrink-0 snap-start rounded-3xl border border-stone bg-white px-5 py-4 hover:border-ink/30 sm:w-auto sm:min-w-0"
               >
                 <p className="font-display text-xl font-extrabold md:text-2xl">{category.label}</p>
                 <p className="mt-1 text-sm text-muted md:text-base">{category.summary}</p>
@@ -51,6 +51,7 @@ export function Storefront() {
         </Container>
       </section>
 
+      {deals.length ? (
       <section className="border-t border-stone bg-white">
         <Container className="py-10 md:py-20">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -59,7 +60,7 @@ export function Storefront() {
                 Deals
               </h2>
               <p className="mt-3 max-w-xl text-muted">
-                Extra woven straps in five colors. Every product is available now.
+                Current offers. Stock status is shown on each product.
               </p>
             </div>
             <Link href="/deals" className="text-sm font-medium underline underline-offset-4">
@@ -71,6 +72,7 @@ export function Storefront() {
           </div>
         </Container>
       </section>
+      ) : null}
 
       <section className="border-t border-stone">
         <Container className="grid gap-6 py-12 md:grid-cols-3">
@@ -86,11 +88,12 @@ export function Storefront() {
   );
 }
 
-export function CategorySections() {
+export async function CategorySections() {
+  const { catalog, catalogCategories } = await loadContentBundle();
   return (
     <div className="space-y-16">
       {catalogCategories.map((category) => {
-        const products = productsInCategory(category.id);
+        const products = productsInCategory(catalog, category.id);
         if (products.length === 0) return null;
         return (
           <section key={category.id} id={category.id} className="scroll-mt-24">

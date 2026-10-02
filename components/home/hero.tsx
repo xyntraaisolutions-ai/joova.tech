@@ -3,15 +3,34 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { featuredProducts } from "@/content/catalog";
-import { policies } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { ImageSlideshow } from "@/components/media/image-slideshow";
 import { buttonClassName } from "@/components/ui/button";
+import type { CatalogImage, CatalogProduct } from "@/content/catalog";
 import { cn } from "@/lib/utils";
 
-const highlights = featuredProducts;
+function heroSlides(product: CatalogProduct) {
+  const seen = new Set<string>();
+  const slides: CatalogImage[] = [];
+  const add = (picture?: CatalogImage) => {
+    if (!picture?.src || seen.has(picture.src)) return;
+    seen.add(picture.src);
+    slides.push(picture);
+  };
+  const variants = (product.variants ?? []).filter((variant) => variant.available !== false);
+  const lead = variants.find((variant) => variant.id === product.defaultVariantId) ?? variants[0];
+  const ordered = lead ? [lead, ...variants.filter((variant) => variant.id !== lead.id)] : variants;
+  for (const variant of ordered) {
+    for (const picture of variant.pictures) add(picture);
+  }
+  for (const picture of product.sharedPictures ?? []) add(picture);
+  for (const picture of product.pictures) add(picture);
+  return slides;
+}
 
 export function Hero() {
+  const { featuredProducts, policies } = useSiteContent();
+  const highlights = featuredProducts;
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const dragX = useRef<number | null>(null);
@@ -64,14 +83,18 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,color-mix(in_srgb,var(--joova-coral)_28%,transparent),transparent_55%)]"
       />
       <div className="relative mx-auto grid max-w-[1280px] items-center gap-6 px-5 py-6 sm:px-8 md:grid-cols-2 md:gap-12 md:py-16">
-        <div className="stage min-w-0 rounded-[28px] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8 md:order-2">
+        <div className="stage flex min-w-0 flex-col items-center rounded-[28px] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8 md:order-2">
           <ImageSlideshow
             key={highlight.id}
-            slides={[...highlight.pictures]}
+            slides={heroSlides(highlight)}
             priority={highlight.id === "band"}
             paused={paused}
-            imageClassName="h-[min(28vh,240px)] w-auto md:h-[min(52vh,480px)]"
+            className="w-full"
+            imageClassName="h-[min(28vh,240px)] w-auto md:h-[min(40vh,360px)]"
           />
+          <Link href={highlight.href} className={buttonClassName("primary", "lg", "mt-4 w-full sm:w-auto")}>
+            See Details
+          </Link>
         </div>
         <div className="min-w-0 md:order-1">
           {highlight.kicker ? (
@@ -90,8 +113,8 @@ export function Hero() {
             {highlight.name}
           </h1>
           <p className="mt-3 font-display text-3xl font-semibold text-paper">{highlight.priceLabel}</p>
-          <p className="mt-4 max-w-xl text-lg text-paper/85">{highlight.lead}</p>
-          <p className="mt-3 hidden max-w-xl text-paper/75 md:block">{highlight.detail}</p>
+          {highlight.lead ? <p className="mt-4 max-w-xl text-lg text-paper/85">{highlight.lead}</p> : null}
+          {highlight.summary ? <p className="mt-3 line-clamp-4 max-w-xl text-paper/75 md:line-clamp-none">{highlight.summary}</p> : null}
           <div
             className="mt-4 flex gap-2"
             role="tablist"
@@ -113,23 +136,18 @@ export function Hero() {
               </button>
             ))}
           </div>
-          <div className="mt-4">
-            <Link href={highlight.href} className={buttonClassName("primary", "lg", "w-full sm:w-auto")}>
-              See Details
-            </Link>
-          </div>
-          <div className="mt-4 -mx-5 flex max-w-full gap-2 overflow-x-auto px-5 pb-1 snap-x snap-mandatory [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-5 mt-4 flex max-w-full snap-x snap-mandatory gap-2 overflow-x-auto px-5 pb-2 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
             {highlight.signals.map((signal) => (
               <div
                 key={signal.label}
-                className="min-w-[9.5rem] snap-start rounded-2xl border border-paper/15 bg-paper/10 px-3 py-3 text-paper md:min-w-0"
+                className="w-[min(9.5rem,70%)] shrink-0 snap-start rounded-2xl border border-paper/15 bg-paper/10 px-3 py-3 text-paper md:w-auto md:min-w-0"
               >
                 <p className="text-sm font-semibold">{signal.label}</p>
                 <p className="text-xs text-paper/70">{signal.text}</p>
               </div>
             ))}
           </div>
-          <div className="mt-4 flex items-center justify-between gap-3">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-paper/70">
               {highlight.note ? `${highlight.note} · ` : null}
               {policies.shipping}

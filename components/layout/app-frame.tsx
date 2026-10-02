@@ -4,27 +4,17 @@ import { usePathname } from "next/navigation";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const product =
-    pathname === "/band" ||
-    pathname === "/ring" ||
-    pathname === "/watch" ||
-    pathname === "/glasses" ||
-    pathname === "/buds" ||
-    pathname === "/share";
+  if (pathname.startsWith("/portal")) {
+    return <main id="main">{children}</main>;
+  }
 
   return (
-    <div
-      className={cn(
-        "pb-[calc(var(--app-tab)+env(safe-area-inset-bottom))] md:pb-0",
-        product && "max-md:pb-[calc(var(--app-tab)+4.75rem+env(safe-area-inset-bottom))]",
-      )}
-    >
-      <div className="sticky top-0 z-40">
+    <div className="pb-[calc(var(--app-tab)+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
         <AnnouncementBar />
         <Header />
       </div>

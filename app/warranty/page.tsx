@@ -1,88 +1,151 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { WarrantyForm } from "@/components/warranty/warranty-form";
+import { BadgeCheck, ClipboardList, UserRound } from "lucide-react";
+import { LastUpdated } from "@/components/content/last-updated";
+import { RegisterDevice } from "@/components/warranty/register-device";
 import { buttonClassName } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { policies, support } from "@/content/site";
+import { coverageFromCatalog } from "@/lib/catalog/coverage";
+import { loadContentBundle } from "@/lib/content/load";
 
-export const metadata: Metadata = {
-  title: "Warranty",
-  description: policies.warrantyRegistration,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { pageCopy } = await loadContentBundle();
+  return {
+    title: pageCopy.warranty.title,
+    description: pageCopy.warranty.intro,
+  };
+}
 
-export default function WarrantyPage() {
+const stepIcons = [UserRound, ClipboardList, BadgeCheck] as const;
+
+export default async function WarrantyPage() {
+  const { pageCopy, catalog } = await loadContentBundle();
+  const warranty = pageCopy.warranty;
+  const products = catalog.map((product) => {
+    const coverage = product.coverage ?? coverageFromCatalog(product);
+    return { id: product.id, name: product.name, ...coverage };
+  });
+  const steps = [
+    { title: warranty.step1Title, copy: warranty.step1 },
+    { title: warranty.step2Title, copy: warranty.step2 },
+    { title: warranty.step3Title, copy: warranty.step3 },
+  ];
+
   return (
     <Container className="max-w-3xl py-10 md:py-16">
-      <p className="text-sm text-muted">Effective date: draft — lawyer review pending</p>
-      <h1 className="font-display mt-3" style={{ fontSize: "var(--text-h1)" }}>
-        Warranty
+      <h1 className="font-display font-extrabold text-ink" style={{ fontSize: "var(--text-h1)" }}>
+        {warranty.title}
       </h1>
-      <div className="mt-8 space-y-6 text-muted">
-        <p className="text-lg text-ink">{policies.warrantyRegistration}</p>
-        <p>
-          A product that is not registered is not covered. Returns are separate,
-          and the only free return window is {policies.returnsTitle.toLowerCase()}{" "}
-          in the United States.
-        </p>
-        <section>
-          <h2 className="font-display text-2xl text-ink">How to register</h2>
-          <ol className="mt-3 list-decimal space-y-2 pl-5">
-            <li>Sign up for a Joova Customer Account.</li>
-            <li>Open the account and register each eligible product, with the order number.</li>
-            <li>Coverage starts on the day the product is registered.</li>
-          </ol>
-          <Link href="/account" className={`${buttonClassName("primary")} mt-6 w-full sm:w-fit`}>
-            Create a Joova Customer Account
+      <LastUpdated value={warranty.updatedOn} />
+      <p className="mt-4 text-lg text-ink">{warranty.intro}</p>
+
+      <section className="mt-10">
+        <h2 className="font-display text-2xl text-ink">{warranty.headingEligible}</h2>
+        <ul className="mt-4 space-y-3 md:hidden">
+          {products.map((product) => (
+            <li key={product.id} className="rounded-3xl bg-white p-4">
+              <p className="font-bold text-ink">{product.name}</p>
+              <p className="mt-1">{product.warranty}</p>
+              <p className="text-sm text-muted">{product.shipping}</p>
+              <p className="text-sm text-muted">{product.returns}</p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 hidden overflow-x-auto rounded-3xl bg-white md:block">
+          <table className="w-full text-left text-sm">
+            <thead className="text-ink">
+              <tr className="border-b border-stone">
+                <th className="px-4 py-3 font-bold">{warranty.columnProduct}</th>
+                <th className="px-4 py-3 font-bold">{warranty.columnWarranty}</th>
+                <th className="px-4 py-3 font-bold">{warranty.columnShipping}</th>
+                <th className="px-4 py-3 font-bold">{warranty.columnReturns}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.id} className="border-b border-stone/70 last:border-0">
+                  <td className="px-4 py-3 text-ink">{product.name}</td>
+                  <td className="px-4 py-3">{product.warranty}</td>
+                  <td className="px-4 py-3">{product.shipping}</td>
+                  <td className="px-4 py-3">{product.returns}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3 text-sm text-muted">{warranty.eligibleNote}</p>
+      </section>
+
+      <section className="mt-10 grid gap-4 md:grid-cols-2">
+        <div className="rounded-3xl bg-white p-5">
+          <h2 className="font-display text-2xl text-ink">{warranty.headingCovered}</h2>
+          <p className="mt-3">{warranty.covered}</p>
+        </div>
+        <div className="rounded-3xl bg-white p-5">
+          <h2 className="font-display text-2xl text-ink">{warranty.headingNotCovered}</h2>
+          <p className="mt-3">{warranty.notCovered}</p>
+        </div>
+      </section>
+      <p className="mt-4 text-ink">{warranty.remedy}</p>
+
+      <section className="mt-10 grid gap-4 md:grid-cols-2">
+        <div className="rounded-3xl bg-white p-5">
+          <h2 className="font-display text-2xl text-ink">{warranty.headingShipping}</h2>
+          <p className="mt-3">{warranty.shippingNote}</p>
+        </div>
+        <div className="rounded-3xl bg-white p-5">
+          <h2 className="font-display text-2xl text-ink">{warranty.headingReturns}</h2>
+          <p className="mt-3">{warranty.returnsNote}</p>
+          <p className="mt-3">
+            <Link className="font-bold text-ink underline" href="/returns">{warranty.returnLink}</Link>
+          </p>
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-2xl text-ink">{warranty.headingExtra}</h2>
+        <ol className="mt-4 grid gap-4">
+          {steps.map((step, index) => {
+            const Icon = stepIcons[index] ?? BadgeCheck;
+            return (
+              <li key={step.title} className="flex gap-4 rounded-3xl bg-white p-5">
+                <Icon className="mt-1 size-6 shrink-0 text-ink" aria-hidden />
+                <div>
+                  <h3 className="font-bold text-ink">{step.title}</h3>
+                  <p className="mt-1">{step.copy}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+        <Link className={`${buttonClassName("primary", "sm")} mt-4`} href="/account?mode=register">
+          {warranty.accountCta}
+        </Link>
+      </section>
+
+      <section id="register" className="mt-10 scroll-mt-24 rounded-3xl bg-white p-5">
+        <h2 className="font-display text-2xl text-ink">{warranty.headingRegister}</h2>
+        <p className="mt-2 text-sm text-muted">{warranty.registerNote}</p>
+        <div className="mt-4">
+          <RegisterDevice />
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-2xl text-ink">{warranty.headingClaim}</h2>
+        <p className="mt-3">{warranty.claim}</p>
+        <p className="mt-3">
+          <Link className="font-bold text-ink underline" href="/account#devices">
+            {warranty.devicesLink}
           </Link>
-        </section>
-        <section>
-          <h2 className="font-display text-2xl text-ink">What the account includes</h2>
-          <p className="mt-3">{policies.accountSummary}</p>
-          <ul className="mt-3 list-disc space-y-2 pl-5">
-            <li>Purchase history for every Joova order on the account.</li>
-            <li>Order tracking.</li>
-            <li>Returns and replacements, started and followed from the same account.</li>
-            <li>Warranty registration for each eligible product.</li>
-          </ul>
-        </section>
-        <section>
-          <h2 className="font-display text-2xl text-ink">Coverage after registration</h2>
-          <p className="mt-3">{policies.strapSummary}</p>
-          <p className="mt-3">{policies.dockSummary}</p>
-          <p className="mt-3">
-            Joova Ring is covered for 2 years after registration. Joova Watch,
-            Joova Glasses, Joova Buds, and Joova Share Pod are covered for 1
-            year after registration.
-          </p>
-        </section>
-        <section>
-          <h2 className="font-display text-2xl text-ink">How a claim works</h2>
-          <ol className="mt-3 list-decimal space-y-2 pl-5">
-            <li>The product must already be registered on your Joova Customer Account.</li>
-            <li>Submit the warranty form with your order number and what failed, or start the replacement from the account.</li>
-            <li>We confirm coverage and reply within 6 to 24 hours.</li>
-            <li>When a replacement is due, we ship it first, then you send the original back.</li>
-          </ol>
-          <p className="mt-3">
-            You can also email{" "}
-            <a className="font-medium text-ink underline" href={`mailto:${support.email}`}>
-              {support.email}
-            </a>
-            . On a covered claim inside the United States, Joova pays the
-            replacement shipping. Misuse, water beyond the stated rating, and
-            unauthorized repair are not covered. Lawyer review is still pending.
-          </p>
-          <p className="mt-3">
-            The free return window is 30 days from delivery, and only in the
-            United States. See the{" "}
-            <Link className="font-medium text-ink underline" href="/returns">
-              returns policy
-            </Link>
-            .
-          </p>
-        </section>
-        <WarrantyForm />
-      </div>
+          {" · "}
+          <Link className="font-bold text-ink underline" href="/contact">
+            {warranty.contactLink}
+          </Link>
+        </p>
+      </section>
+
+      <p className="mt-10 text-sm text-muted">{warranty.footerNote}</p>
     </Container>
   );
 }

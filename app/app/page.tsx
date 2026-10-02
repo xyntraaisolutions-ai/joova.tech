@@ -4,7 +4,7 @@ import { AppPreview } from "@/components/home/app-preview";
 import { PhoneMockup } from "@/components/media/phone-mockup";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
-import { appScreens } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 
 export const metadata: Metadata = {
   title: "The Joova app",
@@ -12,7 +12,8 @@ export const metadata: Metadata = {
     "Every Joova app feature is free. Tracker data is stored by the Joova app and is never sold.",
 };
 
-export default function AppPage() {
+export default async function AppPage() {
+  const { appScreens } = await loadContentBundle();
   return (
     <>
       <Container className="py-10 md:py-16">
@@ -20,7 +21,7 @@ export default function AppPage() {
           className="font-display max-w-3xl font-extrabold"
           style={{ fontSize: "var(--text-h1)" }}
         >
-          APP Download
+          The Joova app
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted">
           The app is included. Your data stays yours.

@@ -1,20 +1,13 @@
 import type { MetadataRoute } from "next";
-import { blogPosts } from "@/content/blog";
-import { SITE_URL } from "@/content/site";
-import { helpArticles } from "@/content/site";
+import { loadContentBundle } from "@/lib/content/load";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = [
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { blogPosts, helpArticles, siteUrl, catalog } = await loadContentBundle();
+  const SITE_URL = siteUrl;
+  const paths = [...new Set([
     "",
     "/shop",
-    "/wishlist",
     "/deals",
-    "/band",
-    "/ring",
-    "/share",
-    "/glasses",
-    "/watch",
-    "/buds",
     "/app",
     "/reviews",
     "/videos",
@@ -31,7 +24,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/terms",
     "/accessibility",
     ...helpArticles.map((article) => `/help/${article.slug}`),
-  ];
+    ...catalog.map((product) => product.href.split("#")[0]).filter((href) => href.startsWith("/") && href !== "/"),
+  ])];
 
   return paths.map((path) => ({
     url: `${SITE_URL}${path}`,

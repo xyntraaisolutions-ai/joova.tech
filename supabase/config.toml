@@ -1,0 +1,19 @@
+project_id = "ivieoxndmgzpqnvroafk"
+
+[functions.send-password-reset]
+verify_jwt = true
+
+[functions.joova-internal]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.start-checkout]
+verify_jwt = true
+
+[functions.write-blog]
+verify_jwt = true
+
+[functions.staff-notify]
+verify_jwt = true

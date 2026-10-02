@@ -19,10 +19,19 @@ export type MockSession = {
 
 export type MockOrderItem = {
   id: string;
+  productId?: string;
   name: string;
   price: number;
   quantity: number;
   color?: string;
+  sku?: string;
+  selection?: {
+    color?: string;
+    type?: string;
+    size?: string;
+    custom?: string;
+    sku?: string;
+  };
 };
 
 export type MockOrder = {
@@ -111,6 +120,12 @@ export async function createUser(input: { name: string; email: string; password:
       createdAt: new Date().toISOString(),
     };
     store.users.push(user);
+    for (const order of store.orders) {
+      if (!order.userId && order.email === email) {
+        order.userId = user.id;
+        order.guest = false;
+      }
+    }
     return { user };
   });
 }
@@ -161,6 +176,13 @@ export async function createOrder(input: {
     createdAt: new Date().toISOString(),
   };
   await updateStore((store) => {
+    if (!order.userId) {
+      const owner = store.users.find((user) => user.email === order.email);
+      if (owner) {
+        order.userId = owner.id;
+        order.guest = false;
+      }
+    }
     store.orders.push(order);
   });
   return order;

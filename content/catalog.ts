@@ -1,3 +1,4 @@
+import type { ProductCoverage } from "@/lib/catalog/coverage";
 import {
   BUDS_PRICE,
   GLASSES_PRICE,
@@ -10,7 +11,6 @@ import {
   PRICE,
   RING_PRICE,
   SHARE_PRICE,
-  STRAP_PRICE,
   glassesImageSize,
   glassesPriceLabel,
   bandImageSize,
@@ -23,7 +23,6 @@ import {
   ringVariants,
   shareImageSize,
   sharePriceLabel,
-  strapPriceLabel,
 } from "@/content/site";
 
 export type CatalogImage = {
@@ -31,6 +30,27 @@ export type CatalogImage = {
   alt: string;
   width: number;
   height: number;
+};
+
+export type CatalogVideo = {
+  src: string;
+  title: string;
+  poster: string;
+};
+
+export type CatalogVariant = {
+  id: string;
+  axis?: "color" | "type" | "size" | "custom";
+  name: string;
+  available?: boolean;
+  pictures: CatalogImage[];
+  videos: CatalogVideo[];
+  color?: string;
+  type?: string;
+  size?: string;
+  custom?: string;
+  sku?: string;
+  labels?: Partial<Record<"color" | "type" | "size" | "custom", string>>;
 };
 
 export type CatalogCategoryId = "wearables" | "devices" | "electronics" | "accessories";
@@ -48,11 +68,33 @@ export type CatalogProduct = {
   summary: string;
   image: CatalogImage;
   pictures: CatalogImage[];
+  sharedPictures?: CatalogImage[];
+  videos?: CatalogVideo[];
+  variants?: CatalogVariant[];
+  defaultVariantId?: string;
   kicker: string;
   lead: string;
   detail: string;
   note: string;
   signals: readonly { label: string; text: string }[];
+  topPick?: boolean;
+  compareAt?: number;
+  compareAtLabel?: string;
+  unpriced?: boolean;
+  sku?: string;
+  model?: string;
+  availability?: "in_stock" | "out_of_stock";
+  availableCount?: number;
+  colors?: { name: string; image?: string }[];
+  warrantyNote?: string;
+  coverage?: ProductCoverage;
+  story?: {
+    specifications: { label: string; value: string }[];
+    inTheBox: string[];
+    compatibility: string;
+    care: string;
+    app: string;
+  };
 };
 
 export const catalogCategories = [
@@ -121,7 +163,7 @@ export const catalog: readonly CatalogProduct[] = [
     kicker: "",
     lead: "Track everything. Pay once.",
     detail:
-      `A screenless band for sleep, heart rate, and activity. Five colors. One extra strap in the box. ${noSubscription}`,
+      `A screenless band for sleep, heart rate, and activity. Five colors. The box includes 1 strap in the color you choose. ${noSubscription}`,
     note: policies.heroLine,
     signals: [
       { label: "Sleep", text: "How long and how well" },
@@ -288,33 +330,6 @@ export const catalog: readonly CatalogProduct[] = [
       { label: "Case", text: "USB-C" },
     ],
   },
-  {
-    id: "straps",
-    name: "Extra woven strap",
-    menuLabel: "Extra straps",
-    href: "/band#straps",
-    category: "accessories",
-    price: STRAP_PRICE,
-    priceLabel: strapPriceLabel,
-    status: "Add-on",
-    summary: "A replacement or extra color. Five colors. The band box already includes two straps.",
-    image: {
-      src: bandVariants[0].image,
-      alt: "Black woven Joova strap with the tracker and silver buckle",
-      width: bandImageSize.width,
-      height: bandImageSize.height,
-    },
-    pictures: bandPictures,
-    kicker: "Accessories",
-    lead: "Extra color, same tracker.",
-    detail: "Choose any of the five colors. The strap you wear and one extra already come in the band box.",
-    note: "",
-    signals: [
-      { label: "Colors", text: "Five colors" },
-      { label: "Price", text: strapPriceLabel },
-      { label: "Warranty", text: "Lifetime, after registration" },
-    ],
-  },
 ];
 
 /**
@@ -352,15 +367,8 @@ export type Deal = {
   detail: string;
   href: string;
   priceLabel: string | null;
+  compareAtLabel: string | null;
+  image: { src: string; alt: string; width: number; height: number } | null;
 };
 
-export const deals: readonly Deal[] = [
-  {
-    id: "extra-straps",
-    title: "Extra woven straps",
-    badge: "Add-on",
-    detail: "Any of the five colors. Add them on the Fitness Band page.",
-    href: "/band#straps",
-    priceLabel: strapPriceLabel,
-  },
-];
+export const deals: readonly Deal[] = [];

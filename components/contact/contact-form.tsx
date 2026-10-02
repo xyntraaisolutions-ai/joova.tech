@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { support } from "@/content/site";
+import { useSiteContent } from "@/components/layout/site-content";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 
 export function ContactForm() {
+  const { support } = useSiteContent();
   const [status, setStatus] = useState<"idle" | "success">("idle");
+  const [error, setError] = useState("");
   const [website, setWebsite] = useState("");
 
   return (
@@ -22,7 +24,7 @@ export function ContactForm() {
 
       <ul className="mt-10 grid gap-4 sm:grid-cols-2">
         {support.channels.map((channel) => (
-          <li key={channel.id} className="rounded-3xl border border-stone p-5">
+          <li key={channel.id} className="rounded-3xl border border-stone bg-white p-5">
             <p className="font-display text-xl font-extrabold">{channel.label}</p>
             <p className="mt-2 text-muted">Reply {channel.reply}.</p>
             {channel.id === "email" && "href" in channel ? (
@@ -41,7 +43,7 @@ export function ContactForm() {
         </p>
       ) : (
         <form
-          className="mt-10 space-y-4"
+          className="mt-10 space-y-4 rounded-3xl border border-stone bg-white p-6"
           onSubmit={(event) => {
             event.preventDefault();
             if (website) return;
@@ -49,9 +51,21 @@ export function ContactForm() {
             const name = String(data.get("name") ?? "");
             const email = String(data.get("email") ?? "");
             const message = String(data.get("message") ?? "");
-            const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
-            window.location.href = `mailto:${support.email}?subject=${encodeURIComponent("Joova support")}&body=${encodeURIComponent(body)}`;
-            setStatus("success");
+            setError("");
+            void fetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, email, message }),
+            })
+              .then((response) => response.json())
+              .then((body: { saved?: boolean }) => {
+                if (body.saved) {
+                  setStatus("success");
+                  return;
+                }
+                setError("The message was not saved.");
+              })
+              .catch(() => setError("The message was not saved."));
           }}
         >
           <h2 className="font-display text-2xl font-extrabold">Send a message</h2>
@@ -59,20 +73,20 @@ export function ContactForm() {
             Fill in the form and submit. We reply within 6 hours.
           </p>
           <label className="block">
-            <span className="text-sm text-muted">Name</span>
+            <span className="text-sm font-medium text-ink">Name</span>
             <Input className="mt-2" name="name" required autoComplete="name" />
           </label>
           <label className="block">
-            <span className="text-sm text-muted">Email</span>
+            <span className="text-sm font-medium text-ink">Email</span>
             <Input className="mt-2" type="email" name="email" required autoComplete="email" />
           </label>
           <label className="block">
-            <span className="text-sm text-muted">Message</span>
+            <span className="text-sm font-medium text-ink">Message</span>
             <textarea
               name="message"
               required
               rows={5}
-              className="mt-2 w-full rounded-2xl border border-stone bg-paper p-4 text-base text-ink"
+              className="mt-2 w-full rounded-2xl border border-stone bg-white p-4 text-[17px] text-ink"
             />
           </label>
           <div className="hidden" aria-hidden>
@@ -86,7 +100,14 @@ export function ContactForm() {
               />
             </label>
           </div>
-          <Button type="submit">Submit</Button>
+          {error ? (
+            <p className="text-sm text-band-red" role="alert">
+              {error} Email{" "}
+              <a className="font-bold text-ink underline" href={`mailto:${support.email}`}>{support.email}</a>{" "}
+              instead.
+            </p>
+          ) : null}
+          <Button type="submit" className="w-full sm:w-fit">Submit</Button>
         </form>
       )}
     </Container>
