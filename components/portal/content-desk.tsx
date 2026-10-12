@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { AppsDesk, type AppsDeskData } from "@/components/portal/apps-desk";
 import { BlogDesk } from "@/components/portal/blog-desk";
 import { ResourceDelete } from "@/components/portal/resource-delete";
 import { WarrantyDesk } from "@/components/portal/warranty-desk";
@@ -26,6 +27,7 @@ type ContentData = {
   nav?: NavRow[];
   payments?: { id: string; label: string; offered?: boolean; deleted_at?: string | null }[];
   stores?: { id: string; label: string; href: string; enabled?: boolean; deleted_at?: string | null }[];
+  apps?: AppsDeskData;
 };
 
 async function save(body: unknown) {
@@ -149,6 +151,10 @@ export function ContentDesk({ section }: { section: string }) {
 
       <Section id="warranty" active={section}>
       <WarrantyDesk />
+      </Section>
+
+      <Section id="apps" active={section}>
+        <AppsDesk apps={data.apps} onDone={() => void load()} onError={setError} />
       </Section>
 
       {pageName ? (

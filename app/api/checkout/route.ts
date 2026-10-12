@@ -63,6 +63,22 @@ export async function POST(request: NextRequest) {
   if (!email) {
     return NextResponse.json({ error: "Sign in, or continue as a guest with your email." }, { status: 401 });
   }
+  if (auth.user) {
+    const profile = await supabase.from("profiles").select("role").eq("id", auth.user.id).maybeSingle();
+    if (profile.data && profile.data.role !== "customer") {
+      return NextResponse.json({
+        code: "internal_account",
+        error: "Please log out of your Joova internal account and sign in as a customer, or check out as a guest. Use an email other than your internal account email.",
+      }, { status: 403 });
+    }
+  }
+  const internalEmail = await supabase.rpc("internal_account_email", { p_email: email });
+  if (!internalEmail.error && internalEmail.data === true) {
+    return NextResponse.json({
+      code: "internal_account",
+      error: "Use an email other than your Joova internal account email.",
+    }, { status: 403 });
+  }
 
   const listed = await supabase.from("products").select("id").eq("published", true).is("deleted_at", null);
   const productIds = (listed.data ?? []).map((product) => product.id);

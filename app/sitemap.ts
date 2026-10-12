@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/shop",
     "/deals",
     "/app",
+    "/apps",
     "/reviews",
     "/videos",
     "/blog",
