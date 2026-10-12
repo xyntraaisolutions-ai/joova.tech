@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AppPreview } from "@/components/home/app-preview";
 import { PhoneMockup } from "@/components/media/phone-mockup";
-import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 import { loadContentBundle } from "@/lib/content/load";
 
@@ -35,10 +34,9 @@ export default async function AppPage() {
           with iOS 15 or later, and Android 9 or later. Store links go live
           after App Store and Google Play approval.
         </p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Badge>App Store (after approval)</Badge>
-          <Badge>Google Play (after approval)</Badge>
-        </div>
+        <p className="mt-6">
+          <Link href="/apps" className="font-bold text-ink underline">Download for the ring or the band</Link>
+        </p>
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {appScreens.map((screen) => (
             <PhoneMockup

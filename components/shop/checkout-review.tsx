@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/layout/auth-provider";
 import { useCart, type CartItem } from "@/components/layout/cart-provider";
+import { InternalCheckoutDialog } from "@/components/shop/internal-checkout-dialog";
 import { PaymentNote } from "@/components/shop/payment-note";
 import { useSiteContent } from "@/components/layout/site-content";
 import { US_STATES } from "@/components/shop/us-states";
@@ -14,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { CoverageLines, useProductCoverage } from "@/components/shop/coverage-lines";
 import { purchaseText } from "@/lib/content/variants";
 import { shippingWindow } from "@/lib/shipping/options";
+import { isRole, isStaff } from "@/lib/portal/roles";
 import { formatUsd } from "@/lib/utils";
 
 type ShipChoice = { code: string; name: string; price: number; minDays: number; maxDays: number };
@@ -108,7 +110,9 @@ export function CheckoutReview() {
   const [promoError, setPromoError] = useState("");
   const [promoStatus, setPromoStatus] = useState<"idle" | "checking" | "applied">("idle");
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [staffCheckout, setStaffCheckout] = useState(false);
   const draftKept = useRef(false);
+  const internal = isRole(user?.role) && isStaff(user.role);
 
   useEffect(() => {
     const draft = readDraft();
@@ -137,6 +141,10 @@ export function CheckoutReview() {
   useEffect(() => {
     if (user?.name) setName((current) => current || user.name);
   }, [user]);
+
+  useEffect(() => {
+    if (ready && internal) setStaffCheckout(true);
+  }, [ready, internal]);
 
   useEffect(() => {
     if (!user) {
@@ -306,6 +314,10 @@ export function CheckoutReview() {
 
   async function pay() {
     if (country !== "US") return;
+    if (internal) {
+      setStaffCheckout(true);
+      return;
+    }
     setError("");
     setPending(true);
     const response = await fetch("/api/checkout", {
@@ -319,9 +331,13 @@ export function CheckoutReview() {
         promoCode,
       }),
     });
-    const body = (await response.json().catch(() => null)) as { url?: string; orderId?: string; token?: string; error?: string } | null;
+    const body = (await response.json().catch(() => null)) as { url?: string; orderId?: string; token?: string; error?: string; code?: string } | null;
     if (!response.ok || !body?.url || !body.orderId || !body.token) {
       setPending(false);
+      if (body?.code === "internal_account" && internal) {
+        setStaffCheckout(true);
+        return;
+      }
       setError(body?.error ?? "Payment could not be started.");
       return;
     }
@@ -351,6 +367,11 @@ export function CheckoutReview() {
       className="grid gap-8 max-md:pb-28 lg:grid-cols-[minmax(0,1fr)_320px]"
       onSubmit={(event) => {
         event.preventDefault();
+        if (internal) {
+          setStaffCheckout(true);
+          return;
+        }
+        if (!event.currentTarget.reportValidity()) return;
         void pay();
       }}
     >
@@ -524,7 +545,8 @@ export function CheckoutReview() {
         <p className="mt-2 text-sm text-muted">{ship ? shippingWindow(ship) : "Choose shipping to see the delivery window."} <Link className="font-bold text-ink underline" href="/cart">Edit cart</Link></p>
         <div className="mt-4"><PaymentNote /></div>
         {error ? <p className="mt-3 text-sm" role="alert">{error}</p> : null}
-        <Button className="mt-4 w-full" type="submit" disabled={country !== "US" || pending || taxPending || !tax || !ship || promoStatus === "checking" || Boolean(promoError)}>{pending ? "Opening secure payment" : "Pay now"}</Button>
+        <Button className="mt-4 w-full" type="submit" disabled={!internal && (country !== "US" || pending || taxPending || !tax || !ship || promoStatus === "checking" || Boolean(promoError))}>{pending ? "Opening secure payment" : "Pay now"}</Button>
+        <InternalCheckoutDialog open={staffCheckout} onOpenChange={setStaffCheckout} />
       </aside>
       <div className="h-0 md:hidden">
         <div
@@ -533,7 +555,7 @@ export function CheckoutReview() {
         >
           <div className="mx-auto flex max-w-[1280px] items-center gap-3">
             <p className="min-w-0 flex-1 font-bold">{formatUsd(orderTotal)}</p>
-            <Button type="submit" disabled={country !== "US" || pending || taxPending || !tax || !ship || promoStatus === "checking" || Boolean(promoError)}>
+            <Button type="submit" disabled={!internal && (country !== "US" || pending || taxPending || !tax || !ship || promoStatus === "checking" || Boolean(promoError))}>
               {pending ? "Opening" : "Pay now"}
             </Button>
           </div>
