@@ -34,6 +34,7 @@ export function AdminDesk() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [auditTotal, setAuditTotal] = useState(0);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   async function load() {
     const response = await fetch("/api/portal/users");
@@ -96,28 +97,42 @@ export function AdminDesk() {
               <UserAccount key={user.id} user={user} onError={setError} onDone={() => void load()} />
             ))}
           </ul>
+          {error ? <p className="mt-4 text-sm" role="alert">{error}</p> : null}
+          {notice ? <p className="mt-4 text-sm" role="status">{notice}</p> : null}
           <form
             className="mt-8 grid gap-3 rounded-3xl bg-white p-4 md:grid-cols-2"
             onSubmit={async (event) => {
               event.preventDefault();
-              const form = new FormData(event.currentTarget);
+              const formElement = event.currentTarget;
+              const form = new FormData(formElement);
+              const name = String(form.get("name") ?? "").trim();
+              const email = String(form.get("email") ?? "").trim();
+              const role = String(form.get("role") ?? "customer");
+              const roleName = roleLabels[role as Role] ?? role;
+              if (!window.confirm(`Create a ${roleName} account for ${name} (${email})?`)) return;
+              setNotice("");
+              setError("");
               const response = await fetch("/api/portal/users", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   action: "create",
-                  name: String(form.get("name") ?? ""),
-                  email: String(form.get("email") ?? ""),
+                  name,
+                  email,
                   password: String(form.get("password") ?? ""),
-                  role: String(form.get("role") ?? "customer"),
+                  role,
                 }),
               });
               const data = (await response.json()) as { error?: string };
-              setError(response.ok ? "" : data.error ?? "The account could not be created.");
-              if (response.ok) {
-                event.currentTarget.reset();
-                void load();
+              if (!response.ok) {
+                setNotice("");
+                setError(data.error ?? "The account could not be created.");
+                return;
               }
+              formElement.reset();
+              setError("");
+              setNotice(`${name} was added.`);
+              void load();
             }}
           >
             <h3 className="font-display text-xl md:col-span-2">Add a user</h3>

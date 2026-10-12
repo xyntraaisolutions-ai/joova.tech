@@ -11,6 +11,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { CatalogProduct, Deal } from "@/content/catalog";
 import type { NavItem } from "@/content/nav";
+import { appsFromRows } from "@/content/apps";
 import { mapBlogPost } from "@/lib/content/blog-map";
 
 type Row = Record<string, unknown>;
@@ -64,6 +65,10 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
       logo,
       sellCountries,
       countryPrices,
+      appPage,
+      appNotes,
+      appCards,
+      appButtons,
     ] = await Promise.all([
       supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
       supabase.from("policies").select("*").eq("id", 1).maybeSingle(),
@@ -89,6 +94,10 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
       supabase.from("brand_logos").select("url, width, height").eq("active", true).maybeSingle(),
       supabase.from("sell_countries").select("code, name, currency").eq("enabled", true).order("name"),
       supabase.from("product_country_prices").select("product_id, country_code, price, sale_price"),
+      supabase.from("app_page").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("app_notes").select("*").order("sort"),
+      supabase.from("app_cards").select("*").order("sort"),
+      supabase.from("app_store_buttons").select("*").order("sort"),
     ]);
 
     if (settings.error || products.error) return base;
@@ -437,6 +446,15 @@ export const loadContentBundle = cache(async (): Promise<ContentBundle> => {
       boxFacts: block(blockRows, "boxFacts", base.boxFacts),
       batteryFacts: block(blockRows, "batteryFacts", base.batteryFacts),
       pageCopy,
+      apps: appPage.error || appCards.error
+        ? base.apps
+        : appsFromRows(
+            (appPage.data ?? null) as Row | null,
+            (appNotes.data ?? []) as Row[],
+            (appCards.data ?? []) as Row[],
+            (appButtons.data ?? []) as Row[],
+            base.apps,
+          ),
     };
   } catch {
     return base;

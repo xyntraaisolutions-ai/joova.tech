@@ -28,6 +28,7 @@ const groups = [
       { id: "page:accessibility", label: "Accessibility" },
       { id: "page:returns", label: "Returns" },
       { id: "page:warranty", label: "Warranty page" },
+      { id: "apps", label: "Apps" },
     ],
   },
   { id: "blogs", label: "Blogs", items: [{ id: "blogs", label: "Blogs" }] },

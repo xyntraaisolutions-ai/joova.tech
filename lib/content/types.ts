@@ -1,3 +1,4 @@
+import type { AppsContent } from "@/content/apps";
 import type { BlogPost } from "@/content/blog";
 import type { NavItem } from "@/content/nav";
 import type { CatalogCategoryId, CatalogProduct, Deal } from "@/content/catalog";
@@ -125,4 +126,5 @@ export type ContentBundle = {
   ringSizes: number[];
   calculatorDefaultMonthly: number;
   pageCopy: PageCopy;
+  apps: AppsContent;
 };

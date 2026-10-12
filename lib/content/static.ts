@@ -1,3 +1,4 @@
+import { appsContent } from "@/content/apps";
 import { blogPosts } from "@/content/blog";
 import { productVideos } from "@/content/videos";
 import { catalog, catalogCategories, deals, featuredProducts } from "@/content/catalog";
@@ -161,6 +162,15 @@ export function staticBundle(): ContentBundle {
       accessibility: { ...pageCopy.accessibility },
       returns: { ...pageCopy.returns },
       warranty: { ...pageCopy.warranty },
+    },
+    apps: {
+      ...appsContent,
+      notes: appsContent.notes.map((note) => ({ ...note })),
+      cards: appsContent.cards.map((card) => ({
+        ...card,
+        steps: [...card.steps],
+        stores: card.stores.map((store) => ({ ...store })),
+      })),
     },
   };
 }

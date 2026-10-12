@@ -381,7 +381,7 @@ export const budsFaqs = [
 export const supportMenu = [
   { href: "/help", label: "FAQs" },
   { href: "/contact", label: "Contact Us" },
-  { href: "/app", label: "APP Download" },
+  { href: "/apps", label: "Apps" },
 ] as const;
 
 export const support = {

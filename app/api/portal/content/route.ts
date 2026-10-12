@@ -6,7 +6,7 @@ export async function GET() {
   const gate = await requirePortalApi(["content", "admin"]);
   if ("error" in gate && gate.error) return gate.error;
   const { session } = gate;
-  const [settings, policies, pages, posts, sections, videos, help, social, channels, links, nav, blocks, reviews, payments, stores, products] =
+  const [settings, policies, pages, posts, sections, videos, help, social, channels, links, nav, blocks, reviews, payments, stores, products, appPage, appNotes, appCards, appButtons] =
     await Promise.all([
       session.supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
       session.supabase.from("policies").select("*").eq("id", 1).maybeSingle(),
@@ -24,6 +24,10 @@ export async function GET() {
       session.supabase.from("payment_methods").select("id, label, offered, deleted_at").order("sort"),
       session.supabase.from("store_links").select("id, label, href, enabled, sort, deleted_at").order("sort"),
       session.supabase.from("products").select("id, name, menu_label").eq("published", true).order("sort"),
+      session.supabase.from("app_page").select("*").eq("id", 1).maybeSingle(),
+      session.supabase.from("app_notes").select("*").order("sort"),
+      session.supabase.from("app_cards").select("*").order("sort"),
+      session.supabase.from("app_store_buttons").select("*").order("sort"),
     ]);
   return NextResponse.json({
     settings: settings.data,
@@ -42,6 +46,12 @@ export async function GET() {
     payments: payments.data ?? [],
     stores: stores.data ?? [],
     products: products.data ?? [],
+    apps: {
+      page: appPage.data,
+      notes: appNotes.data ?? [],
+      cards: appCards.data ?? [],
+      stores: appButtons.data ?? [],
+    },
   });
 }
 
@@ -202,6 +212,48 @@ const saveSchema = z.discriminatedUnion("kind", [
     published: z.boolean(),
     points: z.string().trim().max(2000).optional(),
     bannerAlt: z.string().trim().max(180).optional(),
+  }),
+  z.object({
+    kind: z.literal("appPage"),
+    kicker: z.string().trim().min(1).max(40),
+    title: z.string().trim().min(1).max(80),
+    lead: z.string().trim().min(1).max(400),
+    phoneTitle: z.string().trim().min(1).max(40),
+    phoneCopy: z.string().trim().min(1).max(160),
+    note: z.string().trim().min(1).max(500),
+    includesHref: z.string().trim().min(1).max(300),
+    includesLabel: z.string().trim().min(1).max(80),
+    privacyHref: z.string().trim().min(1).max(300),
+    privacyLabel: z.string().trim().min(1).max(80),
+  }),
+  z.object({
+    kind: z.literal("appNote"),
+    id: z.string().trim().max(40),
+    title: z.string().trim().min(1).max(80),
+    body: z.string().trim().min(1).max(500),
+    hidden: z.boolean(),
+  }),
+  z.object({
+    kind: z.literal("appCard"),
+    id: z.string().trim().min(1).max(40).regex(/^[a-z0-9-]+$/),
+    eyebrow: z.string().trim().max(80),
+    title: z.string().trim().min(1).max(80),
+    lead: z.string().trim().min(1).max(400),
+    href: z.string().trim().min(1).max(300),
+    hrefLabel: z.string().trim().min(1).max(80),
+    steps: z.string().trim().min(1).max(2000),
+    hidden: z.boolean(),
+  }),
+  z.object({
+    kind: z.literal("appStore"),
+    id: z.string().trim().min(1).max(80).regex(/^[a-z0-9-]+$/),
+    cardId: z.string().trim().min(1).max(40).regex(/^[a-z0-9-]+$/),
+    store: z.enum(["google", "apple"]),
+    kicker: z.string().trim().min(1).max(40),
+    label: z.string().trim().min(1).max(40),
+    href: z.string().trim().max(300),
+    iconUrl: z.string().trim().max(500),
+    hidden: z.boolean(),
   }),
 ]);
 
@@ -438,6 +490,98 @@ export async function POST(request: Request) {
     entityId = body.href;
     const result = await session.supabase.from("support_links").update({ label: body.label }).eq("href", body.href);
     error = result.error;
+  } else if (body.kind === "appPage") {
+    entityId = "apps";
+    const links = [body.includesHref, body.privacyHref];
+    if (links.some((href) => !siteLink(href, false))) {
+      return NextResponse.json({ error: "Use a site path or a full https link." }, { status: 400 });
+    }
+    const result = await session.supabase.from("app_page").upsert({
+      id: 1,
+      kicker: body.kicker,
+      title: body.title,
+      lead: body.lead,
+      phone_title: body.phoneTitle,
+      phone_copy: body.phoneCopy,
+      note: body.note,
+      includes_href: body.includesHref,
+      includes_label: body.includesLabel,
+      privacy_href: body.privacyHref,
+      privacy_label: body.privacyLabel,
+    });
+    error = result.error;
+  } else if (body.kind === "appNote") {
+    const id = body.id || slugId(body.title);
+    if (!/^[a-z0-9-]+$/.test(id)) {
+      return NextResponse.json({ error: "The note needs a short name." }, { status: 400 });
+    }
+    entityId = id;
+    const existing = await session.supabase.from("app_notes").select("sort").eq("id", id).maybeSingle();
+    const latestNote = existing.data ? null : await session.supabase.from("app_notes").select("sort").order("sort", { ascending: false }).limit(1);
+    const sort = existing.data?.sort ?? ((latestNote?.data?.[0]?.sort ?? -1) + 1);
+    const result = await session.supabase.from("app_notes").upsert({
+      id,
+      title: body.title,
+      body: body.body,
+      sort,
+      deleted_at: body.hidden ? new Date().toISOString() : null,
+    });
+    error = result.error;
+  } else if (body.kind === "appCard") {
+    entityId = body.id;
+    if (!siteLink(body.href, false)) {
+      return NextResponse.json({ error: "The product link needs a site path or a full https link." }, { status: 400 });
+    }
+    const steps = body.steps.split(/\n+/).map((step) => step.trim()).filter(Boolean).slice(0, 6);
+    if (!steps.length || steps.some((step) => step.length > 240)) {
+      return NextResponse.json({ error: "Add up to six steps, one per line." }, { status: 400 });
+    }
+    const existing = await session.supabase.from("app_cards").select("sort").eq("id", body.id).maybeSingle();
+    const latestCard = existing.data ? null : await session.supabase.from("app_cards").select("sort").order("sort", { ascending: false }).limit(1);
+    const sort = existing.data?.sort ?? ((latestCard?.data?.[0]?.sort ?? -1) + 1);
+    const result = await session.supabase.from("app_cards").upsert({
+      id: body.id,
+      eyebrow: body.eyebrow,
+      title: body.title,
+      lead: body.lead,
+      href: body.href,
+      href_label: body.hrefLabel,
+      steps,
+      sort,
+      deleted_at: body.hidden ? new Date().toISOString() : null,
+    });
+    error = result.error;
+    if (!error && !existing.data) {
+      const buttons = await session.supabase.from("app_store_buttons").select("id").eq("card_id", body.id);
+      if (!buttons.error && (buttons.data ?? []).length === 0) {
+        const seeded = await session.supabase.from("app_store_buttons").insert([
+          { id: `${body.id}-google`, card_id: body.id, store: "google", kicker: "GET IT ON", label: "Google Play", href: "", icon_url: "", sort: 0 },
+          { id: `${body.id}-apple`, card_id: body.id, store: "apple", kicker: "Download on the", label: "App Store", href: "", icon_url: "", sort: 1 },
+        ]);
+        error = seeded.error;
+      }
+    }
+  } else if (body.kind === "appStore") {
+    entityId = body.id;
+    if (!siteLink(body.href, true) || !siteLink(body.iconUrl, true)) {
+      return NextResponse.json({ error: "Use a site path or a full https link. Leave a store link blank to keep the stand-in." }, { status: 400 });
+    }
+    const card = await session.supabase.from("app_cards").select("id").eq("id", body.cardId).maybeSingle();
+    if (!card.data) return NextResponse.json({ error: "Save the product card first." }, { status: 400 });
+    const existing = await session.supabase.from("app_store_buttons").select("sort").eq("id", body.id).maybeSingle();
+    const sort = existing.data?.sort ?? (body.store === "apple" ? 1 : 0);
+    const result = await session.supabase.from("app_store_buttons").upsert({
+      id: body.id,
+      card_id: body.cardId,
+      store: body.store,
+      kicker: body.kicker,
+      label: body.label,
+      href: body.href,
+      icon_url: body.iconUrl,
+      sort,
+      deleted_at: body.hidden ? new Date().toISOString() : null,
+    });
+    error = result.error;
   } else {
     entityId = body.slug;
     const points = body.points?.split(/\n+/).map((point) => point.trim()).filter(Boolean);
@@ -461,4 +605,15 @@ export async function POST(request: Request) {
     p_view_as: viewAs,
   });
   return NextResponse.json({ ok: true });
+}
+
+function siteLink(value: string, allowEmpty: boolean) {
+  if (!value) return allowEmpty;
+  if (value.startsWith("/") && !value.startsWith("//") && !/\s/.test(value)) return true;
+  const parsed = z.url().safeParse(value);
+  return parsed.success && (value.startsWith("https://") || value.startsWith("http://"));
+}
+
+function slugId(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 }
