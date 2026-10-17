@@ -84,6 +84,6 @@ In Supabase, open Edge Functions → Secrets and set the same values the functio
 
 Do not add the service role key to Netlify or to the Next.js app. Pay now calls the `start-checkout` Edge Function with the anon key. That function reads the Stripe secret and writes the order with the service role Supabase injects into the function. The properties-file service role key is only for local setup scripts and `stripe listen` against `/api/stripe/webhook`.
 
-Point the Stripe webhook at `https://ivieoxndmgzpqnvroafk.supabase.co/functions/v1/stripe-webhook`.
+Point the Stripe webhook at `https://esnjnmcvwcmkgziuhegg.supabase.co/functions/v1/stripe-webhook`.
 
 Subscribe that endpoint to `checkout.session.completed` and `checkout.session.expired`. After creating it, copy its `whsec_` value into the `STRIPE_WEBHOOK_SECRET` edge secret. The function reads that secret on each request.

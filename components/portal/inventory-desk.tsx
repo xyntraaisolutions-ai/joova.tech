@@ -1255,9 +1255,9 @@ const productListTabs = [
 ] as const;
 
 const listCopy: Record<ProductListTab, { detail: string; empty: string }> = {
-  active: { detail: "These products are on the website.", empty: "No active products match this search." },
+  active: { detail: "Every product displayed in the website, including any that are out of stock.", empty: "No active products match this search." },
   inactive: { detail: "These products stay in inventory and stay off the shop.", empty: "No inactive products match this search." },
-  out_of_stock: { detail: "These products have no units available for a new order.", empty: "No out of stock products match this search." },
+  out_of_stock: { detail: "These products have no units available for a new order. Active ones still show on the website as out of stock.", empty: "No out of stock products match this search." },
   removed: { detail: "Restore a product to put it back on the website, or delete it permanently.", empty: "No removed products match this search." },
 };
 
@@ -1302,14 +1302,7 @@ function ProductList({
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const matched = products.filter((product) => {
-      const removed = Boolean(product.deleted_at);
-      if (listTab === "removed") return removed;
-      if (removed) return false;
-      const soldOut = isOutOfStock(product, stock);
-      if (listTab === "out_of_stock") return soldOut;
-      if (soldOut) return false;
-      if (listTab === "active" && !product.published) return false;
-      if (listTab === "inactive" && product.published) return false;
+      if (!inProductList(product, stock, listTab)) return false;
       if (categoryId && product.category_id !== categoryId) return false;
       if (!needle) return true;
       const haystack = [product.name, product.sku, product.status, product.summary, categoryName(product.category_id)]
@@ -1679,10 +1672,8 @@ function inProductList(product: Product, stock: Stock[], tab: ProductListTab) {
   const removed = Boolean(product.deleted_at);
   if (tab === "removed") return removed;
   if (removed) return false;
-  const soldOut = isOutOfStock(product, stock);
-  if (tab === "out_of_stock") return soldOut;
-  if (soldOut) return false;
-  if (tab === "active") return Boolean(product.published);
+  if (tab === "out_of_stock") return isOutOfStock(product, stock);
+  if (tab === "active") return displayedOnSite(product);
   return !product.published;
 }
 

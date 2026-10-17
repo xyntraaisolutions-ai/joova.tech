@@ -3,11 +3,15 @@ import { ShopCatalog } from "@/components/shop/shop-catalog";
 import { Container } from "@/components/ui/container";
 import { loadContentBundle } from "@/lib/content/load";
 
-export const metadata: Metadata = {
-  title: "Shop",
-  description:
-    "Shop Joova wearables, smart devices, electronics, and accessories. The Fitness Band, Smart Ring, Joova Watch, Joova Glasses, Joova Buds, and Joova Share Pod are available now.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { catalog } = await loadContentBundle();
+  const names = catalog.map((product) => product.name);
+  const listed = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : names[0];
+  return {
+    title: "Shop",
+    description: listed ? `Shop Joova on the website now: ${listed}.` : "Shop Joova wearables and accessories.",
+  };
+}
 
 export default async function ShopPage({
   searchParams,
